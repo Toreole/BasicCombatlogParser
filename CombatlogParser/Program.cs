@@ -1,2 +1,12 @@
-﻿// See https://aka.ms/new-console-template for more information
-Console.WriteLine("Hello, World!");
+﻿namespace CombatlogParser
+{
+    public class Program
+    {
+        [STAThread]
+        static void Main()
+        {
+            MainWindow window = new();
+            window.ShowDialog();
+        }
+    }
+}

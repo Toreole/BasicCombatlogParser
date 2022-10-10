@@ -19,7 +19,7 @@
         Stormstrike = 9,
         Holystorm = 10,
         Firestorm = 12,
-        Froststrike = 16,
+        Froststrike = 17,
         Holyfrost = 18,
         Frostfire = 20,
         Froststorm = 24,
