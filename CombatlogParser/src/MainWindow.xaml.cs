@@ -50,9 +50,37 @@ namespace CombatlogParser
                                 if(Enum.TryParse(typeof(CombatlogSubevent), sub, out object? se))
                                 {
                                     clevent.SubEvent = (CombatlogSubevent)se!; //if parse has succeeded, it can never be null.
+                                    //increment index once to go past the initial ','
+                                    ++i;
+                                    //sourceGUID and name
+                                    clevent.SourceUID = NextSubstring(ref i);
+                                    clevent.SourceName = NextSubstring(ref i);
+                                    //skip over flags
+                                    NextSubstring(ref i); NextSubstring(ref i);
+                                    //targetGUID and name
+                                    clevent.TargetUID = NextSubstring(ref i);
+                                    clevent.TargetName = NextSubstring(ref i);
+
                                     events.Add(clevent);
                                 }
                             }
+                        }
+
+                        string NextSubstring(ref int startIndex)
+                        {
+                            string sub;
+                            for(int i = startIndex; i < line.Length; i++)
+                            {
+                                if (line[i] == ',' || line[i] == '\n')
+                                {
+                                    sub = line[startIndex..i];
+                                    startIndex = i+1;
+                                    return sub;
+                                }
+                            }
+                            sub = line[startIndex..^1];
+                            startIndex = line.Length;
+                            return sub;
                         }
                     }
 

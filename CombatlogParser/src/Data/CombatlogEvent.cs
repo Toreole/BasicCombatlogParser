@@ -6,7 +6,7 @@
     /// </summary>
     public class CombatlogEvent
     {
-        //the first 10 parameters always exist.
+        //the first 10 parameters always exist - for combat events. other events may differ.
         public string Timestamp { get; set; } = "00/00 00:00:00.000";
         public CombatlogSubevent SubEvent { get; set; } = CombatlogSubevent.UNDEFINED;
         public string SourceUID { get; set; } = "None-0000-00000000";
