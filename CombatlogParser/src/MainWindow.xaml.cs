@@ -41,49 +41,39 @@ namespace CombatlogParser
                             Timestamp = line[..20]
                         };
 
-                        //for now only extract the event type.
-                        for(int i = 20; i < line.Length; i++)
-                        {
-                            if(line[i] == ',')
-                            {
-                                string sub = line[20..i];
-                                if(Enum.TryParse(typeof(CombatlogSubevent), sub, out object? se))
-                                {
-                                    clevent.SubEvent = (CombatlogSubevent)se!; //if parse has succeeded, it can never be null.
-                                    //increment index once to go past the initial ','
-                                    ++i;
-                                    //sourceGUID and name
-                                    clevent.SourceUID = NextSubstring(ref i);
-                                    clevent.SourceName = NextSubstring(ref i);
-                                    //skip over flags
-                                    NextSubstring(ref i); NextSubstring(ref i);
-                                    //targetGUID and name
-                                    clevent.TargetUID = NextSubstring(ref i);
-                                    clevent.TargetName = NextSubstring(ref i);
+                        int i = 20;
+                        string sub = NextSubstring(line, ref i);
 
-                                    events.Add(clevent);
-                                }
-                            }
-                        }
-
-                        string NextSubstring(ref int startIndex)
+                        //try parsing the substring to a CombatlogSubevent.
+                        if (Enum.TryParse(typeof(CombatlogSubevent), sub, out object? se))
                         {
-                            string sub;
-                            for(int i = startIndex; i < line.Length; i++)
-                            {
-                                if (line[i] == ',' || line[i] == '\n')
-                                {
-                                    sub = line[startIndex..i];
-                                    startIndex = i+1;
-                                    return sub;
-                                }
-                            }
-                            sub = line[startIndex..^1];
-                            startIndex = line.Length;
-                            return sub;
+                            //if parse has succeeded, it can never be null.
+                            clevent.SubEvent = (CombatlogSubevent)se!; 
+                                      
+                            //sourceGUID and name
+                            clevent.SourceUID = NextSubstring(line, ref i);
+                            clevent.SourceName = NextSubstring(line, ref i);
+
+                            //skip over flags
+                            NextSubstring(line, ref i); NextSubstring(line, ref i);
+
+                            //targetGUID and name
+                            clevent.TargetUID = NextSubstring(line, ref i);
+                            clevent.TargetName = NextSubstring(line, ref i);
+
+                            //skip over flags for now
+                            NextSubstring(line, ref i); NextSubstring(line, ref i);
+
+                            //at this point Prefix params can be handled (if any)
+
+                            //then follow the advanced combatlog params
+
+                            //lastly, suffix event params.
+
+                            events.Add(clevent);
                         }
                     }
-
+                    //end of read loop
                 }
             }
 
@@ -100,6 +90,24 @@ namespace CombatlogParser
             //    Source = test
             //};
             //HeaderLabel.SetBinding(Label.ContentProperty, binding);
+        }
+
+        //Returns the next substring in the line, and moves the index to the start of the next one.
+        private string NextSubstring(string line, ref int startIndex)
+        {
+            string sub;
+            for (int i = startIndex; i < line.Length; i++)
+            {
+                if (line[i] == ',' || line[i] == '\n')
+                {
+                    sub = line[startIndex..i];
+                    startIndex = i + 1;
+                    return sub;
+                }
+            }
+            sub = "";
+            startIndex = line.Length;
+            return sub;
         }
 
         private ObservableString HeaderLabelText = new("Hello World!");
