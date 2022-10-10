@@ -12,10 +12,10 @@
         <ListView x:Name="CombatLogEventsList" d:ItemsSource="{d:SampleData ItemCount=5}" Margin="0,85,0,0" AutomationProperties.ItemType="CombatlogParser.MainWindow+CombatEvent">
             <ListView.View>
                 <GridView>
-                    <GridViewColumn Header="subEvent" DisplayMemberBinding="{Binding Path=SubEvent}"/>
-                    <GridViewColumn Header="sourceName" DisplayMemberBinding="{Binding Path=SourceName}"/>
-                    <GridViewColumn Header="spellName" DisplayMemberBinding="{Binding Path=SpellName}"/>
-                    <GridViewColumn Header="damage" DisplayMemberBinding="{Binding Path=Damage}"/>
+                    <GridViewColumn Header="Timestamp" DisplayMemberBinding="{Binding Path=Timestamp}"/>
+                    <GridViewColumn Header="Event Type" DisplayMemberBinding="{Binding Path=SubEvent}"/>
+                    <GridViewColumn Header="Source Name" DisplayMemberBinding="{Binding Path=SourceName}"/>
+                    <GridViewColumn Header="Target Name" DisplayMemberBinding="{Binding Path=TargetName}"/>
                 </GridView>
             </ListView.View>
         </ListView>

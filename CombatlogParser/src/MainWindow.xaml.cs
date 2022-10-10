@@ -1,5 +1,7 @@
-﻿using System.Collections.ObjectModel;
+﻿using CombatlogParser.Data;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.IO;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
@@ -26,6 +28,36 @@ namespace CombatlogParser
             //apply the binding to the Label.ContentProperty 
             HeaderLabel.SetBinding(Label.ContentProperty, myBinding);
 
+            using(FileStream file = File.OpenRead("combatlog.txt"))
+            {
+                using (TextReader reader = new StreamReader(file))
+                {
+                    string? line = reader.ReadLine();
+
+                    while ((line = reader.ReadLine()) != null)
+                    {
+                        CombatlogEvent clevent = new()
+                        {
+                            Timestamp = line[..20]
+                        };
+
+                        //for now only extract the event type.
+                        for(int i = 20; i < line.Length; i++)
+                        {
+                            if(line[i] == ',')
+                            {
+                                string sub = line[20..i];
+                                if(Enum.TryParse(typeof(CombatlogSubevent), sub, out object? se))
+                                {
+                                    clevent.SubEvent = (CombatlogSubevent)se!; //if parse has succeeded, it can never be null.
+                                    events.Add(clevent);
+                                }
+                            }
+                        }
+                    }
+
+                }
+            }
 
             var eventsBinding = new Binding()
             {
@@ -43,7 +75,7 @@ namespace CombatlogParser
         }
 
         private ObservableString HeaderLabelText = new("Hello World!");
-        private ObservableCollection<CombatEvent> events = new();
+        private ObservableCollection<CombatlogEvent> events = new();
 
         //private TestCl test = new() { Message = "Test" };
 
@@ -54,69 +86,6 @@ namespace CombatlogParser
             HeaderLabelText.Value = random.Next(1000).ToString();
             //test.Message = "Two";
             events.Add(new());
-        }
-
-
-        //public class TestCl
-        //{
-        //    private string message = "";
-
-        //    public string Message
-        //    {
-        //        get => message;
-        //        set => message = value;
-        //    }
-        //}
-    }
-    public class CombatEvent : INotifyPropertyChanged
-    {
-        private string subEvent = "SPELL_DAMAGE";
-        private string sourceName = "Teherach";
-        private string spellName = "Chain Lightning";
-        private int damage = 3642;
-
-        public string SubEvent
-        {
-            get => subEvent;
-            set
-            {
-                subEvent = value;
-                OnPropertyChanged();
-            }
-        }
-        public string SourceName
-        {
-            get => sourceName;
-            set
-            {
-                sourceName = value;
-                OnPropertyChanged();
-            }
-        }
-        public string SpellName
-        {
-            get => spellName;
-            set
-            {
-                spellName = value;
-                OnPropertyChanged();
-            }
-        }
-        public int Damage
-        {
-            get => damage;
-            set
-            {
-                damage = value;
-                OnPropertyChanged();
-            }
-        }
-
-        public event PropertyChangedEventHandler? PropertyChanged;
-
-        protected void OnPropertyChanged([CallerMemberName] string name = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
         }
     }
 }
