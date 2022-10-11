@@ -54,16 +54,16 @@ namespace CombatlogParser
                             clevent.SourceName = ParsingUtil.NextSubstring(line, ref i);
 
                             //source flags.
-                            clevent.SourceFlags = ParsingUtil.HexStringToUint(ParsingUtil.NextSubstring(line, ref i)); 
-                            clevent.SourceRaidFlags = ParsingUtil.HexStringToUint(ParsingUtil.NextSubstring(line, ref i));
+                            clevent.SourceFlags = (UnitFlag)ParsingUtil.HexStringToUint(ParsingUtil.NextSubstring(line, ref i)); 
+                            clevent.SourceRaidFlags = (RaidFlag)ParsingUtil.HexStringToUint(ParsingUtil.NextSubstring(line, ref i));
 
                             //targetGUID and name
                             clevent.TargetUID = ParsingUtil.NextSubstring(line, ref i);
                             clevent.TargetName = ParsingUtil.NextSubstring(line, ref i);
 
                             //target flags
-                            clevent.TargetFlags = ParsingUtil.HexStringToUint(ParsingUtil.NextSubstring(line, ref i)); 
-                            clevent.TargetRaidFlags = ParsingUtil.HexStringToUint(ParsingUtil.NextSubstring(line, ref i));
+                            clevent.TargetFlags = (UnitFlag)ParsingUtil.HexStringToUint(ParsingUtil.NextSubstring(line, ref i)); 
+                            clevent.TargetRaidFlags = (RaidFlag)ParsingUtil.HexStringToUint(ParsingUtil.NextSubstring(line, ref i));
 
                             //at this point Prefix params can be handled (if any)
                             int prefixAmount = ParsingUtil.GetPrefixParamAmount(cPrefix);
