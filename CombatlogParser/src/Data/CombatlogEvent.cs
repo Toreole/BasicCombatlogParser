@@ -38,6 +38,14 @@
         public object SuffixParam0 => SuffixParams.Length >= 1 ? SuffixParams[0] : "";
         public object SuffixParam1 => SuffixParams.Length >= 2 ? SuffixParams[1] : "";
         public object SuffixParam2 => SuffixParams.Length >= 3 ? SuffixParams[2] : "";
+        public object SuffixParam3 => SuffixParams.Length >= 4 ? SuffixParams[3] : "";
+        public object SuffixParam4 => SuffixParams.Length >= 5 ? SuffixParams[4] : "";
+        public object SuffixParam5 => SuffixParams.Length >= 6 ? SuffixParams[5] : "";
+        public object SuffixParam6 => SuffixParams.Length >= 7 ? SuffixParams[6] : "";
+        public object SuffixParam7 => SuffixParams.Length >= 8 ? SuffixParams[7] : "";
+        public object SuffixParam8 => SuffixParams.Length >= 9 ? SuffixParams[8] : "";
+        public object SuffixParam9 => SuffixParams.Length >= 10 ? SuffixParams[9] : "";
+        public object SuffixParam10 => SuffixParams.Length >= 11 ? SuffixParams[10] : "";
 
         /// <summary>
         /// The advanced combatlog parameters.

@@ -46,16 +46,16 @@
         UNDEFINED = -1,
 
         /// <summary>
-        /// NOTE: in advanced, InfoGUID is SourceGUID
+        /// NOTE: in advanced, InfoGUID is SourceGUID (baseAmount only for SPELL_PERIODIC_DAMAGE / SPELL_DAMAGE / SWING_DAMAGE)
         /// Suffix params:
-        /// amount, overkill, school, resisted, blocked, absorbed, critical, glancing, crushing, isOffHand
+        /// amount, [baseAmount], overkill, school, resisted, blocked, absorbed, critical, glancing, crushing, isOffHand
         /// </summary>
         _DAMAGE,
 
         ///<summary>
-        /// NOTE: only in advanced; InfoGUID is TargetGUID (only used for SWING_DAMAGE_LANDED)
+        /// NOTE: only in advanced; InfoGUID is TargetGUID (only used for SWING_DAMAGE_LANDED) (baseAmount only for SWING_DAMAGE_LANDED)
         /// Suffix params:
-        /// amount, overkill, schoo, resisted, blocked, absorbed, critical, glancing, crushing, isOffHand
+        /// amount, [baseAmount], overkill, schoo, resisted, blocked, absorbed, critical, glancing, crushing, isOffHand
         /// </summary>
         _DAMAGE_LANDED,
 
@@ -66,8 +66,8 @@
         _MISSED,
 
         /// <summary>
-        /// Suffix params:
-        /// amount, overhealing, absorbed, critical
+        /// Suffix params: (baseAmount only for SPELL_PERIODIC_HEAL and SPELL_HEAL)
+        /// amount, [baseAmount], overhealing, absorbed, critical
         /// </summary>
         _HEAL,
 

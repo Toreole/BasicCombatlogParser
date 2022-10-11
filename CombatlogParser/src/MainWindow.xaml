@@ -22,6 +22,14 @@
                     <GridViewColumn Header="Suffix0" DisplayMemberBinding="{Binding Path=SuffixParam0}"/>
                     <GridViewColumn Header="Suffix1" DisplayMemberBinding="{Binding Path=SuffixParam1}"/>
                     <GridViewColumn Header="Suffix2" DisplayMemberBinding="{Binding Path=SuffixParam2}"/>
+                    <GridViewColumn Header="Suffix3" DisplayMemberBinding="{Binding Path=SuffixParam3}"/>
+                    <GridViewColumn Header="Suffix4" DisplayMemberBinding="{Binding Path=SuffixParam4}"/>
+                    <GridViewColumn Header="Suffix5" DisplayMemberBinding="{Binding Path=SuffixParam5}"/>
+                    <GridViewColumn Header="Suffix6" DisplayMemberBinding="{Binding Path=SuffixParam6}"/>
+                    <GridViewColumn Header="Suffix7" DisplayMemberBinding="{Binding Path=SuffixParam7}"/>
+                    <GridViewColumn Header="Suffix8" DisplayMemberBinding="{Binding Path=SuffixParam8}"/>
+                    <GridViewColumn Header="Suffix9" DisplayMemberBinding="{Binding Path=SuffixParam9}"/>
+                    <GridViewColumn Header="Suffix10" DisplayMemberBinding="{Binding Path=SuffixParam10}"/>
                 </GridView>
             </ListView.View>
         </ListView>
