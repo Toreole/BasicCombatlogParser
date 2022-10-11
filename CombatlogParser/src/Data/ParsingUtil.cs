@@ -58,7 +58,6 @@ namespace CombatlogParser.Data
 
                 if (TryParsePrefix(longWord, out prefix))
                 {
-                    int x = 0;
                     if (TryParseSuffix(remainder, out suffix))
                     {
                         return true;
@@ -71,7 +70,6 @@ namespace CombatlogParser.Data
             remainder = subevent[seperatorIndices[0]..^0];
             if (TryParsePrefix(shortWord, out prefix))
             {
-                int x = 0;
                 if (TryParseSuffix(remainder, out suffix))
                 {
                     return true;
@@ -96,7 +94,9 @@ namespace CombatlogParser.Data
             return Enum.TryParse(sub, out suffix);
         }
 
-
+        /// <summary>
+        /// Gets the amount of parameters that are associated with the given prefix.
+        /// </summary>
         public static int GetPrefixParamAmount(CombatlogEventPrefix prefix)
         {
             return prefix switch
@@ -112,6 +112,9 @@ namespace CombatlogParser.Data
             };
         }
 
+        /// <summary>
+        /// Gets the amount of parameters that are associated with the given suffix.
+        /// </summary>
         public static int GetSuffixParamAmount(CombatlogEventSuffix suffix)
         {
             return suffix switch

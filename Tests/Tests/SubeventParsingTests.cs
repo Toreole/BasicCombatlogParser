@@ -79,5 +79,16 @@ namespace CombatlogParser.Tests
                 Assert.Fail("Parse failed.");
             }
         }
+
+        [Test]
+        public void SubeventNonCombat()
+        {
+            string subevent = "ZONE_CHANGED";
+
+            if(ParsingUtil.TryParsePrefixAffixSubevent(subevent, out CombatlogEventPrefix prefix, out CombatlogEventSuffix suffix))
+                Assert.Fail("Allowed invalid combatlog event");
+            else
+                Assert.Pass();
+        }
     }
 }
