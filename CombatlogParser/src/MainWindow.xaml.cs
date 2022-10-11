@@ -72,7 +72,10 @@ namespace CombatlogParser
                                 var prefixParams = new object[prefixAmount];
                                 for (int j = 0; j < prefixAmount; j++)
                                 {
-                                    prefixParams[j] = ParsingUtil.NextSubstring(line, ref i);
+                                    if (j == 2)
+                                        prefixParams[j] = (SpellSchool)ParsingUtil.HexStringToUint(ParsingUtil.NextSubstring(line, ref i));
+                                    else
+                                        prefixParams[j] = ParsingUtil.NextSubstring(line, ref i);
                                 }
                                 clevent.PrefixParams = prefixParams;
                             }
