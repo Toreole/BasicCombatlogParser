@@ -1,5 +1,4 @@
-﻿
-namespace CombatlogParser
+﻿namespace CombatlogParser
 {
     /// <summary>
     /// UnitFlag gives info about the type of unit, and its relation to the players party
