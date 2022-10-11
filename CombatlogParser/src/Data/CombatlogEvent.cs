@@ -4,12 +4,14 @@
     /// Represents a single event in a combatlog. There are many kinds of events that go into the specifics.
     /// This is a somewhat polymorphic class.
     /// </summary>
-    public class CombatlogEvent
+    public class CombatlogEvent : LogEntryBase
     {
         //the first 10 parameters always exist - for combat events. other events may differ.
-        public string Timestamp { get; set; } = "00/00 00:00:00.000";
-        public string SubeventName { get; set; } = "NONE";
-        public CombatlogSubevent SubEvent { get; set; } = CombatlogSubevent.UNDEFINED;
+        public CombatlogEventPrefix SubeventPrefix { get; set; } = CombatlogEventPrefix.UNDEFINED;
+        public CombatlogEventSuffix SubeventSuffix { get; set; } = CombatlogEventSuffix.UNDEFINED;
+
+        public string SubEvent { get => SubeventPrefix.ToString() + SubeventSuffix.ToString(); }
+
         public string SourceUID { get; set; } = "None-0000-00000000";
         public string SourceName { get; set; } = "Unnamed";
         public int SourceFlags { get; set; } = 0x0;
@@ -20,9 +22,14 @@
         public int TargetRaidFlags { get; set; } = 0x0;
 
         /// <summary>
-        /// The parameters specific to the S
+        /// The parameters specific to the Subevents Prefix
         /// </summary>
-        public string[] Params { get; set; } = Array.Empty<string>();
+        public object[] PrefixParams { get; set; } = Array.Empty<object>();
+
+        /// <summary>
+        /// The parameters specific to the Subevents Suffix
+        /// </summary>
+        public object[] SuffixParams { get; set; } = Array.Empty<object>();
 
         /// <summary>
         /// The advanced combatlog parameters.

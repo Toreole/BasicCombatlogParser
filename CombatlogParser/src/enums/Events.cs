@@ -1,19 +1,6 @@
 ﻿namespace CombatlogParser
 {
     /// <summary>
-    /// Outdated subevents.
-    /// </summary>
-    public enum CombatlogSubevent
-    {
-        UNDEFINED = 0,
-        SWING_DAMAGE = 1,
-        SWING_DAMAGE_LANDED = 2,
-
-        SPELL_DAMAGE = 10,
-        SPELL_PERIODIC_DAMAGE = 12,
-    }
-
-    /// <summary>
     /// The prefixes for combat subevents.
     /// </summary>
     public enum CombatlogEventPrefix
@@ -38,7 +25,7 @@
         /// <summary>
         /// prefix params: spellID, spellName, spellSchool
         /// </summary>
-        SPELL_PERIODOC,
+        SPELL_PERIODIC,
 
         /// <summary>
         /// prefix params: spellID, spellName, spellSchool

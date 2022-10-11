@@ -12,5 +12,10 @@
         public bool AdvancedLogEnabled { get; set; } = false;
         public string BuildVersion { get; set; } = "9.2.7";
         public int ProjectID { get; set; } = 1;
+
+        /// <summary>
+        /// All encounters in the log.
+        /// </summary>
+        public EncounterInfo[] Encounters { get; set; } = Array.Empty<EncounterInfo>();
     }
 }

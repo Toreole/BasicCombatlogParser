@@ -1,4 +1,5 @@
-﻿using System.Globalization;
+﻿using CombatlogParser.Data;
+using System.Globalization;
 
 namespace CombatlogParser
 {
@@ -7,12 +8,13 @@ namespace CombatlogParser
         [STAThread]
         static void Main()
         {
-            int x = 0;
-            string b = "0xff";
+            CombatlogEventPrefix prefix;
+            CombatlogEventSuffix suffix;
+            string ev = "SPELL_DAMAGE";
 
-            x = ParseFromHexString(b);
+            bool ok = ParsingUtil.TryParsePrefixAffixSubevent(ev, out prefix, out suffix);
 
-            x++;
+            int x = 1;
 
             MainWindow window = new();
             window.ShowDialog();

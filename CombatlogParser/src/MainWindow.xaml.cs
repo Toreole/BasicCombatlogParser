@@ -1,8 +1,7 @@
 ﻿using CombatlogParser.Data;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.IO;
-using System.Runtime.CompilerServices;
+using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -36,20 +35,20 @@ namespace CombatlogParser
 
                     while ((line = reader.ReadLine()) != null)
                     {
-                        CombatlogEvent clevent = new()
-                        {
-                            Timestamp = line[..20]
-                        };
 
                         int i = 20;
                         string sub = NextSubstring(line, ref i);
 
                         //try parsing the substring to a CombatlogSubevent.
-                        if (Enum.TryParse(typeof(CombatlogSubevent), sub, out object? se))
+                        if(ParsingUtil.TryParsePrefixAffixSubevent(sub, out CombatlogEventPrefix pfx, out CombatlogEventSuffix sfx))
                         {
-                            //if parse has succeeded, it can never be null.
-                            clevent.SubEvent = (CombatlogSubevent)se!; 
-                                      
+                            CombatlogEvent clevent = new()
+                            {
+                                Timestamp = ParsingUtil.StringTimestampToDateTime(line[..18]),
+                                SubeventPrefix = pfx,
+                                SubeventSuffix = sfx
+                            };
+
                             //sourceGUID and name
                             clevent.SourceUID = NextSubstring(line, ref i);
                             clevent.SourceName = NextSubstring(line, ref i);
@@ -115,7 +114,7 @@ namespace CombatlogParser
 
         //private TestCl test = new() { Message = "Test" };
 
-        private Random random = new Random();
+        private Random random = new();
 
         private void RandomizeLabelButton_Click(object sender, RoutedEventArgs e)
         {
