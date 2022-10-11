@@ -60,5 +60,24 @@ namespace CombatlogParser.Tests
                 Assert.Fail("Parse failed.");
             }
         }
+
+        [Test]
+        public void SubeventLong()
+        {
+            string subevent = "SPELL_PERIODIC_AURA_APPLIED";
+
+            if (ParsingUtil.TryParsePrefixAffixSubevent(subevent, out CombatlogEventPrefix prefix, out CombatlogEventSuffix suffix))
+            {
+                Assert.Multiple(() =>
+                {
+                    Assert.That(prefix, Is.EqualTo(CombatlogEventPrefix.SPELL_PERIODIC));
+                    Assert.That(suffix, Is.EqualTo(CombatlogEventSuffix._AURA_APPLIED));
+                });
+            }
+            else
+            {
+                Assert.Fail("Parse failed.");
+            }
+        }
     }
 }

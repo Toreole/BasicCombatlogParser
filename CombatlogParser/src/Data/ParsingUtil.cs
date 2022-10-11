@@ -47,33 +47,37 @@ namespace CombatlogParser.Data
                 }
             }
 
+            string remainder;
             //try to parse the two-word prefixes (SPELL_PERIODIC / SPELL_BUIDLING) 
             //the number of params is the same as just SPELL, but there are fewer prefixes than suffixes
             //so this way should be faster. (as opposed to double checking all suffix)
             if (seperatorCount > 1)
             {
                 string longWord = subevent[0..(seperatorIndices[1])];
+                remainder = subevent[seperatorIndices[1]..^0];
 
                 if (TryParsePrefix(longWord, out prefix))
                 {
-                    if (TryParseSuffix(subevent[seperatorIndices[1]..^0], out suffix))
+                    int x = 0;
+                    if (TryParseSuffix(remainder, out suffix))
                     {
                         return true;
                     }
                 }
             }
             //try to parse one-word prefixes (SPELL / SWING / RANGE / ENVIRONMENTAL)
-            else
+            
+            string shortWord = subevent[0..(seperatorIndices[0])];
+            remainder = subevent[seperatorIndices[0]..^0];
+            if (TryParsePrefix(shortWord, out prefix))
             {
-                string shortWord = subevent[0..(seperatorIndices[0])];
-                if (TryParsePrefix(shortWord, out prefix))
+                int x = 0;
+                if (TryParseSuffix(remainder, out suffix))
                 {
-                    if (TryParseSuffix(subevent[seperatorIndices[0]..^0], out suffix))
-                    {
-                        return true;
-                    }
+                    return true;
                 }
             }
+            
             //default to UNDEFINED when parse fails.
             prefix = CombatlogEventPrefix.UNDEFINED;
             suffix = CombatlogEventSuffix.UNDEFINED;
