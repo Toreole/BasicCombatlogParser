@@ -16,6 +16,12 @@
                     <GridViewColumn Header="Event Type" DisplayMemberBinding="{Binding Path=SubEvent}"/>
                     <GridViewColumn Header="Source Name" DisplayMemberBinding="{Binding Path=SourceName}"/>
                     <GridViewColumn Header="Target Name" DisplayMemberBinding="{Binding Path=TargetName}"/>
+                    <GridViewColumn Header="Prefix0" DisplayMemberBinding="{Binding Path=PrefixParam0}"/>
+                    <GridViewColumn Header="Prefix1" DisplayMemberBinding="{Binding Path=PrefixParam1}"/>
+                    <GridViewColumn Header="Prefix2" DisplayMemberBinding="{Binding Path=PrefixParam2}"/>
+                    <GridViewColumn Header="Suffix0" DisplayMemberBinding="{Binding Path=SuffixParam0}"/>
+                    <GridViewColumn Header="Suffix1" DisplayMemberBinding="{Binding Path=SuffixParam1}"/>
+                    <GridViewColumn Header="Suffix2" DisplayMemberBinding="{Binding Path=SuffixParam2}"/>
                 </GridView>
             </ListView.View>
         </ListView>

@@ -1,5 +1,6 @@
 ﻿namespace CombatlogParser
 {
+    [Flags]
     public enum SpellSchool
     {
         UNDEFINED = 0,

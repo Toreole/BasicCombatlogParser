@@ -37,37 +37,69 @@ namespace CombatlogParser
                     {
 
                         int i = 20;
-                        string sub = NextSubstring(line, ref i);
+                        string sub = ParsingUtil.NextSubstring(line, ref i);
 
                         //try parsing the substring to a CombatlogSubevent.
-                        if(ParsingUtil.TryParsePrefixAffixSubevent(sub, out CombatlogEventPrefix pfx, out CombatlogEventSuffix sfx))
+                        if(ParsingUtil.TryParsePrefixAffixSubevent(sub, out CombatlogEventPrefix cPrefix, out CombatlogEventSuffix cSuffix))
                         {
                             CombatlogEvent clevent = new()
                             {
                                 Timestamp = ParsingUtil.StringTimestampToDateTime(line[..18]),
-                                SubeventPrefix = pfx,
-                                SubeventSuffix = sfx
+                                SubeventPrefix = cPrefix,
+                                SubeventSuffix = cSuffix
                             };
 
                             //sourceGUID and name
-                            clevent.SourceUID = NextSubstring(line, ref i);
-                            clevent.SourceName = NextSubstring(line, ref i);
+                            clevent.SourceUID = ParsingUtil.NextSubstring(line, ref i);
+                            clevent.SourceName = ParsingUtil.NextSubstring(line, ref i);
 
-                            //skip over flags
-                            NextSubstring(line, ref i); NextSubstring(line, ref i);
+                            //source flags.
+                            clevent.SourceFlags = ParsingUtil.HexStringToUint(ParsingUtil.NextSubstring(line, ref i)); 
+                            clevent.SourceRaidFlags = ParsingUtil.HexStringToUint(ParsingUtil.NextSubstring(line, ref i));
 
                             //targetGUID and name
-                            clevent.TargetUID = NextSubstring(line, ref i);
-                            clevent.TargetName = NextSubstring(line, ref i);
+                            clevent.TargetUID = ParsingUtil.NextSubstring(line, ref i);
+                            clevent.TargetName = ParsingUtil.NextSubstring(line, ref i);
 
-                            //skip over flags for now
-                            NextSubstring(line, ref i); NextSubstring(line, ref i);
+                            //target flags
+                            clevent.TargetFlags = ParsingUtil.HexStringToUint(ParsingUtil.NextSubstring(line, ref i)); 
+                            clevent.TargetRaidFlags = ParsingUtil.HexStringToUint(ParsingUtil.NextSubstring(line, ref i));
 
                             //at this point Prefix params can be handled (if any)
+                            int prefixAmount = ParsingUtil.GetPrefixParamAmount(cPrefix);
+                            if (prefixAmount > 0)
+                            {
+                                var prefixParams = new object[prefixAmount];
+                                for (int j = 0; j < prefixAmount; j++)
+                                {
+                                    prefixParams[j] = ParsingUtil.NextSubstring(line, ref i);
+                                }
+                                clevent.PrefixParams = prefixParams;
+                            }
 
                             //then follow the advanced combatlog params
+                            //watch out! not all events have the advanced params!
+                            if(ParsingUtil.SubeventContainsAdvancedParams(cSuffix))
+                            {
+                                var advancedParams = new string[17];
+                                for(int j = 0; j < 17; j++)
+                                {
+                                    advancedParams[j] = ParsingUtil.NextSubstring(line, ref i);
+                                }
+                                clevent.AdvancedParams = advancedParams;
+                            }
 
                             //lastly, suffix event params.
+                            int suffixAmount = ParsingUtil.GetSuffixParamAmount(cSuffix);
+                            if(suffixAmount > 0)
+                            {
+                                var suffixParams = new object[suffixAmount];
+                                for(int j = 0; j < suffixAmount; j++)
+                                {
+                                    suffixParams[j] = ParsingUtil.NextSubstring(line, ref i);
+                                }
+                                clevent.SuffixParams = suffixParams;
+                            }
 
                             events.Add(clevent);
                         }
@@ -89,24 +121,6 @@ namespace CombatlogParser
             //    Source = test
             //};
             //HeaderLabel.SetBinding(Label.ContentProperty, binding);
-        }
-
-        //Returns the next substring in the line, and moves the index to the start of the next one.
-        private string NextSubstring(string line, ref int startIndex)
-        {
-            string sub;
-            for (int i = startIndex; i < line.Length; i++)
-            {
-                if (line[i] == ',' || line[i] == '\n')
-                {
-                    sub = line[startIndex..i];
-                    startIndex = i + 1;
-                    return sub;
-                }
-            }
-            sub = "";
-            startIndex = line.Length;
-            return sub;
         }
 
         private ObservableString HeaderLabelText = new("Hello World!");

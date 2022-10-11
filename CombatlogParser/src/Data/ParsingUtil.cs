@@ -120,6 +120,7 @@ namespace CombatlogParser.Data
             return suffix switch
             {
                 CombatlogEventSuffix._DAMAGE => 10,
+                CombatlogEventSuffix._DAMAGE_LANDED => 10,
                 CombatlogEventSuffix._MISSED => 4,
                 CombatlogEventSuffix._HEAL => 4,
                 CombatlogEventSuffix._HEAL_ABSORBED => 9,
@@ -150,6 +151,56 @@ namespace CombatlogParser.Data
                 CombatlogEventSuffix._RESURRECT => 0,
                 _ => 0
             };
+        }
+
+        /// <summary>
+        /// Acts as a sort of lookup table for which subevents (by suffix) contain advanced params.
+        /// Lists only those that have been observed to have them, all others by default are false.
+        /// </summary>
+        /// <param name="suffix"></param>
+        /// <returns></returns>
+        public static bool SubeventContainsAdvancedParams(CombatlogEventSuffix suffix)
+        {
+            return suffix switch
+            {
+                CombatlogEventSuffix._DAMAGE => true,
+                CombatlogEventSuffix._DAMAGE_LANDED => true,
+                CombatlogEventSuffix._CAST_SUCCESS => true,
+                _ => false
+            };
+        }
+
+        /// <summary>
+        /// Marches ahead in the string, dividing it into several substrings on demand,
+        /// use when deemed more comfortable than string.Split.
+        /// Always checks for linebreak character.
+        /// </summary>
+        /// <param name="line"></param>
+        /// <param name="startIndex"></param>
+        /// <returns></returns>
+        public static string NextSubstring(string line, ref int startIndex, char divisor = ',')
+        {
+            string sub;
+            for (int i = startIndex; i < line.Length; i++)
+            {
+                //check for divisor, linebreak
+                if (line[i] == divisor || line[i] == '\n') 
+                {
+                    sub = line[startIndex..i];
+                    startIndex = i + 1;
+                    return sub;
+                }
+                //end of string
+                if(i == line.Length-1)
+                {
+                    sub = line[startIndex..line.Length];
+                    startIndex = line.Length;
+                    return sub;
+                }
+            }
+            sub = "";
+            startIndex = line.Length;
+            return sub;
         }
     }
 }

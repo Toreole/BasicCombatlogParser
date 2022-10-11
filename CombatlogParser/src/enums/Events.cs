@@ -46,10 +46,18 @@
         UNDEFINED = -1,
 
         /// <summary>
+        /// NOTE: in advanced, InfoGUID is SourceGUID
         /// Suffix params:
         /// amount, overkill, school, resisted, blocked, absorbed, critical, glancing, crushing, isOffHand
         /// </summary>
         _DAMAGE,
+
+        ///<summary>
+        /// NOTE: only in advanced; InfoGUID is TargetGUID (only used for SWING_DAMAGE_LANDED)
+        /// Suffix params:
+        /// amount, overkill, schoo, resisted, blocked, absorbed, critical, glancing, crushing, isOffHand
+        /// </summary>
+        _DAMAGE_LANDED,
 
         /// <summary>
         /// Suffix params:
