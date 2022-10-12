@@ -7,7 +7,7 @@
     {
 
         //These values can be found at the start of the file.
-        public string LogStartTimestamp { get; set; } = "00/00 00:00:00.000";
+        public DateTime LogStartTimestamp { get; set; }
         public int CombatlogVersion { get; set; } = 19;
         public bool AdvancedLogEnabled { get; set; } = false;
         public string BuildVersion { get; set; } = "9.2.7";

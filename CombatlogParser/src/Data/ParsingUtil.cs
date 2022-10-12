@@ -172,7 +172,7 @@ namespace CombatlogParser.Data
 
         /// <summary>
         /// Marches ahead in the string, dividing it into several substrings on demand,
-        /// use when deemed more comfortable than string.Split.
+        /// very useful for seperating data for combatlog events.
         /// Always checks for linebreak character.
         /// </summary>
         /// <param name="line"></param>
@@ -183,8 +183,8 @@ namespace CombatlogParser.Data
             string sub;
             for (int i = startIndex; i < line.Length; i++)
             {
-                //check for divisor, linebreak
-                if (line[i] == divisor || line[i] == '\n') 
+                //check for divisor, linebreak. if the divisor (,) is followed by a space, its part of a name and should be skipped.
+                if (line[i] == divisor && (i+1 < line.Length && line[i+1] != ' ') || line[i] == '\n') 
                 {
                     sub = line[startIndex..i];
                     startIndex = i + 1;
@@ -201,6 +201,22 @@ namespace CombatlogParser.Data
             sub = "";
             startIndex = line.Length;
             return sub;
+        }
+
+        /// <summary>
+        /// Advances the index beyond the next divisor (divisorIndex+1)
+        /// </summary>
+        public static void MovePastNextDivisor(string line, ref int startIndex, char divisor = ',')
+        {
+            for(int i = startIndex; i < line.Length; i++)
+            {
+                if (line[i]==divisor && (i + 1 < line.Length && line[i + 1] != ' ') || line[i] == '\n')
+                {
+                    startIndex = i + 1;
+                    return;
+                }
+            }
+            startIndex = line.Length;
         }
 
         public static bool HasFlagf(this UnitFlag flags, UnitFlag comp)

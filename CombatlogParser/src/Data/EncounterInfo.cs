@@ -13,6 +13,21 @@
         public uint EncounterID { get; set; }
 
         /// <summary>
+        /// The difficulty of the encounter. see https://wowpedia.fandom.com/wiki/DifficultyID 
+        /// </summary>
+        public int DifficultyID { get; set; }
+
+        /// <summary>
+        /// The size of the group involved in the encounter.
+        /// </summary>
+        public int GroupSize { get; set; }
+
+        /// <summary>
+        /// ID if the instance the encounter is in. https://wowpedia.fandom.com/wiki/InstanceID
+        /// </summary>
+        public uint InstanceID { get; set; }
+
+        /// <summary>
         /// The timestamp of the ENCOUNTER_START event
         /// </summary>
         public DateTime EncounterStartTime { get; set; }
@@ -51,10 +66,14 @@
             foreach(CombatlogEvent ev in CombatlogEvents)
             {
                 foreach (var filter in filters)
-                    if (!filter.Match(ev))
-                        continue;
+                {
+                    if (filter.Match(ev) == false)
+                        goto nextOuter; //skip to end of outer foreach. continue doesnt work here
+                }
                 matchingEvents[matchingCount] = ev;
                 matchingCount++;
+            nextOuter:
+                continue;
             }
             return matchingEvents[0..matchingCount];
         }

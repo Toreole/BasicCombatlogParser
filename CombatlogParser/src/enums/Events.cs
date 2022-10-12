@@ -278,7 +278,7 @@
         /// <summary>
         /// recapID, [unconsciousOnDeath]
         /// </summary>
-        UNIT_DISSPATES,
+        UNIT_DISSIPATES,
 
         /// <summary>
         /// encounterID, encounterName, difficultyID, groupSize, instanceID
