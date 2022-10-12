@@ -137,7 +137,7 @@
         }
         public bool Match(CombatlogEvent ev)
         {
-            return ev.SourceFlags.HasFlagf(flags);
+            return (ev.SourceFlags & flags) == flags;
         }
     }
 }

@@ -45,6 +45,7 @@
                             <GridView>
                                 <GridViewColumn Header="Timestamp" DisplayMemberBinding="{Binding Path=Timestamp}"/>
                                 <GridViewColumn Header="Source Name" DisplayMemberBinding="{Binding Path=SourceName}"/>
+                                <GridViewColumn Header="Source Flags" DisplayMemberBinding="{Binding Path=SourceFlags}"/>
                                 <GridViewColumn Header="Target Name" DisplayMemberBinding="{Binding Path=TargetName}"/>
                                 <GridViewColumn Header="Spell" DisplayMemberBinding="{Binding Path=PrefixParam1}"/>
                                 <GridViewColumn Header="School" DisplayMemberBinding="{Binding Path=PrefixParam2}" />

@@ -31,7 +31,11 @@ namespace CombatlogParser
 
             if(combatlog.Encounters.Length > 1)
             {
-                damageEvents = new(combatlog.Encounters[1].AllEventsThatMatch(SubeventFilter.DamageEvents));
+                //filter out damage done by players.
+                damageEvents = new(combatlog.Encounters[1].AllEventsThatMatch(
+                    SubeventFilter.DamageEvents,
+                    new SourceFlagFilter(UnitFlag.COMBATLOG_OBJECT_CONTROL_PLAYER)
+                    ));
             }
 
             var dmgEventsBinding = new Binding()
