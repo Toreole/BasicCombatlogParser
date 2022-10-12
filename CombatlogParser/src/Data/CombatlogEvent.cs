@@ -12,11 +12,11 @@
 
         public string SubEvent { get => SubeventPrefix.ToString() + SubeventSuffix.ToString(); }
 
-        public string SourceUID { get; set; } = "None-0000-00000000";
+        public string SourceGUID { get; set; } = "None-0000-00000000";
         public string SourceName { get; set; } = "Unnamed";
         public UnitFlag SourceFlags { get; set; } = 0x0;
         public RaidFlag SourceRaidFlags { get; set; } = 0x0;
-        public string TargetUID { get; set; } = "None-0000-00000000";
+        public string TargetGUID { get; set; } = "None-0000-00000000";
         public string TargetName { get; set; } = "Unnamed";
         public UnitFlag TargetFlags { get; set; } = 0x0;
         public RaidFlag TargetRaidFlags { get; set; } = 0x0;

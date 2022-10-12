@@ -9,7 +9,7 @@ namespace CombatlogParser
     /// <summary>
     /// Less informational flags, more the targets of the raid markers.
     /// </summary>
-    [Flags]
+    //technically not a flag because a unit can only have one raid target at a time.
     public enum RaidFlag : uint
     {
         None = 0,

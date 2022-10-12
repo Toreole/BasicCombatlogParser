@@ -202,5 +202,14 @@ namespace CombatlogParser.Data
             startIndex = line.Length;
             return sub;
         }
+
+        public static bool HasFlagf(this UnitFlag flags, UnitFlag comp)
+        {
+            return (flags & comp) == comp;
+        }
+        public static bool HasFlagf(this RaidFlag flags, RaidFlag comp)
+        {
+            return (flags & comp) == comp;
+        }
     }
 }

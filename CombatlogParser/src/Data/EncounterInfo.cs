@@ -31,5 +31,32 @@
         /// Size of the PlayerInfo[] is given by ENCOUNTER_START, followed by the data from COMBATANT_INFO
         /// </summary>
         public PlayerInfo[] Players { get; set; } = Array.Empty<PlayerInfo>();
+
+        /// <summary>
+        /// All combatlog events during the encounter.
+        /// </summary>
+        public CombatlogEvent[] CombatlogEvents { get; set; } = Array.Empty<CombatlogEvent>();
+
+        /// <summary>
+        /// Gets all events that match the provided filters.
+        /// </summary>
+        /// <exception cref="ArgumentException">filters must not be empty</exception>
+        public CombatlogEvent[] AllEventsThatMatch(params IEventFilter[] filters)
+        {
+            if (filters.Length == 0)
+                throw new ArgumentException("argument 'filters' must not be empty.");
+            //make the match too big at first 
+            CombatlogEvent[] matchingEvents = new CombatlogEvent[CombatlogEvents.Length];
+            int matchingCount = 0;
+            foreach(CombatlogEvent ev in CombatlogEvents)
+            {
+                foreach (var filter in filters)
+                    if (!filter.Match(ev))
+                        continue;
+                matchingEvents[matchingCount] = ev;
+                matchingCount++;
+            }
+            return matchingEvents[0..matchingCount];
+        }
     }
 }

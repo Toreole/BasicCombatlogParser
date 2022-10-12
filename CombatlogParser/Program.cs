@@ -1,7 +1,4 @@
-﻿using CombatlogParser.Data;
-using System.Globalization;
-
-namespace CombatlogParser
+﻿namespace CombatlogParser
 {
     public class Program
     {
