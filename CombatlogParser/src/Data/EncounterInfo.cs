@@ -33,6 +33,11 @@
         public DateTime EncounterStartTime { get; set; }
 
         /// <summary>
+        /// The timestamp of ENCOUNTER_END
+        /// </summary>
+        public DateTime EncounterEndTime { get; set; }
+
+        /// <summary>
         /// The duration of the encounter in milliseconds, provided by ENCOUNTER_END
         /// </summary>
         public uint EncounterDuration { get; set; }

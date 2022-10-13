@@ -93,6 +93,17 @@ namespace CombatlogParser.Data
                         //trim the encounterEvents list, and assign it as array to the currentEncounter.
                         encounterEvents.TrimExcess();
                         currentEncounter.CombatlogEvents = encounterEvents.ToArray();
+                        currentEncounter.EncounterEndTime = clevent.Timestamp;
+
+                        //double check events from the end of the list, to eliminate any that arent within the encounter.
+                        for (int x = encounterEvents.Count - 1; x > 0; x--)
+                        {
+                            if (encounterEvents[x].Timestamp < currentEncounter.EncounterEndTime) //naive implementation
+                            {
+                                encounterEvents.RemoveRange(x + 1, encounterEvents.Count - x - 1);
+                                break;
+                            }
+                        }
                         //clear it for re-use.
                         encounterEvents.Clear();
                         //add the finished encounter to the list of encounters.
@@ -107,14 +118,24 @@ namespace CombatlogParser.Data
                     //UNIT_DESTROYED: whatGUID, name, flag, flag, GUID, name, flag, flag, unconscious? <- for pets (ghouls for example)
                 }
                 //try parsing the substring to a CombatlogSubevent.
-                else if (currentEncounter != null && ParsingUtil.TryParsePrefixAffixSubevent(sub, out CombatlogEventPrefix cPrefix, out CombatlogEventSuffix cSuffix))
+                else if (currentEncounter != null && 
+                    clevent.Timestamp > currentEncounter.EncounterStartTime && //only include events that happen *after* start of encounter.
+                    ParsingUtil.TryParsePrefixAffixSubevent(sub, out CombatlogEventPrefix cPrefix, out CombatlogEventSuffix cSuffix))
                 {
                     clevent.SubeventPrefix = cPrefix;
                     clevent.SubeventSuffix = cSuffix;
 
                     //sourceGUID and name
                     clevent.SourceGUID = ParsingUtil.NextSubstring(line, ref i);
-                    clevent.SourceName = ParsingUtil.NextSubstring(line, ref i);
+                    if (clevent.SubeventPrefix == CombatlogEventPrefix.ENVIRONMENTAL || clevent.SourceGUID == "0000000000000000")
+                    {
+                        clevent.SourceName = "Environment";
+                        ParsingUtil.MovePastNextDivisor(line, ref i);
+                    }
+                    else
+                    {
+                        clevent.SourceName = ParsingUtil.NextSubstring(line, ref i);
+                    }
 
                     //source flags.
                     clevent.SourceFlags = (UnitFlag)ParsingUtil.HexStringToUint(ParsingUtil.NextSubstring(line, ref i));
