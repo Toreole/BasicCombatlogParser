@@ -8,7 +8,7 @@
         Title="MainWindow" Height="450" Width="1100">
     <Grid>
         <Label x:Name="HeaderLabel" Content="Combatlog Viewer" HorizontalAlignment="Left" VerticalAlignment="Top" FontSize="20" FontWeight="Bold" Margin="10,10,0,0"/>
-        
+
         <TabControl Margin="0,76,0,0">
             <TabItem Header="All Events">
                 <Grid Background="#FFE5E5E5">
@@ -57,5 +57,6 @@
                 </Grid>
             </TabItem>
         </TabControl>
+        <ComboBox x:Name="EncounterSelection" HorizontalAlignment="Left" Margin="220,21,0,0" VerticalAlignment="Top" Width="330"/>
     </Grid>
 </Window>

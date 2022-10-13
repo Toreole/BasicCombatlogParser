@@ -27,16 +27,13 @@ namespace CombatlogParser
             HeaderLabel.SetBinding(Label.ContentProperty, myBinding);
 
             //try reading a large combatlog into a full Combatlog object.
-            Combatlog combatlog = CombatLogParser.ReadCombatlogFile("combatlogLarge.txt");
+            currentCombatlog = CombatLogParser.ReadCombatlogFile("combatlogLarge.txt");
 
-            if(combatlog.Encounters.Length > 1)
+            for(int i = 0; i < currentCombatlog.Encounters.Length; i++)
             {
-                //filter out damage done by players.
-                damageEvents = new(combatlog.Encounters[1].AllEventsThatMatch(
-                    SubeventFilter.DamageEvents,
-                    new SourceFlagFilter(UnitFlag.COMBATLOG_OBJECT_TYPE_PLAYER)
-                    ));
+                EncounterSelection.Items.Add($"{currentCombatlog.Encounters[i].EncounterName} : {i} - ({ParsingUtil.MillisecondsToReadableTimeString(currentCombatlog.Encounters[i].EncounterDuration)})");
             }
+            EncounterSelection.SelectionChanged += OnEncounterChanged;
 
             var dmgEventsBinding = new Binding()
             {
@@ -59,7 +56,19 @@ namespace CombatlogParser
             //HeaderLabel.SetBinding(Label.ContentProperty, binding);
         }
 
+        private void OnEncounterChanged(object sender, SelectionChangedEventArgs e)
+        {
+            int index = EncounterSelection.SelectedIndex;
+            damageEvents.Clear();
 
+            var de = currentCombatlog.Encounters[index].AllEventsThatMatch(
+                SubeventFilter.DamageEvents
+            );
+            foreach (var d in de)
+                damageEvents.Add(d);
+        }
+
+        private Combatlog currentCombatlog;
         public string HeaderLabelText => "Hello World!";
         private ObservableCollection<CombatlogEvent> events = new();
         private ObservableCollection<CombatlogEvent> damageEvents = new();

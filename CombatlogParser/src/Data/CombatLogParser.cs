@@ -71,6 +71,8 @@ namespace CombatlogParser.Data
                     //encounter start.
                     if(miscEvent == CombatlogMiscEvents.ENCOUNTER_START)
                     {
+                        //clear it in here aswell just to make sure.
+                        encounterEvents.Clear();
                         currentEncounter = new()
                         {
                             EncounterStartTime = clevent.Timestamp,
@@ -143,7 +145,7 @@ namespace CombatlogParser.Data
 
                     //then follow the advanced combatlog params
                     //watch out! not all events have the advanced params!
-                    if (ParsingUtil.SubeventContainsAdvancedParams(cSuffix))
+                    if (combatlog.AdvancedLogEnabled && ParsingUtil.SubeventContainsAdvancedParams(cSuffix))
                     {
                         var advancedParams = new string[17];
                         for (int j = 0; j < 17; j++)
