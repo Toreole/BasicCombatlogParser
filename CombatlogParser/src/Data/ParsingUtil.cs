@@ -172,7 +172,7 @@ namespace CombatlogParser.Data
 
         /// <summary>
         /// Marches ahead in the string, dividing it into several substrings on demand,
-        /// very useful for seperating data for combatlog events.
+        /// very useful for seperating data for combatlog events. Extracts "Word" from "\"Word\""
         /// Always checks for linebreak character.
         /// </summary>
         /// <param name="line"></param>
@@ -181,10 +181,31 @@ namespace CombatlogParser.Data
         public static string NextSubstring(string line, ref int startIndex, char divisor = ',')
         {
             string sub;
+            bool insideQuotations = false;
             for (int i = startIndex; i < line.Length; i++)
             {
-                //check for divisor, linebreak. if the divisor (,) is followed by a space, its part of a name and should be skipped.
-                if (line[i] == divisor && (i+1 < line.Length && line[i+1] != ' ') || line[i] == '\n') 
+                char c = line[i];
+                //check for quotation start/end
+                //this allows names (which are always in quotations) to include commas (,)
+                if(c == '"')
+                {
+                    //quotations end. extract the string insde, move index past next divisor
+                    if (insideQuotations)
+                    {
+                        sub = line[startIndex..i];
+                        startIndex = i;
+                        MovePastNextDivisor(line, ref startIndex, divisor);
+                        return sub;
+                    }
+                    else //start quotations. adjust startIndex
+                    {
+                        insideQuotations = true;
+                        startIndex = i + 1;
+                        continue;
+                    }
+                }
+                //check for divisor, linebreak. (only outside of quotations)
+                if (!insideQuotations && c == divisor && i+1 < line.Length || line[i] == '\n') 
                 {
                     sub = line[startIndex..i];
                     startIndex = i + 1;
@@ -210,7 +231,7 @@ namespace CombatlogParser.Data
         {
             for(int i = startIndex; i < line.Length; i++)
             {
-                if (line[i]==divisor && (i + 1 < line.Length && line[i + 1] != ' ') || line[i] == '\n')
+                if (line[i]==divisor && i + 1 < line.Length || line[i] == '\n')
                 {
                     startIndex = i + 1;
                     return;

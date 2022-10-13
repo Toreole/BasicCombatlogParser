@@ -34,7 +34,7 @@ namespace CombatlogParser
                 //filter out damage done by players.
                 damageEvents = new(combatlog.Encounters[1].AllEventsThatMatch(
                     SubeventFilter.DamageEvents,
-                    new SourceFlagFilter(UnitFlag.COMBATLOG_OBJECT_CONTROL_PLAYER)
+                    new SourceFlagFilter(UnitFlag.COMBATLOG_OBJECT_TYPE_PLAYER)
                     ));
             }
 
