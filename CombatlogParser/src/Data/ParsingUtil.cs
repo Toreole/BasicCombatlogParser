@@ -273,7 +273,7 @@ namespace CombatlogParser.Data
             minutes = minutes >= 60 ? 0 : minutes;
 
             return includeMillis ?
-                  $"{minutes}:{seconds:00}.{milliseconds:000}"
+                  $"{minutes}:{seconds:00}.{remMil:000}"
                 : $"{minutes}:{seconds:00}";
         }
     }
