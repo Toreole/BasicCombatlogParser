@@ -103,6 +103,32 @@ namespace CombatlogParser
                         TotalDamage = uint.Parse((string)absorbEvent.SuffixParam2)
                     };
             }
+
+            //NOTES FOR PETS:
+            //
+            // HUNTER pets have swing_damage events, that actually DO show the GUID of the hunter as the owner.
+            // example:
+            // 10/12 19:54:04.757  SWING_DAMAGE,
+            // Pet-0-3061-2450-11519-165189-010195110A,"Unbekannt",0x1114,0x0,
+            // Creature-0-3061-2450-11519-176523-000046FD80,"Leidensschmied Raznal",0x10a48,0x0,
+            //
+            // Pet-0-3061-2450-11519-165189-010195110A,Player-3391-068AB778, <- advancedParam[1]
+            // 76609,76609,1791,1791,2788,0,2,120,120,0,390.53,-1226.02,2000,5.2754,301,
+            //
+            // 1047,678,-1,1,0,0,0,1,nil,nil <- _DAMAGE suffix params
+            //
+            // WARLOCK pets have spell_cast_success events that show the warlock GUID as owner.
+            // example: 
+            // 10/12 20:04:19.569  SPELL_CAST_SUCCESS,Creature-0-3061-2450-11519-135002-000047019D,"Dämonischer Tyrann",0x2114,0x0,
+            // Creature-0-3061-2450-11519-176523-0000470046,"Leidensschmied Raznal",0xa48,0x0,
+            //
+            // 270481,"Dämonenfeuer",0x24, <- SPELL prefix params
+            //
+            // Creature-0-3061-2450-11519-135002-000047019D,Player-3391-094DCD7D, <- advancedParam[1]
+            // 50950,50950,2958,2958,2368,0,3,100,100,0,404.75,-1234.59,2000,5.7194,300
+            //
+
+
             //divide damage to calculate DPS across the encounter.
             float encounterSeconds = currentCombatlog.Encounters[index].LengthInSeconds;
             foreach(var dmgsum in damageSumDict.Values)
