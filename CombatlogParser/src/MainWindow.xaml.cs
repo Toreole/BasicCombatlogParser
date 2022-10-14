@@ -16,22 +16,16 @@ namespace CombatlogParser
         {
             InitializeComponent();
 
-            //create a binding with the path pointing towards "Value" (which is a property of the ObservableString)
-            var myBinding = new Binding("HeaderLabelText")
-            {
-                //the Source needs to implement INotifyPropertyChanged to notify of changes (its all event based)
-                Source = this
-            };
-
             //apply the binding to the Label.ContentProperty 
-            HeaderLabel.SetBinding(Label.ContentProperty, myBinding);
+            HeaderLabel.Content = "Combatlogs";
 
             //try reading a large combatlog into a full Combatlog object.
             currentCombatlog = CombatLogParser.ReadCombatlogFile("combatlogLarge.txt");
 
             for(int i = 0; i < currentCombatlog.Encounters.Length; i++)
             {
-                EncounterSelection.Items.Add($"{currentCombatlog.Encounters[i].EncounterName} : {i} - ({ParsingUtil.MillisecondsToReadableTimeString(currentCombatlog.Encounters[i].EncounterDuration)})");
+                var enc = currentCombatlog.Encounters[i];
+                EncounterSelection.Items.Add($"{i}:{enc.EncounterName}: {(enc.EncounterSuccess? "Kill" : "Wipe")}  - ({ParsingUtil.MillisecondsToReadableTimeString(enc.EncounterDuration)})");
             }
             EncounterSelection.SelectionChanged += OnEncounterChanged;
 
@@ -47,6 +41,11 @@ namespace CombatlogParser
             };
             CombatLogEventsList.SetBinding(ListView.ItemsSourceProperty, eventsBinding);
 
+            var dmgBreakdownBinding = new Binding()
+            {
+                Source = damageSummaries
+            };
+            DmgPerSourceList.SetBinding(ListView.ItemsSourceProperty, dmgBreakdownBinding);
             //This bit works for initializing the Content to "Test", but it will not receive updates, as
             //the class does not implement INotifyPropertyChanged 
             //var binding = new Binding("Message")
@@ -62,16 +61,66 @@ namespace CombatlogParser
             damageEvents.Clear();
 
             var de = currentCombatlog.Encounters[index].AllEventsThatMatch(
-                SubeventFilter.DamageEvents
+                SubeventFilter.DamageEvents,
+                new TargetFlagFilter(UnitFlag.COMBATLOG_OBJECT_REACTION_HOSTILE | UnitFlag.COMBATLOG_OBJECT_TYPE_NPC),
+                new SourceFlagFilter(UnitFlag.COMBATLOG_OBJECT_AFFILIATION_RAID)
             );
             foreach (var d in de)
                 damageEvents.Add(d);
+
+            damageSumDict.Clear();
+            damageSummaries.Clear();
+
+            foreach(var dmgevent in de)
+            {
+                //add to existing data
+                if (damageSumDict.TryGetValue(dmgevent.SourceGUID, out DamageSummary? sum))
+                {
+                    sum.TotalDamage += uint.Parse((string)dmgevent.SuffixParam0);
+                }
+                else //create new sum
+                {
+                    damageSumDict[dmgevent.SourceGUID] = new()
+                    {
+                        SourceName = dmgevent.SourceName,
+                        TotalDamage = uint.Parse((string)dmgevent.SuffixParam0)
+                    };
+                }
+            }
+            //add up all damage done to absorb shields on enemies.
+            foreach(CombatlogEvent absorbEvent in currentCombatlog.Encounters[index].AllEventsThatMatch(
+                MissTypeFilter.Absorbed,
+                new TargetFlagFilter(UnitFlag.COMBATLOG_OBJECT_REACTION_HOSTILE | UnitFlag.COMBATLOG_OBJECT_TYPE_NPC),
+                new SourceFlagFilter(UnitFlag.COMBATLOG_OBJECT_AFFILIATION_RAID)
+                ))
+            {
+                if (damageSumDict.TryGetValue(absorbEvent.SourceGUID, out DamageSummary? sum))
+                    sum.TotalDamage += uint.Parse((string)absorbEvent.SuffixParam2);
+                else
+                    damageSumDict[absorbEvent.SourceGUID] = new()
+                    {
+                        SourceName = absorbEvent.SourceName,
+                        TotalDamage = uint.Parse((string)absorbEvent.SuffixParam2)
+                    };
+            }
+            //divide damage to calculate DPS across the encounter.
+            float encounterSeconds = currentCombatlog.Encounters[index].LengthInSeconds;
+            foreach(var dmgsum in damageSumDict.Values)
+            {
+                dmgsum.DPS = dmgsum.TotalDamage / encounterSeconds;
+                damageSummaries.Add(dmgsum);
+            }
         }
 
         private Combatlog currentCombatlog;
-        public string HeaderLabelText => "Hello World!";
         private ObservableCollection<CombatlogEvent> events = new();
         private ObservableCollection<CombatlogEvent> damageEvents = new();
+
+        //TODO: assign pets to owners, process damage accordingly
+        private Dictionary<string, string> petToOwnerGUID = new();
+
+        private Dictionary<string, DamageSummary> damageSumDict = new();
+        private ObservableCollection<DamageSummary> damageSummaries = new();
 
         //private TestCl test = new() { Message = "Test" };
 

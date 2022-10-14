@@ -61,7 +61,7 @@
 
         /// <summary>
         /// Suffix params:
-        /// missType, isOffHand, amountMissed, critical
+        /// missType, isOffHand, amountMissed, baseAmount, critical
         /// </summary>
         _MISSED,
 
@@ -73,13 +73,16 @@
 
         /// <summary>
         /// Suffix params:
-        /// extraGUID, extraName, extraFlags, extraRaidFlags, extraSpellID, extraSpellName, extraSchoo, absorbedAmount, totalAmount
+        /// extraGUID, extraName, extraFlags, extraRaidFlags, extraSpellID, extraSpellName, extraSchool, absorbedAmount, totalAmount
         /// </summary>
         _HEAL_ABSORBED,
 
         /// <summary>
-        /// Suffix params:
-        /// [NONE]
+        /// DEPENDS ON CONTEXT:
+        /// SPELLS: use SPELL *prefix* params
+        /// SWINGS: dont have any prefix params. <br/>
+        /// Suffix:
+        /// casterGUID, casterName, casterFlags, casterRaidFlags, absorbSpellID, absorbSpellName, absorbSpellSchool, amount, totalAmount, critical
         /// </summary>
         _ABSORBED,
 

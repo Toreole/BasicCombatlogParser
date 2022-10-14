@@ -121,7 +121,7 @@ namespace CombatlogParser.Data
             {
                 CombatlogEventSuffix._DAMAGE => 10,
                 CombatlogEventSuffix._DAMAGE_LANDED => 10,
-                CombatlogEventSuffix._MISSED => 4,
+                CombatlogEventSuffix._MISSED => 5, //actually 5, since the logfiles also include baseDamage after damage
                 CombatlogEventSuffix._HEAL => 4,
                 CombatlogEventSuffix._HEAL_ABSORBED => 9,
                 CombatlogEventSuffix._ABSORBED => 0,

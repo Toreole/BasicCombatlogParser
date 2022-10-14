@@ -21,6 +21,8 @@
         public UnitFlag TargetFlags { get; set; } = 0x0;
         public RaidFlag TargetRaidFlags { get; set; } = 0x0;
 
+        public bool IsSourcePet => SourceFlags.HasFlagf(UnitFlag.COMBATLOG_OBJECT_TYPE_PET);
+
         /// <summary>
         /// The parameters specific to the Subevents Prefix
         /// </summary>

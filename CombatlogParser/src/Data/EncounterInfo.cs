@@ -58,6 +58,14 @@
         public CombatlogEvent[] CombatlogEvents { get; set; } = Array.Empty<CombatlogEvent>();
 
         /// <summary>
+        /// The duration of the encounter in seconds. Used for DPS calculation.
+        /// </summary>
+        public float LengthInSeconds
+        {
+            get => EncounterDuration / 1000;
+        }
+
+        /// <summary>
         /// Gets all events that match the provided filters.
         /// </summary>
         /// <exception cref="ArgumentException">filters must not be empty</exception>
