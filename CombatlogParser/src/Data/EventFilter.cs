@@ -99,6 +99,18 @@
             allowedSuffixes = new[] { CombatlogEventSuffix._MISSED },
             anySuffix = false
         };
+
+        /// <summary>
+        /// SPELL_SUMMON
+        /// </summary>
+        public static readonly SubeventFilter SummonEvents = new()
+        {
+            allowedPrefixes = new[] { CombatlogEventPrefix.SPELL },
+            anyPrefix = false,
+
+            allowedSuffixes = new[] { CombatlogEventSuffix._SUMMON },
+            anySuffix = false
+        };
     }
 
     /// <summary>
