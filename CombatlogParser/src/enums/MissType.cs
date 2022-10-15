@@ -7,6 +7,8 @@
         MISS,
         PARRY,
         IMMUNE,
-        DODGE
+        DODGE,
+        DEFLECT,
+        EVADE
     }
 }
