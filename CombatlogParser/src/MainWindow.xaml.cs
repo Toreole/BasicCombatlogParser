@@ -86,11 +86,11 @@ namespace CombatlogParser
             damageSummaries.Clear();
             petToOwnerGUID.Clear();
 
-            //register all pets in the events.
+            //register all pets that were summoned during the encounter.
             foreach(CombatlogEvent summonEvent in encounter.AllEventsThatMatch(SubeventFilter.SummonEvents))
             {
                 //pets are the target, source is the summoning player.
-                petToOwnerGUID[summonEvent.TargetGUID] = summonEvent.SourceGUID;
+                petToOwnerGUID.Add(summonEvent.TargetGUID, summonEvent.SourceGUID);
             }
 
             //sort out the damage events.
@@ -133,14 +133,13 @@ namespace CombatlogParser
                 new SourceFlagFilter(UnitFlag.COMBATLOG_OBJECT_AFFILIATION_RAID)
                 ))
             {
-                string sourceGUID = absorbEvent.SourceGUID;
-                if (petToOwnerGUID.TryGetValue(sourceGUID, out string? ownerGUID))
-                    sourceGUID = ownerGUID;
+                if (petToOwnerGUID.TryGetValue(absorbEvent.SourceGUID, out string? sourceGUID) == false)
+                    sourceGUID = absorbEvent.SourceGUID;
 
-                if (damageSumDict.TryGetValue(absorbEvent.SourceGUID, out DamageSummary? sum))
+                if (damageSumDict.TryGetValue(sourceGUID, out DamageSummary? sum))
                     sum.TotalDamage += uint.Parse((string)absorbEvent.SuffixParam2);
                 else
-                    damageSumDict[absorbEvent.SourceGUID] = new()
+                    damageSumDict[sourceGUID] = new()
                     {
                         SourceName = absorbEvent.SourceName,
                         TotalDamage = uint.Parse((string)absorbEvent.SuffixParam2)
