@@ -111,6 +111,18 @@
             allowedSuffixes = new[] { CombatlogEventSuffix._SUMMON },
             anySuffix = false
         };
+
+        /// <summary>
+        /// SPELL_CAST_SUCCESS
+        /// </summary>
+        public static readonly SubeventFilter CastSuccessEvents = new()
+        {
+            allowedPrefixes = new[] { CombatlogEventPrefix.SPELL },
+            anyPrefix = false,
+
+            allowedSuffixes = new[] { CombatlogEventSuffix._CAST_SUCCESS },
+            anySuffix = false
+        };
     }
 
     /// <summary>
@@ -221,6 +233,19 @@
             if (filters.Length == 0)
                 throw new ArgumentException("filters[] must not have a length of 0.");
             this.filters = filters;
+        }
+    }
+
+    /// <summary>
+    /// Inverts the result of another filter.
+    /// </summary>
+    public sealed class NotFilter : IEventFilter
+    {
+        private readonly IEventFilter filter;
+        public bool Match(CombatlogEvent ev) => !filter.Match(ev);
+        public NotFilter(IEventFilter filter)
+        {
+            this.filter = filter;
         }
     }
 }

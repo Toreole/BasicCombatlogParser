@@ -90,7 +90,26 @@ namespace CombatlogParser
             foreach(CombatlogEvent summonEvent in encounter.AllEventsThatMatch(SubeventFilter.SummonEvents))
             {
                 //pets are the target, source is the summoning player.
-                petToOwnerGUID.Add(summonEvent.TargetGUID, summonEvent.SourceGUID);
+                petToOwnerGUID.Add(summonEvent.TargetGUID, summonEvent.SourceGUID); //no check needed here, dictionary is guaranteed to be empty.
+                if(damageSumDict.ContainsKey(summonEvent.SourceGUID) == false)
+                    damageSumDict.Add(summonEvent.SourceGUID, new DamageSummary()
+                    {
+                        SourceName = summonEvent.SourceName
+                    });
+            }
+            //accessing advanced params, therefore need to check if advanced logging is enabled.
+            if (currentCombatlog.AdvancedLogEnabled)
+            {
+                //register all pets that had some form of cast_success
+                foreach (CombatlogEvent castEvent in encounter.AllEventsThatMatch(
+                    SubeventFilter.CastSuccessEvents, //SPELL_CAST_SUCCESS
+                    new NotFilter(new SourceFlagFilter(UnitFlag.COMBATLOG_OBJECT_TYPE_PLAYER)), //Guardians / pets / NPCs 
+                    new NotFilter(new SourceFlagFilter(UnitFlag.COMBATLOG_OBJECT_REACTION_HOSTILE)) //allied guardians/pets are never hostile.
+                ))
+                {
+                    if (petToOwnerGUID.ContainsKey(castEvent.SourceGUID) == false) //dont add duplicates of course.
+                        petToOwnerGUID.Add(castEvent.SourceGUID, castEvent.AdvancedParams[1]);
+                }
             }
 
             //sort out the damage events.
@@ -126,6 +145,7 @@ namespace CombatlogParser
                 }
             }
 
+            /* skipping this bit for now.
             //add up all damage done to absorb shields on enemies.
             foreach(CombatlogEvent absorbEvent in currentCombatlog.Encounters[index].AllEventsThatMatch(
                 MissTypeFilter.Absorbed,
@@ -144,7 +164,7 @@ namespace CombatlogParser
                         SourceName = absorbEvent.SourceName,
                         TotalDamage = uint.Parse((string)absorbEvent.SuffixParam2)
                     };
-            }
+            }*/
 
             //NOTES FOR PETS:
             //
@@ -159,6 +179,7 @@ namespace CombatlogParser
             //
             // 1047,678,-1,1,0,0,0,1,nil,nil <- _DAMAGE suffix params
             //
+            // (the below is also true for guardians that are part of trinkets or other bonus effects)
             // WARLOCK pets have spell_cast_success events that show the warlock GUID as owner.
             // example: 
             // 10/12 20:04:19.569  SPELL_CAST_SUCCESS,Creature-0-3061-2450-11519-135002-000047019D,"Dämonischer Tyrann",0x2114,0x0,
@@ -169,17 +190,15 @@ namespace CombatlogParser
             // Creature-0-3061-2450-11519-135002-000047019D,Player-3391-094DCD7D, <- advancedParam[1]
             // 50950,50950,2958,2958,2368,0,3,100,100,0,404.75,-1234.59,2000,5.7194,300
             //
-            // Demo / Enhance / Shadow "pets" are specified in SPELL_SUMMON
+            // Demo / Enhance / Shadow "pets" are specified in SPELL_SUMMON  (this is implemented now!)
             // Permanent pets are the most difficult part of this (hunter pets, warlock perma pets)
             // in the case of SPELL_SUMMON targetGUID is the pet's GUID
-            //
-            // NEW PROBLEM
-            // Hunter pets have the OBJECT_TYPE_PET flag, but warlock summons do not. they are treated as NPCs or Guardians
 
-
+            List<DamageSummary> sums = new List<DamageSummary>(damageSumDict.Values);
+            sums.Sort((x, y) => x.TotalDamage > y.TotalDamage ? -1 : 1);
             //divide damage to calculate DPS across the encounter.
             float encounterSeconds = currentCombatlog.Encounters[index].LengthInSeconds;
-            foreach(var dmgsum in damageSumDict.Values)
+            foreach(var dmgsum in sums)
             {
                 dmgsum.DPS = dmgsum.TotalDamage / encounterSeconds;
                 damageSummaries.Add(dmgsum);
