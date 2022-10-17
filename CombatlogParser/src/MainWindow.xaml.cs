@@ -86,18 +86,31 @@ namespace CombatlogParser
             damageSummaries.Clear();
             petToOwnerGUID.Clear();
 
-            //register all pets that were summoned during the encounter.
+            //1. Populate the damageSumDict with all unique players.
+            foreach(CombatlogEvent anyEvent in encounter.CombatlogEvents)
+            {
+                //only add unique player GUIDs
+                if(anyEvent.SourceFlags.HasFlagf(UnitFlag.COMBATLOG_OBJECT_TYPE_PLAYER) && damageSumDict.ContainsKey(anyEvent.SourceGUID) == false)
+                {
+                    damageSumDict.Add(anyEvent.SourceGUID, new()
+                    {
+                        SourceName = anyEvent.SourceName
+                    });
+                    //stop this foreach once 
+                    if (damageSumDict.Count == encounter.GroupSize)
+                        break;
+                }
+            }
+
+            //2. register all pets that were summoned during the encounter.
             foreach(CombatlogEvent summonEvent in encounter.AllEventsThatMatch(SubeventFilter.SummonEvents))
             {
                 //pets are the target, source is the summoning player.
-                petToOwnerGUID.Add(summonEvent.TargetGUID, summonEvent.SourceGUID); //no check needed here, dictionary is guaranteed to be empty.
-                if(damageSumDict.ContainsKey(summonEvent.SourceGUID) == false)
-                    damageSumDict.Add(summonEvent.SourceGUID, new DamageSummary()
-                    {
-                        SourceName = summonEvent.SourceName
-                    });
+                //no check needed here, dictionary is guaranteed to be empty. 
+                //summon events only happen once per unit summoned
+                petToOwnerGUID.Add(summonEvent.TargetGUID, summonEvent.SourceGUID); 
             }
-            //accessing advanced params, therefore need to check if advanced logging is enabled.
+            //3. accessing advanced params, therefore need to check if advanced logging is enabled.
             if (currentCombatlog.AdvancedLogEnabled)
             {
                 //register all pets that had some form of cast_success
@@ -112,7 +125,7 @@ namespace CombatlogParser
                 }
             }
 
-            //sort out the damage events.
+            //4. sort out the damage events.
             foreach(var dmgevent in filteredDamageEvents)
             {
                 string sourceGUID = dmgevent.SourceGUID;
@@ -139,7 +152,7 @@ namespace CombatlogParser
                 {
                     damageSumDict[sourceGUID] = new()
                     {
-                        SourceName = dmgevent.SourceName,
+                        SourceName = dmgevent.SourceName, //--NOTE: This sometimes still adds a summary with the Pets name. Which is bad.
                         TotalDamage = uint.Parse((string)dmgevent.SuffixParam0)
                     };
                 }
