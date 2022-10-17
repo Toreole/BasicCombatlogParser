@@ -1,0 +1,24 @@
+// This text document lays out some rough concepts and structures for later implementation.
+
+<meta data>
+  #settings ig
+  //the general settings for the handling of data
+    + logsSource (string: wow/version/logs directory path)
+    + logsFolder (string: absolute path for where to store imported logs)
+
+  #combatlog meta data
+  //combatlog meta data is the first thing created when parsing a complete file.
+    + encounters (own encounterMetaData[])
+    + file (string: full file path of combatlog)
+    + isAdvanced (bool)
+
+  #encounter meta data
+    + start event index (ulong: position in filestream)
+    + involvedPlayers (ref playerMetaData[])
+
+  #player meta data
+  //player data is extracted from individual logs. this is very basic.
+    + GUID (string)
+    + name (string)
+    + realm (string)
+    + class?
