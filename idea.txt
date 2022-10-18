@@ -17,22 +17,33 @@
 
 
 <<<meta data>>>
-//this is part of the database storage, or at least related in a way.
-//aka this is permanently stored on the drive.
-
+//this is part of the database storage
 
   #combatlog meta data
   //combatlog meta data is the first thing created when parsing a complete file.
     + encounters (ref encounterMetaData[])
     + file (string: full file path of combatlog)
     + isAdvanced (bool)
+    + timeStamp (string or ulong)
+    + buildVersion (string)
+    + uid (uint: unique id for this log)
 
   #encounter meta data
-    + sourceLog (ref combatlog)
+    + logUID (ref combatlog->uid)
+    + uid (uint: unique id of this specific encounter)
     + start event index (ulong: position in filestream)
-    + encounterID (uint)
+    + encounterID (uint: id of the encounter in the game)
     + (encountername) (string)
-    + involvedPlayers (ref playerMetaData[])
+
+  #playerPerformance
+  //performance of a player in an encounter.
+    + performanceID (autoincrement uint)
+    + playerGUID (string)
+    + encounterUID (encounter->uid) 
+    + dps (ulong)
+    + hps (ulong)
+    + roleid (byte)
+    + spec (byte)
 
   #player meta data
   //player data is extracted from individual logs. this is very basic.
