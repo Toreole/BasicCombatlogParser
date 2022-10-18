@@ -1,19 +1,37 @@
 // This text document lays out some rough concepts and structures for later implementation.
 
-<meta data>
+// reference:
+// [<<<name>>>] indicates a section, grouping of elements
+// [#name]      indicates the name of a data type
+// [//text]     indicates descriptions
+// [+ name (typeName: description)] indicates a member field
+// [ref]        indicates that the field refers to another element
+// [own]        indicates that the field fully belongs to this element
+
+<<<config>>>
+
   #settings ig
   //the general settings for the handling of data
     + logsSource (string: wow/version/logs directory path)
     + logsFolder (string: absolute path for where to store imported logs)
 
+
+<<<meta data>>>
+//this is part of the database storage, or at least related in a way.
+//aka this is permanently stored on the drive.
+
+
   #combatlog meta data
   //combatlog meta data is the first thing created when parsing a complete file.
-    + encounters (own encounterMetaData[])
+    + encounters (ref encounterMetaData[])
     + file (string: full file path of combatlog)
     + isAdvanced (bool)
 
   #encounter meta data
+    + sourceLog (ref combatlog)
     + start event index (ulong: position in filestream)
+    + encounterID (uint)
+    + (encountername) (string)
     + involvedPlayers (ref playerMetaData[])
 
   #player meta data
@@ -21,4 +39,38 @@
     + GUID (string)
     + name (string)
     + realm (string)
+    + occurenceCount (uint, times the player appears in logs)
+    + occurences (ref combatlog[])
     + class?
+
+<<<parsed data>>>
+//this data is temporary, only exists while looking at specific things in a combatlog.
+//this data is automatically parsed from a combatlog when importing, then the corresponding meta data is created.
+
+  #EncounterInfo
+  //info about an encounter as per the combatlog data. Parts of this overlap with encounterMetaData
+    + encounter ID (uint)
+    + success (bool)
+    + difficulty (int)
+    + groupSize (int)
+    + startTime (DateTime)
+    + endTime (DateTime)
+    + duration (uint)
+    + players (own PlayerInfo[])
+    + allEvents (LogEntryBase)
+    + CombatEvents (own CombatlogEvent[])
+    + OtherEvents (own MisclogEvent[])
+
+  #PlayerInfo
+  //The info about specific players in an encounter as seen in COMBATANT_INFO events.
+    + Stats 
+    + Equipment
+    + Talents
+    + Traits
+    + Auras
+
+  #CombatlogEvent 
+  //standard combatlog events, relating to damage, casts, healing, etc.
+
+  #MisclogEvent
+  //all non-standard events, such as deaths

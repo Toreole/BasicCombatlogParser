@@ -9,4 +9,10 @@
     <UseWPF>True</UseWPF>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Data.Sqlite.Core" Version="6.0.10" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="6.0.10" />
+    <PackageReference Include="SQLite" Version="3.13.0" />
+  </ItemGroup>
+
 </Project>
