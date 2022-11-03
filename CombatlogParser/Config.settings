@@ -1,0 +1,15 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="CombatlogParser.src" GeneratedClassName="Config">
+  <Profiles />
+  <Settings>
+    <Setting Name="WoW_Log_Directories" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="Local_Log_Directory" Type="System.String" Scope="User">
+      <Value Profile="(Default)">/Imported_Logs/</Value>
+    </Setting>
+    <Setting Name="AppVersion" Type="System.String" Scope="User">
+      <Value Profile="(Default)">0.1.0a</Value>
+    </Setting>
+  </Settings>
+</SettingsFile>

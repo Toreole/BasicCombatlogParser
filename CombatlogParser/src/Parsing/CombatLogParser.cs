@@ -1,15 +1,63 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.IO.Packaging;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.IO;
+using System.Text.RegularExpressions;
+using CombatlogParser.Data;
+using CombatlogParser.Data.MetaData;
 
-namespace CombatlogParser.Data
+namespace CombatlogParser
 {
     public static class CombatLogParser
     {
+        public static void Import(string filePath)
+        {
+            using FileStream fileStream = File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
+            long position = fileStream.Position; //should be 0 here. or well the start of the file at least.
+
+            //just the name of the file.
+            string fileName = Path.GetFileName(filePath);
+
+            //create a text reader for the file
+            using TextReader reader = new StreamReader(fileStream);
+
+            string line = reader.ReadLine()!;
+
+            //the metadata for the entire file
+            CombatlogMetadata logMetadata = new();
+            {
+                Regex regex = new("([A-Z0-9._ /: ]+)");
+                var matches = regex.Matches(line);
+                //logMetadata.logVersion = int.Parse(matches[1].Value);
+                logMetadata.isAdvanced   = matches[3].Value == "1";
+                logMetadata.buildVersion = matches[5].Value;
+                logMetadata.projectID    = (WowProjectID)int.Parse(matches[7].Value);
+                logMetadata.fileName     = fileName;
+
+                DateTime dtTimestamp = ParsingUtil.StringTimestampToDateTime(line[..18]);
+                DateTimeOffset offset = new(dtTimestamp);
+                logMetadata.msTimeStamp = offset.ToUnixTimeMilliseconds();
+            }
+
+
+
+
+            Task<string> task = ReadFrom(0, filePath);
+            task.Start();
+            task.GetAwaiter().GetResult();
+        }
+
+        //NOTE: I wonder if i should split each encounter into a seperate file, rather than keeping them all connected hmmm...
+
+        private async static Task<string> ReadFrom(long startPosition, string fileName)
+        {
+            //every reader needs its own filestream.
+            using FileStream fileStream = File.Open(fileName, FileMode.Open, FileAccess.Read, FileShare.Read);
+            //offset the stream
+            fileStream.Position = startPosition;
+            using TextReader reader = new StreamReader(fileStream);
+            Task<string?> x = reader.ReadLineAsync();
+            await x;
+            return x.Result!;
+        }
+
         public static Combatlog ReadCombatlogFile(string fileName)
         {
             if (File.Exists(fileName) == false)

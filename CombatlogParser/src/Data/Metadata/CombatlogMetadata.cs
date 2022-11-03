@@ -3,7 +3,8 @@
     public sealed class CombatlogMetadata
     {
         /// <summary>
-        /// unique ID (incrementing int) for easier referencing from other data.
+        /// unique ID (incrementing int) for easier referencing from other data. <br />
+        /// This is set by the DB. changes will not affect this.
         /// </summary>
         public uint uID;
         /// <summary>
@@ -17,10 +18,14 @@
         /// <summary>
         /// the unix milliseconds timestamp for the start of the log.
         /// </summary>
-        public ulong msTimeStamp;
+        public long msTimeStamp;
         /// <summary>
         /// The version of the build thats responsible for this log.
         /// </summary>
         public string buildVersion ="";
+        /// <summary>
+        /// the project ID
+        /// </summary>
+        public WowProjectID projectID;
     }
 }

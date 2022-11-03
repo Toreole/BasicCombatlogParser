@@ -1,7 +1,7 @@
 ﻿using System.Globalization;
 using System.Runtime.CompilerServices;
 
-namespace CombatlogParser.Data
+namespace CombatlogParser
 {
     public static class ParsingUtil
     {
@@ -275,6 +275,21 @@ namespace CombatlogParser.Data
             return includeMillis ?
                   $"{minutes}:{seconds:00}.{remMil:000}"
                 : $"{minutes}:{seconds:00}";
+        }
+
+        /// <summary>
+        /// Check if a string contains a substring starting at a given index.
+        /// </summary>
+        public static bool ContainsSubstringAt(this string self, string other, int startIndex)
+        {
+            if (startIndex + other.Length > self.Length)
+                return false; //other string would be too long
+            for (int i = 0; i < other.Length; i++)
+            {
+                if (self[startIndex + i] != other[i])
+                    return false; //other string doesnt match a character.
+            }
+            return true;
         }
     }
 }

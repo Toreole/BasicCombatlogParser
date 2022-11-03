@@ -50,5 +50,22 @@ namespace CombatlogParser.Tests
                 Assert.That(subs[2], Is.EqualTo("Four"));
             });
         }
+
+        [Test]
+        public void ContainsSubstring()
+        {
+            string line = "012 HELLO YES";
+            bool result1 = line.ContainsSubstringAt("HELLO", 4);
+            bool result2 = line.ContainsSubstringAt("012 H", 0);
+            bool result3 = line.ContainsSubstringAt("012 HELLO YES 2", 0);
+            bool result4 = line.ContainsSubstringAt("012 HELLO YES", 0);
+            Assert.Multiple(() =>
+            {
+                Assert.That( result1); //should succeed
+                Assert.That( result2); //should succeed
+                Assert.That(!result3); //this should fail because the other string is too long
+                Assert.That( result4); //should succeed because theyre the same
+            });
+        }
     }
 }
