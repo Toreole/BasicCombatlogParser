@@ -10,6 +10,8 @@ namespace CombatlogParser
     {
         private static SqliteConnection? connection = null;
 
+
+
         public static void InitializeConnection()
         {
             SQLitePCL.Batteries.Init();
@@ -37,7 +39,7 @@ namespace CombatlogParser
         {
             if (connection == null)
                 return;
-            SqliteCommand command = connection.CreateCommand();
+            using SqliteCommand command = connection.CreateCommand();
 
             //1. create CombatlogMetadata table
             command.CommandText =
@@ -54,8 +56,48 @@ namespace CombatlogParser
             command.ExecuteNonQuery();
 
             //2. create EncounterMetadata table
+            command.CommandText =
+                @"
+                CREATE TABLE IF NOT EXISTS Encounter_Metadata (
+                    encounter_ID INTEGER PRIMARY KEY AUTOINCREMENT,
+                    sourceLog_ID INTEGER,
+                    startPosition INTEGER,
+                    wow_encounterID INTEGER,
+                    success INTEGER
+                    );
+                ";
+            command.ExecuteNonQuery();
+
             //3. create PerformanceMetadata table
+            command.CommandText =
+                @"
+                CREATE TABLE IF NOT EXISTS Performance_Metadata (
+                    performance_ID INTEGER PRIMARY KEY AUTOINCREMENT,
+                    playerGUID TEXT,
+                    dps REAL,
+                    hps REAL,
+                    roleID INTEGER,
+                    specID INTEGER
+                    );
+                ";
+            command.ExecuteNonQuery();
+
             //4. create PlayerMetadata table
+            command.CommandText =
+                @"
+                CREATE TABLE IF NOT EXISTS Player_Metadata (
+                    playerGUID TEXT UNIQUE PRIMARY KEY,
+                    name TEXT,
+                    realm TEXT,
+                    classID INTEGER
+                    );
+                ";
+            command.ExecuteNonQuery();
+        }
+
+        public static void UpgradeTables()
+        {
+
         }
 
     }
