@@ -1,5 +1,9 @@
 ﻿using CombatlogParser.Data;
 using Microsoft.Data.Sqlite;
+using System.Text;
+using System.Xml.Linq;
+using System.Xml;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace CombatlogParser
 {
@@ -9,8 +13,49 @@ namespace CombatlogParser
     public static class DB
     {
         private static SqliteConnection? connection = null;
+        private const string tableCreationCommandTemplate = "CREATE TABLE IF NOT EXISTS $table;";
 
+        private static readonly DBSchema schema
+            = new(
+                new DBTable[]{
+                    new DBTable("Combatlog_Metadata", new DBColumn[]
+                    {
+                        new("log_ID", "INTEGER PRIMARY KEY AUTOINCREMENT"),
+                        new("fileName", "TEXT UNIQUE"),
+                        new("timestamp", "INTEGER"),
+                        new("isAdvanced", "INTEGER"),
+                        new("buildVersion", "TEXT"),
+                        new("projectID", "INTEGER")
+                    }),
 
+                    new DBTable("Encounter_Metadata", new DBColumn[]
+                    { 
+                        new("encounter_ID", "INTEGER PRIMARY KEY AUTOINCREMENT"),
+                        new("sourceLog_ID", "INTEGER"),
+                        new("startPosition", "INTEGER"),
+                        new("wow_encounterID", "INTEGER"),
+                        new("success", "INTEGER")
+                    }),
+
+                    new DBTable("Performance_Metadata", new DBColumn[]
+                    { 
+                        new("performance_ID", "INTEGER PRIMARY KEY AUTOINCREMENT"),
+                        new("playerGUID", "TEXT"),
+                        new("dps", "REAL"),
+                        new("hps", "REAL"),
+                        new("roleID", "INTEGER"),
+                        new("specID", "INTEGER")
+                    }),
+
+                    new DBTable("Player_Metadata", new DBColumn[]
+                    {
+                         new("playerGUID", "TEXT UNIQUE PRIMARY KEY"),
+                         new("name", "TEXT"),
+                         new("realm", "TEXT"),
+                         new("classID", "INTEGER")
+                    }
+                )}
+              );
 
         public static void InitializeConnection()
         {
@@ -41,63 +86,92 @@ namespace CombatlogParser
                 return;
             using SqliteCommand command = connection.CreateCommand();
 
-            //1. create CombatlogMetadata table
-            command.CommandText =
-                @"
-                    CREATE TABLE IF NOT EXISTS Combatlog_Metadata (
-                        log_ID INTEGER PRIMARY KEY AUTOINCREMENT,
-                        fileName TEXT UNIQUE
-                        timestamp INTEGER
-                        isAdvanced INTEGER
-                        buildVersion TEXT
-                        projectID INTEGER
-                        );
-                ";
-            command.ExecuteNonQuery();
+            //create all tables
+            foreach (var table in schema.tables)
+            {
+                command.CommandText = tableCreationCommandTemplate.Replace("$table", table.ToTableCreationString());
+                command.ExecuteNonQuery();
+            }
 
-            //2. create EncounterMetadata table
-            command.CommandText =
-                @"
-                CREATE TABLE IF NOT EXISTS Encounter_Metadata (
-                    encounter_ID INTEGER PRIMARY KEY AUTOINCREMENT,
-                    sourceLog_ID INTEGER,
-                    startPosition INTEGER,
-                    wow_encounterID INTEGER,
-                    success INTEGER
-                    );
-                ";
-            command.ExecuteNonQuery();
-
-            //3. create PerformanceMetadata table
-            command.CommandText =
-                @"
-                CREATE TABLE IF NOT EXISTS Performance_Metadata (
-                    performance_ID INTEGER PRIMARY KEY AUTOINCREMENT,
-                    playerGUID TEXT,
-                    dps REAL,
-                    hps REAL,
-                    roleID INTEGER,
-                    specID INTEGER
-                    );
-                ";
-            command.ExecuteNonQuery();
-
-            //4. create PlayerMetadata table
-            command.CommandText =
-                @"
-                CREATE TABLE IF NOT EXISTS Player_Metadata (
-                    playerGUID TEXT UNIQUE PRIMARY KEY,
-                    name TEXT,
-                    realm TEXT,
-                    classID INTEGER
-                    );
-                ";
-            command.ExecuteNonQuery();
         }
 
-        public static void UpgradeTables()
+        /// <summary>
+        /// Is ran when a change in app version is detected. <br/>
+        /// This will create any tables that dont yet exist, and add all required rows to those tables.
+        /// </summary>
+        public static void Upgrade()
         {
+            using var command = CreateCommand();
+            if (command is null)
+                return;
+            foreach(var table in schema.tables)
+            {
+                string template = $"ALTER TABLE {table.name} ADD COLUMN ";
+                foreach(var column in table.columns)
+                {
+                    command.CommandText = template + column.ToString();
+                    try
+                    {
+                        command.ExecuteNonQuery();
+                    }
+                    finally { } //dont really care about any exceptions that occur here.
+                }
+            }
+        }
 
+        public class DBSchema
+        {
+            public DBTable[] tables = Array.Empty<DBTable>();
+
+            public DBSchema(DBTable[] tables)
+                => this.tables = tables;
+        }
+
+        public class DBTable
+        {
+            public string name = "";
+            public DBColumn[] columns = Array.Empty<DBColumn>();
+
+            public DBTable(string name, DBColumn[] columns)
+            {
+                this.name = name;
+                this.columns = columns;
+            }
+
+            /// <summary>
+            /// Returns a string that follows the CREATE TABLE definition of a table, Example: <br/>
+            /// tableName ( col1 TYPE CONSTRAINT, col2 TYPE CONSTRAINT ) <br/>
+            /// this needs to be inserted into a "CREATE TABLE IF NOT EXISTS [...];" command.
+            /// </summary>
+            /// <returns></returns>
+            public string ToTableCreationString()
+            {
+                StringBuilder strb = new();
+                strb.Append(name);
+                strb.Append(" ( ");
+                if(columns.Length > 0)
+                {
+                    strb.Append(columns[0].ToString());
+                    for (int i = 1; i < columns.Length; i++)
+                        strb.Append($", {columns[i].ToString()}");
+                }
+                strb.Append(" )");
+                return strb.ToString();
+            }
+        }
+
+        public class DBColumn
+        {
+            public string name = "";
+            public string typeAndConstraints = "";
+
+            public DBColumn(string name, string typeAndConstraints)
+            {
+                this.name = name;
+                this.typeAndConstraints = typeAndConstraints;
+            }
+
+            public override string ToString() => $"{name} {typeAndConstraints}";
         }
 
     }

@@ -18,9 +18,9 @@ namespace CombatlogParser
             command.CommandText = @"
                 SELECT fileName, timestamp, isAdvanced, buildVersion, projectID 
                 FROM Combatlog_Metadata
-                WHERE log_ID = %id
+                WHERE log_ID = $id
                 ";
-            command.Parameters.AddWithValue("%id", logID);
+            command.Parameters.AddWithValue("$id", logID);
 
             using var reader = command.ExecuteReader();
             if(reader.Read())

@@ -20,15 +20,15 @@ namespace CombatlogParser
             command.CommandText =
                 @" INSERT INTO Combatlog_Metadata 
                        ( fileName, timestamp, isAdvanced, buildVersion, projectID )
-                   VALUES ( %fn, %time, %adv, %build, %project )
+                   VALUES ( $fn, $time, $adv, $build, $project )
                    ON CONFLICT ABORT";
             //insert the parameters
             var args = command.Parameters;
-            args.AddWithValue("%fn", data.fileName);
-            args.AddWithValue("%time", data.msTimeStamp);
-            args.AddWithValue("%adv", data.isAdvanced? 1 : 0);
-            args.AddWithValue("%build", data.buildVersion);
-            args.AddWithValue("%project", (int)data.projectID);
+            args.AddWithValue("$fn", data.fileName);
+            args.AddWithValue("$time", data.msTimeStamp);
+            args.AddWithValue("$adv", data.isAdvanced? 1 : 0);
+            args.AddWithValue("$build", data.buildVersion);
+            args.AddWithValue("$project", (int)data.projectID);
             //try because the insert command will raise an error given a duplicate fileName
             try
             {
