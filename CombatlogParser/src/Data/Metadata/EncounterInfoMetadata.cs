@@ -17,10 +17,14 @@
         /// <summary>
         /// the ID of the in-game encounter.
         /// </summary>
-        public uint encounterID;
+        public uint wowEncounterID;
         /// <summary>
         /// whether the encounter was completed successfully
         /// </summary>
         public bool success;
+        /// <summary>
+        /// The difficulty this encounter was recorded on.
+        /// </summary>
+        public int difficultyID;
     }
 }

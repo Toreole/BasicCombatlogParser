@@ -34,7 +34,8 @@ namespace CombatlogParser
                         new("sourceLog_ID", "INTEGER"),
                         new("startPosition", "INTEGER"),
                         new("wow_encounterID", "INTEGER"),
-                        new("success", "INTEGER")
+                        new("success", "INTEGER"),
+                        new("difficultyID", "INTEGER")
                     }),
 
                     new DBTable("Performance_Metadata", new DBColumn[]

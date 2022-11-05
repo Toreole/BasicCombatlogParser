@@ -39,6 +39,19 @@ namespace CombatlogParser
         }
 
         /// <summary>
+        /// Checks whether a combatlog has already been imported by confirming whether a log with the same fileName exists in the metadata table.
+        /// </summary>
+        public static bool CombatlogAlreadyImported(string fileName)
+        {
+            using var command = DB.CreateCommand();
+            if (command == null)
+                return false;
+            command.CommandText = "SELECT count(*) FROM Combatlog_Metadata WHERE fileName = $fn";
+            command.Parameters.AddWithValue("$fn", fileName);
+            return (int)command.ExecuteScalar()! is 1;
+        }
+
+        /// <summary>
         /// Gets the number of rows in the Combatlog_Metadata table.
         /// </summary>
         public static int GetCombatlogMetadataCount()
