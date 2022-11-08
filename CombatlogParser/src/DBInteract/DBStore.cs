@@ -1,4 +1,4 @@
-using CombatlogParser.Data.MetaData;
+﻿using CombatlogParser.Data.Metadata;
 using Microsoft.Data.Sqlite;
 using System.Diagnostics;
 
@@ -36,7 +36,7 @@ namespace CombatlogParser
                 command.ExecuteNonQuery();
                 var com2 = DB.CreateCommand()!; //is never null here
                 //the INTEGER PRIMARY KEY log_ID is an alias for the ROWID, so I can use the SQL function.
-                com2.CommandText = $"SELECT last_insert_rowid()"; 
+                com2.CommandText = "SELECT last_insert_rowid()"; 
                 //given that the insert command executes without errors, this can never return null.
                 return (int)com2.ExecuteScalar()!;
             }
@@ -74,7 +74,7 @@ namespace CombatlogParser
                 command.ExecuteNonQuery();
                 var com2 = DB.CreateCommand()!; //is never null here
                 //the INTEGER PRIMARY KEY log_ID is an alias for the ROWID, so I can use the SQL function.
-                com2.CommandText = $"SELECT last_insert_rowid()";
+                com2.CommandText = "SELECT last_insert_rowid()";
                 //given that the insert command executes without errors, this can never return null.
                 return (int)com2.ExecuteScalar()!;
             }

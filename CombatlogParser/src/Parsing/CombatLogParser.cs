@@ -1,7 +1,7 @@
-﻿using System.IO;
+using System.IO;
 using System.Text.RegularExpressions;
 using CombatlogParser.Data;
-using CombatlogParser.Data.MetaData;
+using CombatlogParser.Data.Metadata;
 
 namespace CombatlogParser
 {

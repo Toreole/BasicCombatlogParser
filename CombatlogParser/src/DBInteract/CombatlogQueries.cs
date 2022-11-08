@@ -1,4 +1,4 @@
-﻿using CombatlogParser.Data.MetaData;
+﻿using CombatlogParser.Data.Metadata;
 
 namespace CombatlogParser
 {

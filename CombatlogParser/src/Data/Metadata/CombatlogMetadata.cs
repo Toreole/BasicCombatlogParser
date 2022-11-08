@@ -1,4 +1,4 @@
-﻿namespace CombatlogParser.Data.MetaData
+﻿namespace CombatlogParser.Data.Metadata
 {
     public sealed class CombatlogMetadata
     {
