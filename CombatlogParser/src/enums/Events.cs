@@ -7,6 +7,17 @@
     {
         UNDEFINED = -1,
 
+        //PREFIXES HAVE TO BE ORDERED FROM LONGEST TO SHORTEST; OTHERWISE IT CAN PICK "SPELL" WHEN "SPELL_PERIODIC" IS EXPECTED.
+        /// <summary>
+        /// prefix params: spellID, spellName, spellSchool
+        /// </summary>
+        SPELL_PERIODIC,
+
+        /// <summary>
+        /// prefix params: spellID, spellName, spellSchool
+        /// </summary>
+        SPELL_BUILDING, //affects buildings/structures. e.g. Wintergrasp
+
         /// <summary>
         /// prefix params: [NONE]
         /// </summary>
@@ -21,16 +32,6 @@
         /// prefix params: spellID, spellName, spellSchool
         /// </summary>
         SPELL,
-
-        /// <summary>
-        /// prefix params: spellID, spellName, spellSchool
-        /// </summary>
-        SPELL_PERIODIC,
-
-        /// <summary>
-        /// prefix params: spellID, spellName, spellSchool
-        /// </summary>
-        SPELL_BUILDING, //affects buildings/structures. e.g. Wintergrasp
 
         /// <summary>
         /// prefix params: environmentalType

@@ -67,5 +67,39 @@ namespace CombatlogParser.Tests
                 Assert.That( result4); //should succeed because theyre the same
             });
         }
+
+        [Test]
+        public void StartsWithF()
+        {
+            string line = "012 HELLO YES";
+            bool result1 = line.StartsWithF("012");
+            bool result2 = line.StartsWithF("12");
+            bool result3 = line.StartsWithF("012 HELLO YESs");
+            bool result4 = line.StartsWithF("012 HELLO YES");
+            Assert.Multiple(() =>
+            {
+                Assert.That(result1);
+                Assert.That(!result2);
+                Assert.That(!result3);
+                Assert.That(result4);
+            });
+        }
+
+        [Test]
+        public void EndsWithF()
+        {
+            string line = "012 HELLO YES";
+            bool result1 = line.EndsWithF(" YES");
+            bool result2 = line.EndsWithF("HELLO");
+            bool result3 = line.EndsWithF("012 HELLO YESs");
+            bool result4 = line.EndsWithF("012 HELLO YES");
+            Assert.Multiple(() =>
+            {
+                Assert.That(result1);
+                Assert.That(!result2);
+                Assert.That(!result3);
+                Assert.That(result4);
+            });
+        }
     }
 }

@@ -1,12 +1,27 @@
-﻿using System.Globalization;
+using System.Globalization;
 using System.Runtime.CompilerServices;
 
 namespace CombatlogParser
 {
     public static class ParsingUtil
     {
-        static readonly CultureInfo formatInfoProvider = CultureInfo.GetCultureInfo("en-US");
-        static readonly string timestampFormat = "MM/dd HH:mm:ss.fff";
+        private static readonly CultureInfo formatInfoProvider = CultureInfo.GetCultureInfo("en-US");
+        private static readonly string timestampFormat = "MM/dd HH:mm:ss.fff";
+
+        private static readonly CombatlogEventPrefix[] prefixes;
+        private static readonly string[] prefixNames;
+
+        private static readonly CombatlogEventSuffix[] suffixes;
+        private static readonly string[] suffixNames;
+
+        static ParsingUtil()
+        {
+            prefixes = Enum.GetValues<CombatlogEventPrefix>();
+            prefixNames = Enum.GetNames<CombatlogEventPrefix>();
+
+            suffixes = Enum.GetValues<CombatlogEventSuffix>();
+            suffixNames = Enum.GetNames<CombatlogEventSuffix>();
+        }
 
         /// <summary>
         /// Converts the Timestamps that come with the combatlog file into a DateTime object.
@@ -31,7 +46,8 @@ namespace CombatlogParser
         /// Attempts to seperate a subevent into prefix and affix.
         /// </summary>
         /// <param name="subevent">The full subevent string. e.g. SPELL_DAMAGE</param>
-        /// <returns></returns>
+        /// <returns>false if the prefix and suffix are UNDEFINED</returns>
+        [Obsolete("Slow method. Use TryParsePrefixAffixSubeventF instead.")]
         public static bool TryParsePrefixAffixSubevent(string subevent, out CombatlogEventPrefix prefix, out CombatlogEventSuffix suffix)
         {
             int seperatorCount = 0;
@@ -80,6 +96,59 @@ namespace CombatlogParser
             prefix = CombatlogEventPrefix.UNDEFINED;
             suffix = CombatlogEventSuffix.UNDEFINED;
             return false;
+        }
+
+        /// <summary>
+        /// A faster version of TryParsePrefixAffixSubevent
+        /// </summary>
+        /// <param name="subevent">The full subevent string. e.g. SPELL_DAMAGE</param>
+        /// <returns>false if the prefix and suffix are UNDEFINED</returns>
+        public static bool TryParsePrefixAffixSubeventF(string subevent, out CombatlogEventPrefix prefix, out CombatlogEventSuffix suffix)
+        {
+            for (int i = 0; i < prefixes.Length; i++)
+                if (subevent.StartsWithF(prefixNames[i]))
+                {
+                    prefix = prefixes[i];
+                    //if prefix exists, suffix must also exist.
+                    for (int j = 0; j < suffixes.Length; j++)
+                        if (subevent.EndsWithF(suffixNames[j]))
+                        {
+                            suffix = suffixes[j];
+                            return true;
+                        }
+                }
+            //set them to UNDEFINED by default
+            prefix = CombatlogEventPrefix.UNDEFINED;
+            suffix = CombatlogEventSuffix.UNDEFINED;
+            return false;
+        }
+
+        /// <summary>
+        /// A simple, culture-insensitive, check whether a string starts with a given substring.
+        /// </summary>
+        /// <returns>false if the strings differ, or other is longer than self. true if other is contained within self at [0].</returns>
+        public static bool StartsWithF(this string self, string other)
+        {
+            if (other.Length > self.Length)
+                return false;
+            for (int i = 0; i < other.Length; i++)
+                if (self[i] != other[i])
+                    return false;
+            return true;
+        }
+
+        /// <summary>
+        /// A simple, culture-insensitive, check whether a string ends with a given substring.
+        /// </summary>
+        /// <returns>false if other isnt contained in self, or is longer than it. true if self contains other at the end.</returns>
+        public static bool EndsWithF(this string self, string other)
+        {
+            if (other.Length > self.Length)
+                return false;
+            for (int i = 1; i <= other.Length; i++)
+                if (self[^i] != other[^i])
+                    return false;
+            return true;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
