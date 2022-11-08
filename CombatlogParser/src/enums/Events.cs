@@ -46,6 +46,13 @@
     {
         UNDEFINED = -1,
 
+        //_DURABLITY_DAMAGE needs to precede _DAMAGE, otherwise it will never be picked.
+        /// <summary>
+        /// Suffix params:
+        /// [NONE]
+        /// </summary>
+        _DURABILITY_DAMAGE,
+
         /// <summary>
         /// NOTE: in advanced, InfoGUID is SourceGUID (baseAmount only for SPELL_PERIODIC_DAMAGE / SPELL_DAMAGE / SWING_DAMAGE)
         /// Suffix params:
@@ -205,19 +212,13 @@
         /// Suffix params:
         /// [NONE]
         /// </summary>
-        _DURABILITY_DAMAGE,
+        _CREATE,
 
         /// <summary>
         /// Suffix params:
         /// [NONE]
         /// </summary>
         _DURABILITY_DAMAGE_ALL,
-
-        /// <summary>
-        /// Suffix params:
-        /// [NONE]
-        /// </summary>
-        _CREATE,
 
         /// <summary>
         /// Suffix params:
