@@ -54,9 +54,15 @@ namespace CombatlogParser
                          new("name", "TEXT"),
                          new("realm", "TEXT"),
                          new("classID", "INTEGER")
-                    }
-                )}
-              );
+                    }),
+
+                    new DBTable("Wow_Encounter_Info", new DBColumn[]
+                    {
+                        new("wowEncounterID", "INTEGER UNIQUE PRIMARY KEY"),
+                        new("localName", "TEXT"),
+                        new("zoneName", "TEXT")
+                    })
+                });
 
         public static void InitializeConnection()
         {
