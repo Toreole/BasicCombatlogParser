@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using System.Runtime.CompilerServices;
 
 namespace CombatlogParser
@@ -220,6 +220,41 @@ namespace CombatlogParser
                 CombatlogEventSuffix._RESURRECT => 0,
                 _ => 0
             };
+        }
+
+        /// <summary>
+        /// Parses "3|4" into { Energy, ComboPoints }. etc.
+        /// </summary>
+        /// <param name="str"></param>
+        /// <returns></returns>
+        public static PowerType[] AllPowerTypesIn(string str)
+        {
+            if(str.Contains('|'))
+            {
+                string[] vs = str.Split('|');
+                PowerType[] powerTypes = new PowerType[vs.Length];
+                for(int i = 0; i < vs.Length; i++)
+                    powerTypes[i] = (PowerType)int.Parse(vs[i]);
+                return powerTypes;
+            }
+            return new PowerType[] { (PowerType)int.Parse(str) };
+        }
+        /// <summary>
+        /// Gets an int array from a string where values are seperated with a '|' 
+        /// </summary>
+        /// <param name="str"></param>
+        /// <returns></returns>
+        public static int[] AllIntsIn(string str)
+        {
+            if (str.Contains('|'))
+            {
+                string[] vs = str.Split('|');
+                int[] ix = new int[vs.Length];
+                for (int i = 0; i < vs.Length; i++)
+                    ix[i] = int.Parse(vs[i]);
+                return ix;
+            }
+            return new int[] { int.Parse(str) };
         }
 
         /// <summary>

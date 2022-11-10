@@ -1,5 +1,6 @@
-using System.IO;
+﻿using System.IO;
 using System.Text.RegularExpressions;
+using System.Windows.Markup;
 using CombatlogParser.Data;
 using CombatlogParser.Data.Metadata;
 
@@ -7,8 +8,9 @@ namespace CombatlogParser
 {
     public static class CombatLogParser
     {
-        public static void Import(string filePath)
+        public static void ImportCombatlog(string filePath)
         {
+            System.Windows.Controls.ProgressBar progressBar = new();
             using FileStream fileStream = File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
             long position = fileStream.Position; //should be 0 here. or well the start of the file at least.
 
@@ -35,29 +37,86 @@ namespace CombatlogParser
                 DateTimeOffset offset = new(dtTimestamp);
                 logMetadata.msTimeStamp = offset.ToUnixTimeMilliseconds();
             }
+            //store the log in the db and cache the ID
+            int logID = DBStore.StoreCombatlog(logMetadata);
 
+            //update the position
+            position = fileStream.Position;
+            string? next = reader.ReadLine();
 
+            List<EncounterInfoMetadata> encounterMetadatas = new();
+            //Step 1: Read the entire file, mark the start (and end) of encounters.
+            {
+                //single variable encounterMetadata is not needed outside of this scope.
+                EncounterInfoMetadata? encounterMetadata = null;
 
+                while (next != null)
+                {
+                    int i = 20;
+                    if (next.ContainsSubstringAt("ENCOUNTER_START", 20))
+                    {
+                        ParsingUtil.MovePastNextDivisor(next, ref i); //move past ENCOUNTER_START,
+                        encounterMetadata = new EncounterInfoMetadata()
+                        {
+                            logID = (uint)logID,
+                            encounterStartIndex = (ulong)position
+                        };
+                        encounterMetadata.wowEncounterID = uint.Parse(ParsingUtil.NextSubstring(next, ref i));
+                        ParsingUtil.MovePastNextDivisor(next, ref i); //skip past the name of the encounter.
+                        encounterMetadata.difficultyID = int.Parse(ParsingUtil.NextSubstring(next, ref i));
+                    }
+                    if (next.ContainsSubstringAt("ENCOUNTER_END", 20))
+                    {
+                        if (encounterMetadata != null)
+                        {
+                            for (int j = 0; j < 4; j++) //skip past encounterID, encounterName, difficultyID, groupSize
+                                ParsingUtil.MovePastNextDivisor(line, ref i);
+                            encounterMetadata.success = ParsingUtil.NextSubstring(line, ref i) == "1";
+                            int encID = DBStore.StoreEncounter(encounterMetadata); //add it to the db
+                            encounterMetadata.encounterInfoUID = (uint)encID;
+                            encounterMetadatas.Add(encounterMetadata); //also add it to the list.
+                        }
+                    }
 
-            Task<string> task = ReadFrom(0, filePath);
-            task.Start();
-            task.GetAwaiter().GetResult();
+                    next = reader.ReadLine();
+                    //update the position
+                    position = fileStream.Position;
+                }
+            }
+
+            //Step 2: Create Tasks for all the seperate Encounters it found in the previous step
+            //Process each one individually, wait for them all to finish, get the results.
+            Task<EncounterInfo>[] parseTasks = new Task<EncounterInfo>[encounterMetadatas.Count];
+            
+            for(int i = 0; i < parseTasks.Length; i++)
+                parseTasks[i] = Task.Run(() => ParseEncounter(encounterMetadatas[i], filePath));
+            //wait for all parses to finish.
+            Task.WaitAll(parseTasks);
+
+            //Step 3: Store relevant results in the DB, clean up, provide access to the results to the main window
+            //so the app can display it all to the user.
+
         }
 
         //NOTE: I wonder if i should split each encounter into a seperate file, rather than keeping them all connected hmmm...
-
-        private async static Task<string> ReadFrom(long startPosition, string fileName)
+        private static EncounterInfo ParseEncounter(EncounterInfoMetadata metadata, string filePath)
         {
-            //every reader needs its own filestream.
-            using FileStream fileStream = File.Open(fileName, FileMode.Open, FileAccess.Read, FileShare.Read);
-            //offset the stream
-            fileStream.Position = startPosition;
+            using var fileStream = File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
             using TextReader reader = new StreamReader(fileStream);
-            Task<string?> x = reader.ReadLineAsync();
-            await x;
-            return x.Result!;
+
+            fileStream.Position = (long)metadata.encounterStartIndex;
+
+            string? line;
+            while((line = reader.ReadLine()) != null)
+            {
+                if (line.ContainsSubstringAt("ENCOUNTER_END", 20)) //the end of the encounter.
+                    break;
+            }
+
+            return new EncounterInfo();
         }
 
+        [Obsolete("Should no longer use ReadCombatlogFile, use ImportCombatlog instead.")]
         public static Combatlog ReadCombatlogFile(string fileName)
         {
             if (File.Exists(fileName) == false)
@@ -108,11 +167,7 @@ namespace CombatlogParser
                 int i = 20;
                 string sub = ParsingUtil.NextSubstring(line, ref i);
 
-                CombatlogEvent clevent = new()
-                {
-                    Timestamp = ParsingUtil.StringTimestampToDateTime(line[..18]),
-                    SubeventName = sub
-                };
+                var timestamp = ParsingUtil.StringTimestampToDateTime(line[..18]);
 
                 if (Enum.TryParse(sub, out CombatlogMiscEvents miscEvent))//should be a misc event.
                 {
@@ -123,7 +178,7 @@ namespace CombatlogParser
                         encounterEvents.Clear();
                         currentEncounter = new()
                         {
-                            EncounterStartTime = clevent.Timestamp,
+                            EncounterStartTime = timestamp,
                             EncounterID = uint.Parse(ParsingUtil.NextSubstring(line, ref i)),
                             EncounterName = ParsingUtil.NextSubstring(line, ref i),
                             DifficultyID = int.Parse(ParsingUtil.NextSubstring(line, ref i)),
@@ -141,7 +196,7 @@ namespace CombatlogParser
                         //trim the encounterEvents list, and assign it as array to the currentEncounter.
                         encounterEvents.TrimExcess();
                         currentEncounter.CombatlogEvents = encounterEvents.ToArray();
-                        currentEncounter.EncounterEndTime = clevent.Timestamp;
+                        currentEncounter.EncounterEndTime = timestamp;
 
                         //double check events from the end of the list, to eliminate any that arent within the encounter.
                         for (int x = encounterEvents.Count - 1; x > 0; x--)
@@ -167,75 +222,71 @@ namespace CombatlogParser
                 }
                 //try parsing the substring to a CombatlogSubevent.
                 else if (currentEncounter != null && 
-                    clevent.Timestamp > currentEncounter.EncounterStartTime && //only include events that happen *after* start of encounter.
-                    ParsingUtil.TryParsePrefixAffixSubevent(sub, out CombatlogEventPrefix cPrefix, out CombatlogEventSuffix cSuffix))
+                    timestamp > currentEncounter.EncounterStartTime && //only include events that happen *after* start of encounter.
+                    ParsingUtil.TryParsePrefixAffixSubeventF(sub, out CombatlogEventPrefix cPrefix, out CombatlogEventSuffix cSuffix))
                 {
-                    clevent.SubeventPrefix = cPrefix;
-                    clevent.SubeventSuffix = cSuffix;
-
+                    
                     //sourceGUID and name
-                    clevent.SourceGUID = ParsingUtil.NextSubstring(line, ref i);
-                    if (clevent.SubeventPrefix == CombatlogEventPrefix.ENVIRONMENTAL || clevent.SourceGUID == "0000000000000000")
+                    string sourceGUID = ParsingUtil.NextSubstring(line, ref i);
+                    string sourceName;
+                    if (cPrefix == CombatlogEventPrefix.ENVIRONMENTAL || sourceGUID == "0000000000000000")
                     {
-                        clevent.SourceName = "Environment";
+                        sourceName = "Environment";
                         ParsingUtil.MovePastNextDivisor(line, ref i);
                     }
                     else
                     {
-                        clevent.SourceName = ParsingUtil.NextSubstring(line, ref i);
+                        sourceName = ParsingUtil.NextSubstring(line, ref i);
                     }
 
                     //source flags.
-                    clevent.SourceFlags = (UnitFlag)ParsingUtil.HexStringToUint(ParsingUtil.NextSubstring(line, ref i));
-                    clevent.SourceRaidFlags = (RaidFlag)ParsingUtil.HexStringToUint(ParsingUtil.NextSubstring(line, ref i));
+                    var sourceFlags = (UnitFlag)ParsingUtil.HexStringToUint(ParsingUtil.NextSubstring(line, ref i));
+                    var sourceRaidFlags = (RaidFlag)ParsingUtil.HexStringToUint(ParsingUtil.NextSubstring(line, ref i));
 
                     //targetGUID and name
-                    clevent.TargetGUID = ParsingUtil.NextSubstring(line, ref i);
-                    clevent.TargetName = ParsingUtil.NextSubstring(line, ref i);
+                    var targetGUID = ParsingUtil.NextSubstring(line, ref i);
+                    var targetName = ParsingUtil.NextSubstring(line, ref i);
 
                     //target flags
-                    clevent.TargetFlags = (UnitFlag)ParsingUtil.HexStringToUint(ParsingUtil.NextSubstring(line, ref i));
-                    clevent.TargetRaidFlags = (RaidFlag)ParsingUtil.HexStringToUint(ParsingUtil.NextSubstring(line, ref i));
+                    var targetFlags = (UnitFlag)ParsingUtil.HexStringToUint(ParsingUtil.NextSubstring(line, ref i));
+                    var targetRaidFlags = (RaidFlag)ParsingUtil.HexStringToUint(ParsingUtil.NextSubstring(line, ref i));
 
                     //at this point Prefix params can be handled (if any)
                     int prefixAmount = ParsingUtil.GetPrefixParamAmount(cPrefix);
-                    if (prefixAmount > 0)
+                    string[] prefixData = new string[prefixAmount];
+                    
+                    for (int j = 0; j < prefixAmount; j++)
                     {
-                        var prefixParams = new object[prefixAmount];
-                        for (int j = 0; j < prefixAmount; j++)
-                        {
-                            if (j == 2)
-                                prefixParams[j] = (SpellSchool)ParsingUtil.HexStringToUint(ParsingUtil.NextSubstring(line, ref i));
-                            else
-                                prefixParams[j] = ParsingUtil.NextSubstring(line, ref i);
-                        }
-                        clevent.PrefixParams = prefixParams;
+                        prefixData[j] = ParsingUtil.NextSubstring(line, ref i);
                     }
 
                     //then follow the advanced combatlog params
                     //watch out! not all events have the advanced params!
-                    if (combatlog.AdvancedLogEnabled && ParsingUtil.SubeventContainsAdvancedParams(cSuffix))
-                    {
-                        var advancedParams = new string[17];
+                    bool hasAdv = combatlog.AdvancedLogEnabled && ParsingUtil.SubeventContainsAdvancedParams(cSuffix);
+                    string[] advancedData = hasAdv ? new string[17] : Array.Empty<string>();
+                    if (hasAdv)
                         for (int j = 0; j < 17; j++)
-                        {
-                            advancedParams[j] = ParsingUtil.NextSubstring(line, ref i);
-                        }
-                        clevent.AdvancedParams = advancedParams;
-                    }
+                            advancedData[j] = ParsingUtil.NextSubstring(line, ref i);
 
                     //lastly, suffix event params.
                     int suffixAmount = ParsingUtil.GetSuffixParamAmount(cSuffix);
-                    if (suffixAmount > 0)
+                    string[] suffixData = new string[suffixAmount];
+                    for (int j = 0; j < suffixAmount; j++)
                     {
-                        var suffixParams = new object[suffixAmount];
-                        for (int j = 0; j < suffixAmount; j++)
-                        {
-                            suffixParams[j] = ParsingUtil.NextSubstring(line, ref i);
-                        }
-                        clevent.SuffixParams = suffixParams;
+                        suffixData[j] = ParsingUtil.NextSubstring(line, ref i);
                     }
 
+                    CombatlogEvent clevent = new(cPrefix, prefixData, cSuffix, suffixData, advancedData)
+                    { 
+                        SourceGUID = sourceGUID,
+                        SourceName = sourceName,
+                        SourceFlags = sourceFlags,
+                        SourceRaidFlags = sourceRaidFlags,
+                        TargetGUID = targetGUID,
+                        TargetName = targetName,
+                        TargetFlags = targetFlags,
+                        TargetRaidFlags = targetRaidFlags
+                    };
                     encounterEvents.Add(clevent);
                     //SPELL_INSTAKILL is part of the regular combatlogevents.
                     //SPELL_INSTAKILL: guid, name, flag, flag, guid, name, flag, flag, [unknown], [unknown], unconscious? <- Unsure what this is.
