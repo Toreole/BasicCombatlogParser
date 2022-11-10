@@ -121,7 +121,7 @@ namespace CombatlogParser
                 ))
                 {
                     if (petToOwnerGUID.ContainsKey(castEvent.SourceGUID) == false) //dont add duplicates of course.
-                        petToOwnerGUID.Add(castEvent.SourceGUID, castEvent.AdvancedParams[1]);
+                        petToOwnerGUID.Add(castEvent.SourceGUID, castEvent.advancedParams[1]);
                 }
             }
 
@@ -138,7 +138,7 @@ namespace CombatlogParser
                 else if(dmgevent.IsSourcePet && dmgevent.SubeventPrefix == CombatlogEventPrefix.SWING && currentCombatlog.AdvancedLogEnabled)
                 {
                     //pet swing damage as the owner GUID as advanced param
-                    sourceGUID = dmgevent.AdvancedParams[1];
+                    sourceGUID = dmgevent.advancedParams[1];
                     if(petToOwnerGUID.ContainsKey(dmgevent.SourceGUID) == false)
                         petToOwnerGUID[dmgevent.SourceGUID] = sourceGUID;
                 }

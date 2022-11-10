@@ -58,8 +58,8 @@ namespace CombatlogParser
 
             command.CommandText =
                 @" INSERT INTO Combatlog_Metadata 
-                       ( sourceLog_ID, startPosition, wow_encounterID, success, difficultyID )
-                   VALUES ( $log, $start, $wowEncID, $success, $difficulty )
+                       ( sourceLog_ID, startPosition, wow_encounterID, success, difficultyID, encounterLength )
+                   VALUES ( $log, $start, $wowEncID, $success, $difficulty, $length )
                    ON CONFLICT ABORT";
             //insert the parameters
             var args = command.Parameters;
@@ -68,6 +68,7 @@ namespace CombatlogParser
             args.AddWithValue("$wowEncID", data.wowEncounterID);
             args.AddWithValue("$success", data.success);
             args.AddWithValue("$difficulty", data.difficultyID);
+            args.AddWithValue("$length", data.encounterLength);
             //try because the insert command will raise an error given a duplicate fileName
             try
             {

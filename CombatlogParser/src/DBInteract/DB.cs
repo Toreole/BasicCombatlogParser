@@ -1,9 +1,6 @@
 ﻿using CombatlogParser.Data;
 using Microsoft.Data.Sqlite;
 using System.Text;
-using System.Xml.Linq;
-using System.Xml;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace CombatlogParser
 {
@@ -35,7 +32,8 @@ namespace CombatlogParser
                         new("startPosition", "INTEGER"),
                         new("wow_encounterID", "INTEGER"),
                         new("success", "INTEGER"),
-                        new("difficultyID", "INTEGER")
+                        new("difficultyID", "INTEGER"),
+                        new("encounterLength", "INTEGER")
                     }),
 
                     new DBTable("Performance_Metadata", new DBColumn[]

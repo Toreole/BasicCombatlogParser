@@ -26,5 +26,9 @@
         /// The difficulty this encounter was recorded on.
         /// </summary>
         public int difficultyID;
+        /// <summary>
+        /// The amount of lines from start to end of the encounter in the combatlog file.
+        /// </summary>
+        public int encounterLength;
     }
 }

@@ -1,6 +1,5 @@
 ﻿using System.IO;
 using System.Text.RegularExpressions;
-using System.Windows.Markup;
 using CombatlogParser.Data;
 using CombatlogParser.Data.Metadata;
 
@@ -49,12 +48,13 @@ namespace CombatlogParser
             {
                 //single variable encounterMetadata is not needed outside of this scope.
                 EncounterInfoMetadata? encounterMetadata = null;
-
+                int length = 0;
                 while (next != null)
                 {
                     int i = 20;
                     if (next.ContainsSubstringAt("ENCOUNTER_START", 20))
                     {
+                        length = 1;
                         ParsingUtil.MovePastNextDivisor(next, ref i); //move past ENCOUNTER_START,
                         encounterMetadata = new EncounterInfoMetadata()
                         {
@@ -65,7 +65,7 @@ namespace CombatlogParser
                         ParsingUtil.MovePastNextDivisor(next, ref i); //skip past the name of the encounter.
                         encounterMetadata.difficultyID = int.Parse(ParsingUtil.NextSubstring(next, ref i));
                     }
-                    if (next.ContainsSubstringAt("ENCOUNTER_END", 20))
+                    else if (next.ContainsSubstringAt("ENCOUNTER_END", 20))
                     {
                         if (encounterMetadata != null)
                         {
@@ -74,9 +74,12 @@ namespace CombatlogParser
                             encounterMetadata.success = ParsingUtil.NextSubstring(line, ref i) == "1";
                             int encID = DBStore.StoreEncounter(encounterMetadata); //add it to the db
                             encounterMetadata.encounterInfoUID = (uint)encID;
+                            encounterMetadata.encounterLength = length;
                             encounterMetadatas.Add(encounterMetadata); //also add it to the list.
                         }
                     }
+                    else
+                        length++;
 
                     next = reader.ReadLine();
                     //update the position
@@ -89,7 +92,7 @@ namespace CombatlogParser
             Task<EncounterInfo>[] parseTasks = new Task<EncounterInfo>[encounterMetadatas.Count];
             
             for(int i = 0; i < parseTasks.Length; i++)
-                parseTasks[i] = Task.Run(() => ParseEncounter(encounterMetadatas[i], filePath));
+                parseTasks[i] = Task.Run(() => ParseEncounter(encounterMetadatas[i], filePath, logMetadata.isAdvanced));
             //wait for all parses to finish.
             Task.WaitAll(parseTasks);
 
@@ -99,21 +102,111 @@ namespace CombatlogParser
         }
 
         //NOTE: I wonder if i should split each encounter into a seperate file, rather than keeping them all connected hmmm...
-        private static EncounterInfo ParseEncounter(EncounterInfoMetadata metadata, string filePath)
+        /// <summary>
+        /// Reads an Encounter from a combatlog file.
+        /// </summary>
+        /// <param name="metadata"></param>
+        /// <param name="filePath"></param>
+        /// <param name="advanced"></param>
+        /// <returns></returns>
+        private static EncounterInfo ParseEncounter(EncounterInfoMetadata metadata, string filePath, bool advanced)
         {
             using var fileStream = File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
             using TextReader reader = new StreamReader(fileStream);
 
             fileStream.Position = (long)metadata.encounterStartIndex;
+            //encounterLength is guaranteed to be more or equal to the amount of actual combat events in the encounter.
+            List<CombatlogEvent> events = new (metadata.encounterLength);
 
             string? line;
             while((line = reader.ReadLine()) != null)
             {
-                if (line.ContainsSubstringAt("ENCOUNTER_END", 20)) //the end of the encounter.
+                int pos = 20;
+                if (line.ContainsSubstringAt("ENCOUNTER_END", pos)) //the end of the encounter.
                     break;
+
+                string subevent = ParsingUtil.NextSubstring(line, ref pos);
+                //confirm that the subevent is a combatlog event (it has a prefix and a suffix)
+                //other events are to be handled differently.
+                if(ParsingUtil.TryParsePrefixAffixSubeventF(subevent, out var prefix, out var suffix))
+                {
+                    string sourceGUID = ParsingUtil.NextSubstring(line, ref pos);
+                    string sourceName;
+                    if (prefix == CombatlogEventPrefix.ENVIRONMENTAL || sourceGUID == "0000000000000000")
+                    {
+                        sourceName = "Environment";
+                        ParsingUtil.MovePastNextDivisor(line, ref pos);
+                    }
+                    else
+                    {
+                        sourceName = ParsingUtil.NextSubstring(line, ref pos);
+                    }
+
+                    //source flags.
+                    var sourceFlags = (UnitFlag)ParsingUtil.HexStringToUint(ParsingUtil.NextSubstring(line, ref pos));
+                    var sourceRaidFlags = (RaidFlag)ParsingUtil.HexStringToUint(ParsingUtil.NextSubstring(line, ref pos));
+
+                    //targetGUID and name
+                    var targetGUID = ParsingUtil.NextSubstring(line, ref pos);
+                    var targetName = ParsingUtil.NextSubstring(line, ref pos);
+
+                    //target flags
+                    var targetFlags = (UnitFlag)ParsingUtil.HexStringToUint(ParsingUtil.NextSubstring(line, ref pos));
+                    var targetRaidFlags = (RaidFlag)ParsingUtil.HexStringToUint(ParsingUtil.NextSubstring(line, ref pos));
+
+                    //at this point Prefix params can be handled (if any)
+                    int prefixAmount = ParsingUtil.GetPrefixParamAmount(prefix);
+                    string[] prefixData = new string[prefixAmount];
+
+                    for (int j = 0; j < prefixAmount; j++)
+                    {
+                        prefixData[j] = ParsingUtil.NextSubstring(line, ref pos);
+                    }
+
+                    //then follow the advanced combatlog params
+                    //watch out! not all events have the advanced params!
+                    bool hasAdv = advanced && ParsingUtil.SubeventContainsAdvancedParams(suffix);
+                    string[] advancedData = hasAdv ? new string[17] : Array.Empty<string>();
+                    if (hasAdv)
+                        for (int j = 0; j < 17; j++)
+                            advancedData[j] = ParsingUtil.NextSubstring(line, ref pos);
+
+                    //lastly, suffix event params.
+                    int suffixAmount = ParsingUtil.GetSuffixParamAmount(suffix);
+                    string[] suffixData = new string[suffixAmount];
+                    for (int j = 0; j < suffixAmount; j++)
+                    {
+                        suffixData[j] = ParsingUtil.NextSubstring(line, ref pos);
+                    }
+
+                    CombatlogEvent clevent = new(prefix, prefixData, suffix, suffixData, advancedData)
+                    {
+                        SourceGUID = sourceGUID,
+                        SourceName = sourceName,
+                        SourceFlags = sourceFlags,
+                        SourceRaidFlags = sourceRaidFlags,
+                        TargetGUID = targetGUID,
+                        TargetName = targetName,
+                        TargetFlags = targetFlags,
+                        TargetRaidFlags = targetRaidFlags
+                    };
+                    events.Add(clevent);
+                }
             }
 
-            return new EncounterInfo();
+            return new EncounterInfo()
+            {
+                CombatlogEvents = events.ToArray(),
+                EncounterStartTime = /*GET THIS FROM FIRST LINE*/,
+                EncounterSuccess = metadata.success,
+                DifficultyID = metadata.difficultyID,
+                EncounterID = metadata.wowEncounterID,
+                EncounterName = /*GET THIS FROM FIRST LINE*/,
+                GroupSize = /*GET THIS FROM FIRST LINE*/,
+                EncounterDuration = /*GET THIS FROM LAST LINE*/,
+                EncounterEndTime = /*GET THIS FROM LAST LINE*/,
+                Players = /*GET THIS FROM COMBATANT_INFO EVENTS*/
+            };
         }
 
         [Obsolete("Should no longer use ReadCombatlogFile, use ImportCombatlog instead.")]

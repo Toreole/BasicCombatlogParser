@@ -17,5 +17,8 @@
         /// All encounters in the log.
         /// </summary>
         public EncounterInfo[] Encounters { get; set; } = Array.Empty<EncounterInfo>();
+
+        //TODO:
+        public LogEntryBase[] ZoneChangeEvents = Array.Empty<LogEntryBase>();
     }
 }
