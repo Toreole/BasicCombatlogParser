@@ -6,56 +6,50 @@
     /// </summary>
     public class CombatlogEvent : LogEntryBase
     {
-        public CombatlogEventPrefix SubeventPrefix { get; set; } = CombatlogEventPrefix.UNDEFINED;
-        public CombatlogEventSuffix SubeventSuffix { get; set; } = CombatlogEventSuffix.UNDEFINED;
-
-        public string SubEvent => Enum.GetName(SubeventPrefix) + Enum.GetName(SubeventSuffix); 
-
-        //these 8 parameters are guaranteed to be included in combatlog events.
-        public string SourceGUID { get; set; } = "";
-        public string SourceName { get; set; } = "";
-        public UnitFlag SourceFlags { get; set; } = 0x0;
-        public RaidFlag SourceRaidFlags { get; set; } = 0x0;
-        public string TargetGUID { get; set; } = "";
-        public string TargetName { get; set; } = "";
-        public UnitFlag TargetFlags { get; set; } = 0x0;
-        public RaidFlag TargetRaidFlags { get; set; } = 0x0;
-
-        public bool IsSourcePet => SourceFlags.HasFlagf(UnitFlag.COMBATLOG_OBJECT_TYPE_PET);
-
-        /// <summary>
-        /// The parameters specific to the Subevents Prefix
-        /// </summary>
-        public object[] PrefixParams { get; set; } = Array.Empty<object>();
-
-        public object PrefixParam0 => PrefixParams.Length >= 1 ? PrefixParams[0] : "";
-        public object PrefixParam1 => PrefixParams.Length >= 2 ? PrefixParams[1] : "";
-        public object PrefixParam2 => PrefixParams.Length >= 3 ? PrefixParams[2] : "";
-
-        /// <summary>
-        /// The parameters specific to the Subevents Suffix
-        /// </summary>
-        public object[] SuffixParams { get; set; } = Array.Empty<object>();
-
-        //These are all used for displaying them in plain text.
-        public object SuffixParam0 => SuffixParams.Length >= 1 ? SuffixParams[0] : "";
-        public object SuffixParam1 => SuffixParams.Length >= 2 ? SuffixParams[1] : "";
-        public object SuffixParam2 => SuffixParams.Length >= 3 ? SuffixParams[2] : "";
-        public object SuffixParam3 => SuffixParams.Length >= 4 ? SuffixParams[3] : "";
-        public object SuffixParam4 => SuffixParams.Length >= 5 ? SuffixParams[4] : "";
-        public object SuffixParam5 => SuffixParams.Length >= 6 ? SuffixParams[5] : "";
-        public object SuffixParam6 => SuffixParams.Length >= 7 ? SuffixParams[6] : "";
-        public object SuffixParam7 => SuffixParams.Length >= 8 ? SuffixParams[7] : "";
-        public object SuffixParam8 => SuffixParams.Length >= 9 ? SuffixParams[8] : "";
-        public object SuffixParam9 => SuffixParams.Length >= 10 ? SuffixParams[9] : "";
-        public object SuffixParam10 => SuffixParams.Length >= 11 ? SuffixParams[10] : "";
-
+        //this dictionary includes both suffix and prefix data.
         private readonly Dictionary<EventData, object> data = new();
+        private readonly string[] rawSuffixData;
+        private readonly string[] rawPrefixData;
 
         /// <summary>
         /// The advanced combatlog parameters.
         /// </summary>
-        public object[] AdvancedParams { get; private set; } = Array.Empty<string>();
+        private object[] advancedParams = Array.Empty<string>();
+
+        public CombatlogEventPrefix SubeventPrefix { get; private set; } = CombatlogEventPrefix.UNDEFINED;
+        public CombatlogEventSuffix SubeventSuffix { get; private set; } = CombatlogEventSuffix.UNDEFINED;
+
+        public string SubEvent => Enum.GetName(SubeventPrefix) + Enum.GetName(SubeventSuffix); 
+
+        //these 8 parameters are guaranteed to be included in combatlog events.
+        public string SourceGUID { get; init; } = "";
+        public string SourceName { get; init; } = "";
+        public UnitFlag SourceFlags { get; init; } = 0x0;
+        public RaidFlag SourceRaidFlags { get; init; } = 0x0;
+        public string TargetGUID { get; init; } = "";
+        public string TargetName { get; init; } = "";
+        public UnitFlag TargetFlags { get; init; } = 0x0;
+        public RaidFlag TargetRaidFlags { get; init; } = 0x0;
+
+        public bool IsSourcePet => SourceFlags.HasFlagf(UnitFlag.COMBATLOG_OBJECT_TYPE_PET);
+
+        public object PrefixParam0 => GetPrefixString(0);
+        public object PrefixParam1 => GetPrefixString(1);
+        public object PrefixParam2 => GetPrefixString(2);
+
+        //These are all used for displaying them in plain text.
+        public object SuffixParam0 => GetSuffixString(0);
+        public object SuffixParam1 => GetSuffixString(1);
+        public object SuffixParam2 => GetSuffixString(2);
+        public object SuffixParam3 => GetSuffixString(3);
+        public object SuffixParam4 => GetSuffixString(4);
+        public object SuffixParam5 => GetSuffixString(5);
+        public object SuffixParam6 => GetSuffixString(6);
+        public object SuffixParam7 => GetSuffixString(7);
+        public object SuffixParam8 => GetSuffixString(8);
+        public object SuffixParam9 => GetSuffixString(9);
+        public object SuffixParam10 => GetSuffixString(10);
+
 
         public CombatlogEvent(
             CombatlogEventPrefix prefix, string[] prefixData,
@@ -69,28 +63,30 @@
             this.SubeventPrefix = prefix;
 
             InitPrefixParamsFromStrings(prefixData);
+            rawPrefixData = prefixData;
             InitSuffixParamsFromStrings(suffixData);
+            rawSuffixData = suffixData;
 
             if(advancedData.Length == 17)
             { 
-                this.AdvancedParams = new object[advancedData.Length];
-                AdvancedParams[(int)AdvancedParamID.InfoGUID]     = advancedData[0];
-                AdvancedParams[(int)AdvancedParamID.OwnerGUID]    = advancedData[1];
-                AdvancedParams[(int)AdvancedParamID.CurrentHP]    = long.Parse(advancedData[2]);
-                AdvancedParams[(int)AdvancedParamID.MaxHP]        = long.Parse(advancedData[3]);
-                AdvancedParams[(int)AdvancedParamID.AttackPower]  = long.Parse(advancedData[4]);
-                AdvancedParams[(int)AdvancedParamID.SpellPower]   = long.Parse(advancedData[5]);
-                AdvancedParams[(int)AdvancedParamID.Armor]        = long.Parse(advancedData[6]);
-                AdvancedParams[(int)AdvancedParamID.Absorb]       = long.Parse(advancedData[7]);
-                AdvancedParams[(int)AdvancedParamID.PowerType]    = (PowerType)int.Parse(advancedData[8]);
-                AdvancedParams[(int)AdvancedParamID.CurrentPower] = int.Parse(advancedData[9]);
-                AdvancedParams[(int)AdvancedParamID.MaxPower]     = int.Parse(advancedData[10]);
-                AdvancedParams[(int)AdvancedParamID.PowerCost]    = int.Parse(advancedData[11]);
-                AdvancedParams[(int)AdvancedParamID.PositionX]    = double.Parse(advancedData[12]);
-                AdvancedParams[(int)AdvancedParamID.PositionY]    = double.Parse(advancedData[13]);
-                AdvancedParams[(int)AdvancedParamID.UiMapID]      = int.Parse(advancedData[14]);
-                AdvancedParams[(int)AdvancedParamID.Facing]       = float.Parse(advancedData[15]);
-                AdvancedParams[(int)AdvancedParamID.Level]        = int.Parse(advancedData[16]);
+                this.advancedParams = new object[advancedData.Length];
+                advancedParams[(int)AdvancedParamID.InfoGUID]     = advancedData[0];
+                advancedParams[(int)AdvancedParamID.OwnerGUID]    = advancedData[1];
+                advancedParams[(int)AdvancedParamID.CurrentHP]    = long.Parse(advancedData[2]);
+                advancedParams[(int)AdvancedParamID.MaxHP]        = long.Parse(advancedData[3]);
+                advancedParams[(int)AdvancedParamID.AttackPower]  = long.Parse(advancedData[4]);
+                advancedParams[(int)AdvancedParamID.SpellPower]   = long.Parse(advancedData[5]);
+                advancedParams[(int)AdvancedParamID.Armor]        = long.Parse(advancedData[6]);
+                advancedParams[(int)AdvancedParamID.Absorb]       = long.Parse(advancedData[7]);
+                advancedParams[(int)AdvancedParamID.PowerType]    = ParsingUtil.AllPowerTypesIn(advancedData[8]);
+                advancedParams[(int)AdvancedParamID.CurrentPower] = ParsingUtil.AllIntsIn(advancedData[9]);
+                advancedParams[(int)AdvancedParamID.MaxPower]     = ParsingUtil.AllIntsIn(advancedData[10]);
+                advancedParams[(int)AdvancedParamID.PowerCost]    = ParsingUtil.AllIntsIn(advancedData[11]);
+                advancedParams[(int)AdvancedParamID.PositionX]    = double.Parse(advancedData[12]);
+                advancedParams[(int)AdvancedParamID.PositionY]    = double.Parse(advancedData[13]);
+                advancedParams[(int)AdvancedParamID.UiMapID]      = int.Parse(advancedData[14]);
+                advancedParams[(int)AdvancedParamID.Facing]       = float.Parse(advancedData[15]);
+                advancedParams[(int)AdvancedParamID.Level]        = int.Parse(advancedData[16]);
             }
         }
 
@@ -111,6 +107,7 @@
             t = default;
             return false;
         }
+
         /// <summary>
         /// Get the value of a data entry, or the default value.
         /// </summary>
@@ -131,7 +128,56 @@
         {
             if (data.TryGetValue(entry, out object? value) && value is string x)
                 return x;
-            return "";
+            return string.Empty;
+        }
+
+        /// <summary>
+        /// Generic way to get an advanced param by its ID for readability. <br/>
+        /// Returns default if the wrong type is provided or the event doesnt have advanced params.
+        /// </summary>
+        /// <returns></returns>
+        public T GetAdvancedParam<T>(AdvancedParamID id) where T : struct
+        {
+            if (advancedParams.Length > 0 && advancedParams[(int)id] is T x)
+                return x;
+            return default;
+        }
+
+        /// <summary>
+        /// the GUID of the unit that is the source of the event. (advanced param)
+        /// </summary>
+        public string GetInfoGUID()
+        {
+            if (advancedParams.Length > 0)
+                return (string)advancedParams[0];
+            return string.Empty;
+        }
+
+        /// <summary>
+        /// the GUID of the unit that is the owner of the infoGUID. (advanced param)
+        /// </summary>
+        public string GetOwnerGUID()
+        {
+            if (advancedParams.Length > 0)
+                return (string)advancedParams[1];
+            return string.Empty;
+        }
+
+
+        //Gets the raw data of the suffix at the given index.
+        private string GetSuffixString(int index)
+        {
+            if (index >= rawSuffixData.Length)
+                return string.Empty;
+            return rawSuffixData[index];
+        }
+
+        //Gets the raw data of the prefix at the given index.
+        private string GetPrefixString(int index)
+        {
+            if (index >= rawPrefixData.Length)
+                return string.Empty;
+            return rawPrefixData[index];
         }
 
         private void InitPrefixParamsFromStrings(string[] prefixData)
@@ -271,58 +317,108 @@
         public enum EventData
         {
             //Prefix data
+
+            /// <summary> int </summary>
             SpellID,
+            /// <summary> string </summary>
             SpellName,
+            /// <summary> SpellSchool </summary>
             SpellSchool,
+            /// <summary> string (WIP) </summary>
             EnvironmentalType,
             //Suffix data
+            /// <summary> long </summary>
             Amount,
+            /// <summary> long </summary>
             BaseAmount,
+            /// <summary> long </summary>
             Overkill,
+            /// <summary> SpellSchool </summary>
             School,
+            /// <summary> long </summary>
             Resisted,
+            /// <summary> long </summary>
             Blocked,
+            /// <summary> long </summary>
             Absorbed,
+            /// <summary> bool </summary>
             Critical,
+            /// <summary> bool </summary>
             Glancing,
+            /// <summary> bool </summary>
             Crushing,
+            /// <summary> bool </summary>
             IsOffHand,
+            /// <summary> MissType </summary>
             MissType,
+            /// <summary> long </summary>
             AmountMissed,
+            /// <summary> long </summary>
             Overhealing,
+            /// <summary> string </summary>
             ExtraGUID,
+            /// <summary> string </summary>
             ExtraName,
+            /// <summary> UnitFlag </summary>
             ExtraFlags,
+            /// <summary> RaidFlag </summary>
             ExtraRaidFlags,
+            /// <summary> int </summary>
             ExtraSpellID,
+            /// <summary> string </summary>
             ExtraSpellName,
+            /// <summary> SpellSchool </summary>
             ExtraSchool,
+            /// <summary> long </summary>
             TotalAmount,
+            /// <summary> int[] </summary>
             OverEnergize,
+            /// <summary> PowerType[] </summary>
             PowerType,
+            /// <summary> int[] </summary>
             MaxPower,
+            /// <summary> AuraType </summary>
             AuraType,
+            /// <summary> string (WIP) </summary>
             FailedType,
+            /// <summary> string (WIP) </summary>
             UnconsciousOnDeath
         }
         public enum AdvancedParamID 
         {
+            /// <summary> string </summary>
             InfoGUID = 0,
+            /// <summary> string </summary>
             OwnerGUID = 1,
+            /// <summary> long </summary>
             CurrentHP = 2,
+            /// <summary> long </summary>
             MaxHP = 3,
+            /// <summary> long </summary>
             AttackPower = 4,
+            /// <summary> long </summary>
             SpellPower = 5,
+            /// <summary> long </summary>
             Armor = 6,
+            /// <summary> long </summary>
             Absorb = 7,
+            /// <summary> PowerType[] </summary>
             PowerType = 8,
+            /// <summary> int[] </summary>
             CurrentPower = 9,
+            /// <summary> int[] </summary>
             MaxPower = 10,
+            /// <summary> int[] </summary>
             PowerCost = 11,
+            /// <summary> double </summary>
             PositionX = 12,
+            /// <summary> double </summary>
             PositionY = 13,
+            /// <summary> int </summary>
             UiMapID = 14,
+            /// <summary> float </summary>
             Facing = 15,
+            /// <summary> int </summary>
             Level = 16
         }
     }
