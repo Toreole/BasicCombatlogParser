@@ -69,6 +69,7 @@ namespace CombatlogParser
                     {
                         if (encounterMetadata != null)
                         {
+                            length++;
                             for (int j = 0; j < 4; j++) //skip past encounterID, encounterName, difficultyID, groupSize
                                 ParsingUtil.MovePastNextDivisor(line, ref i);
                             encounterMetadata.success = ParsingUtil.NextSubstring(line, ref i) == "1";
@@ -118,12 +119,39 @@ namespace CombatlogParser
             //encounterLength is guaranteed to be more or equal to the amount of actual combat events in the encounter.
             List<CombatlogEvent> events = new (metadata.encounterLength);
 
-            string? line;
-            while((line = reader.ReadLine()) != null)
+            //data to be inserted into the resulting EncounterInfo later
+            DateTime encStartT = DateTime.Now;
+            //uint wowEncID = 0;
+            string encName = "";
+            //int diffID = 0;
+            int grpSize = 0;
+            uint wowInstID = 0;
+            uint encDurationMS = 0;
+            DateTime encEndT = DateTime.Now;
+
+
+            string? line = reader.ReadLine()!;
+            //double check the encounter start 
+            if(line.ContainsSubstringAt("ENCOUNTER_START", 20))
             {
+                encStartT = ParsingUtil.StringTimestampToDateTime(line[..18]);
+                int i = 20;
+                ParsingUtil.MovePastNextDivisor(line, ref i);
+                //wowEncID = uint.Parse(ParsingUtil.NextSubstring(line, ref i));
+                ParsingUtil.MovePastNextDivisor(line, ref i); //redundant, skip.
+                encName = ParsingUtil.NextSubstring(line, ref i);
+                //diffID = int.Parse(ParsingUtil.NextSubstring(line, ref i)); //redundant, skip.
+                ParsingUtil.MovePastNextDivisor(line, ref i);
+                grpSize = int.Parse(ParsingUtil.NextSubstring(line, ref i));
+                wowInstID = uint.Parse(ParsingUtil.NextSubstring(line, ref i));
+            }
+
+            //read all the events during the encounter.
+            for(int l = 1; l < metadata.encounterLength-1; l++) 
+            {
+                line = reader.ReadLine();
                 int pos = 20;
-                if (line.ContainsSubstringAt("ENCOUNTER_END", pos)) //the end of the encounter.
-                    break;
+                var timestamp = ParsingUtil.StringTimestampToDateTime(line[..18]);
 
                 string subevent = ParsingUtil.NextSubstring(line, ref pos);
                 //confirm that the subevent is a combatlog event (it has a prefix and a suffix)
@@ -193,19 +221,33 @@ namespace CombatlogParser
                     events.Add(clevent);
                 }
             }
+            //ENCOUNTER_EVENT should be exactly here.
+            if((line = reader.ReadLine()) != null)
+            {
+                int pos = 20;
+                var timestamp = ParsingUtil.StringTimestampToDateTime(line[..18]);
+                if (line.ContainsSubstringAt("ENCOUNTER_END", pos))
+                {
+                    //the end of the encounter.
+                    encEndT = timestamp;
+                    for (int j = 0; j < 5; j++) //skip past encounterID, encounterName, difficultyID, groupSize, success
+                        ParsingUtil.MovePastNextDivisor(line, ref pos);
+                    encDurationMS = uint.Parse(ParsingUtil.NextSubstring(line, ref pos));
+                }
+            }
 
             return new EncounterInfo()
             {
                 CombatlogEvents = events.ToArray(),
-                EncounterStartTime = /*GET THIS FROM FIRST LINE*/,
+                EncounterStartTime = encStartT,
                 EncounterSuccess = metadata.success,
                 DifficultyID = metadata.difficultyID,
                 EncounterID = metadata.wowEncounterID,
-                EncounterName = /*GET THIS FROM FIRST LINE*/,
-                GroupSize = /*GET THIS FROM FIRST LINE*/,
-                EncounterDuration = /*GET THIS FROM LAST LINE*/,
-                EncounterEndTime = /*GET THIS FROM LAST LINE*/,
-                Players = /*GET THIS FROM COMBATANT_INFO EVENTS*/
+                EncounterName = encName,
+                GroupSize = grpSize,
+                EncounterDuration = encDurationMS,
+                EncounterEndTime = encEndT,
+                //Players = /*GET THIS FROM COMBATANT_INFO EVENTS*/
             };
         }
 
