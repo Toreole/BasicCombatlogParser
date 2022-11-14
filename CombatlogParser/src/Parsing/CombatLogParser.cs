@@ -2,6 +2,7 @@
 using System.Text.RegularExpressions;
 using CombatlogParser.Data;
 using CombatlogParser.Data.Metadata;
+using CombatlogParser.Parsing;
 
 namespace CombatlogParser
 {
@@ -89,15 +90,17 @@ namespace CombatlogParser
             }
 
             //Step 2: Create Tasks for all the seperate Encounters it found in the previous step
-            //Process each one individually, wait for them all to finish, get the results.
             Task<EncounterInfo>[] parseTasks = new Task<EncounterInfo>[encounterMetadatas.Count];
             
             for(int i = 0; i < parseTasks.Length; i++)
                 parseTasks[i] = Task.Run(() => ParseEncounter(encounterMetadatas[i], filePath, logMetadata.isAdvanced));
             //wait for all parses to finish.
             Task.WaitAll(parseTasks);
+            
+            //Step 3: Process each encounter. This is for general HPS/DPS statistics
 
-            //Step 3: Store relevant results in the DB, clean up, provide access to the results to the main window
+
+            //Step 4: Store relevant results in the DB, clean up, provide access to the results to the main window
             //so the app can display it all to the user.
 
         }
@@ -106,9 +109,9 @@ namespace CombatlogParser
         /// <summary>
         /// Reads an Encounter from a combatlog file.
         /// </summary>
-        /// <param name="metadata"></param>
-        /// <param name="filePath"></param>
-        /// <param name="advanced"></param>
+        /// <param name="metadata">metadata about the encounter.</param>
+        /// <param name="filePath">The full file path to the combatlog.txt</param>
+        /// <param name="advanced">Whether the log is using advanced parameters.</param>
         /// <returns></returns>
         private static EncounterInfo ParseEncounter(EncounterInfoMetadata metadata, string filePath, bool advanced)
         {
@@ -118,6 +121,7 @@ namespace CombatlogParser
             fileStream.Position = (long)metadata.encounterStartIndex;
             //encounterLength is guaranteed to be more or equal to the amount of actual combat events in the encounter.
             List<CombatlogEvent> events = new (metadata.encounterLength);
+            List<MiscEvent> miscEvents = new(100); //not expecting a whole lot tbh.
 
             //data to be inserted into the resulting EncounterInfo later
             DateTime encStartT = DateTime.Now;
@@ -146,6 +150,9 @@ namespace CombatlogParser
                 wowInstID = uint.Parse(ParsingUtil.NextSubstring(line, ref i));
             }
 
+            //TODO for the future: grab PlayerInfo[] from the COMBATANT_INFO events that are fired right after 
+            //ENCOUNTER_START and their amount should equal the grpSize.
+            
             //read all the events during the encounter.
             for(int l = 1; l < metadata.encounterLength-1; l++) 
             {
@@ -220,6 +227,25 @@ namespace CombatlogParser
                     };
                     events.Add(clevent);
                 }
+                //TODO: Other events should also be handled.
+                else if(ParsingUtil.TryParseMiscEventF(subevent, out var ev))
+                {
+                    switch(ev)
+                    {
+                        case CombatlogMiscEvents.COMBATANT_INFO:
+                            break;
+                        case CombatlogMiscEvents.WORLD_MARKER_PLACED:
+                            break;
+                        case CombatlogMiscEvents.WORLD_MARKER_REMOVED:
+                            break;
+                        case CombatlogMiscEvents.ZONE_CHANGE:
+                            break;
+                    }
+                }
+                else
+                {
+                    //TODO: Write to a Log that a subevent could not be recognized. Its probably new.
+                }
             }
             //ENCOUNTER_EVENT should be exactly here.
             if((line = reader.ReadLine()) != null)
@@ -249,6 +275,88 @@ namespace CombatlogParser
                 EncounterEndTime = encEndT,
                 //Players = /*GET THIS FROM COMBATANT_INFO EVENTS*/
             };
+        }
+
+        /// <summary>
+        /// Process the damage and healing data for all players in a log.
+        /// </summary>
+        /// <param name="encounterInfo"></param>
+        /// <param name="advanced"></param>
+        /// <returns></returns>
+        private static PerformanceMetadata[] ProcessPerformances(EncounterInfo encounterInfo, bool advanced)
+        {
+            PerformanceMetadata[] result = new PerformanceMetadata[encounterInfo.GroupSize];
+            //1. Create metadata for every player.
+            for(int i = 0; i < encounterInfo.GroupSize; i++)
+            {
+                result[i] = new(encounterInfo.Players[i].GUID);
+            }
+            var allySource = new AllOfFilter(
+                new AnyOfFilter(
+                    new SourceFlagFilter(UnitFlag.COMBATLOG_OBJECT_AFFILIATION_RAID),
+                    new SourceFlagFilter(UnitFlag.COMBATLOG_OBJECT_AFFILIATION_PARTY),
+                    new SourceFlagFilter(UnitFlag.COMBATLOG_OBJECT_AFFILIATION_MINE)
+                    ),
+                new AnyOfFilter(
+                    new SourceFlagFilter(UnitFlag.COMBATLOG_OBJECT_REACTION_FRIENDLY),
+                    new SourceFlagFilter(UnitFlag.COMBATLOG_OBJECT_REACTION_NEUTRAL)
+                    )
+                );
+            var damageEvents = encounterInfo.AllEventsThatMatch(
+                SubeventFilter.DamageEvents, //all _DAMAGE events
+                allySource,                  //where the source is friendly or neutral (belongs to the raid/party)
+                new TargetFlagFilter(UnitFlag.COMBATLOG_OBJECT_REACTION_HOSTILE) //and the target is hostile.
+                );
+            //the dictionary to look up the actual source GUID (pet->player, player->player, guardian->player, etc)
+            var sourceToOwnerGUID = new Dictionary<string, string>();
+            if (advanced)
+            {
+                foreach (var e in encounterInfo.CombatlogEvents)
+                {
+                    if (!ParsingUtil.SubeventContainsAdvancedParams(e.SubeventSuffix))
+                        continue;
+                    //if the source unit is the advanced info unit
+                    if(e.SourceGUID == e.GetInfoGUID())
+                    {
+                        var owner = e.GetOwnerGUID();
+                        //"000000000000" is the default GUID for "no owner".
+                        //regular GUIDs start with Player/Creature prefixes.
+                        //Since this event is confirmed to have advanced params, GetOwnerGUID will never return string.Empty.
+                        if (owner[0] != '0') 
+                        {
+                            if (sourceToOwnerGUID.ContainsKey(e.SourceGUID) == false)
+                                sourceToOwnerGUID.Add(e.SourceGUID, owner);
+                        }
+                        else if (sourceToOwnerGUID.ContainsKey(e.SourceGUID) == false)
+                            sourceToOwnerGUID.Add(e.SourceGUID, e.SourceGUID);
+                    }
+                }
+            }
+            else
+            {
+                //TODO: Write to log that encounter cant be processed without advanced parameters.
+                return Array.Empty<PerformanceMetadata>();
+            }
+            //add together all the damage events.
+            foreach(var ev in damageEvents)
+            {
+                long damageDone = ev.Get<long>(CombatlogEvent.EventData.Amount);
+                long damageAbsorbed = ev.Get<long>(CombatlogEvent.EventData.Absorbed);
+
+                //try to add the damage done directly to the player by their GUID
+                //by this point, the dictionary has ALL possible GUIDs of units in it. therefore this is OK!
+                if(result.TryGetByGUID(sourceToOwnerGUID[ev.SourceGUID], out var perf))
+                {
+                    perf!.dps += (damageDone + damageAbsorbed);
+                }
+                else //source is not player, but a pet/guardian/npc summoned by a player.
+                {
+
+                }
+            }
+
+
+            return result;
         }
 
         [Obsolete("Should no longer use ReadCombatlogFile, use ImportCombatlog instead.")]

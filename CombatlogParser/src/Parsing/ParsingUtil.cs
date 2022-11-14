@@ -14,6 +14,9 @@ namespace CombatlogParser
         private static readonly CombatlogEventSuffix[] suffixes;
         private static readonly string[] suffixNames;
 
+        private static readonly CombatlogMiscEvents[] miscEvents;
+        private static readonly string[] miscNames;
+
         static ParsingUtil()
         {
             prefixes = Enum.GetValues<CombatlogEventPrefix>();
@@ -21,6 +24,9 @@ namespace CombatlogParser
 
             suffixes = Enum.GetValues<CombatlogEventSuffix>();
             suffixNames = Enum.GetNames<CombatlogEventSuffix>();
+
+            miscEvents = Enum.GetValues<CombatlogMiscEvents>();
+            miscNames = Enum.GetNames<CombatlogMiscEvents>();
         }
 
         /// <summary>
@@ -394,6 +400,24 @@ namespace CombatlogParser
                     return false; //other string doesnt match a character.
             }
             return true;
+        }
+
+        /// <summary>
+        /// Try to parse a miscallaneous event
+        /// </summary>
+        /// <param name="subevent"></param>
+        /// <param name="ev"></param>
+        /// <returns></returns>
+        public static bool TryParseMiscEventF(string subevent, out object ev)
+        {
+            for(int i = 0; i < miscEvents.Length; i++)
+                if (subevent.StartsWithF(miscNames[i]))
+                {
+                    ev = miscEvents[i];
+                    return true;
+                }
+            ev = CombatlogMiscEvents.UNDEFINED;
+            return false;
         }
     }
 }
