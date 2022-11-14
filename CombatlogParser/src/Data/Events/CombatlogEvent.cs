@@ -57,7 +57,7 @@
             string[] advancedData
             )
         {
-            if (prefixData.Length < ParsingUtil.GetPrefixParamAmount(prefix) || suffixData.Length < ParsingUtil.GetSuffixParamAmount(suffix))
+            if (prefixData.Length < ParsingUtil.GetPrefixParamAmount(prefix, suffix) || suffixData.Length < ParsingUtil.GetSuffixParamAmount(suffix))
                 throw new ArgumentException("too few prefix/suffix data entries");
             this.SubeventSuffix = suffix;
             this.SubeventPrefix = prefix;
@@ -189,6 +189,8 @@
                 case CombatlogEventPrefix.RANGE:
                 case CombatlogEventPrefix.DAMAGE:
                 case CombatlogEventPrefix.SPELL:
+                    if (SubeventSuffix is CombatlogEventSuffix._ABSORBED) //SPELL_ABSORBED doesnt have prefix data, only suffix.
+                        break;
                     data.Add(EventData.SpellID, int.Parse(prefixData[0]));
                     data.Add(EventData.SpellName, prefixData[1]);
                     data.Add(EventData.SpellSchool, (SpellSchool)ParsingUtil.HexStringToUint(prefixData[2]));
@@ -233,9 +235,13 @@
                     break;
                 case CombatlogEventSuffix._MISSED:
                     data.Add(EventData.MissType, Enum.Parse<MissType>(suffixData[0]));
+                    if (suffixData[1] == "nil")
+                        break;
                     data.Add(EventData.IsOffHand, suffixData[1] == "1");
-                    data.Add(EventData.AmountMissed, long.Parse(suffixData[2]));
-                    data.Add(EventData.Critical, suffixData[3] = "1");
+                    if (string.Empty != suffixData[2])
+                        data.Add(EventData.AmountMissed, long.Parse(suffixData[2]));
+                    if (string.Empty != suffixData[3])
+                        data.Add(EventData.Critical, suffixData[3] = "1");
                     break;
                 case CombatlogEventSuffix._HEAL:
                     data.Add(EventData.Amount, long.Parse(suffixData[0]));
@@ -244,11 +250,12 @@
                     data.Add(EventData.Absorbed, long.Parse(suffixData[3]));
                     data.Add(EventData.Critical, suffixData[4] == "1");
                     break;
+                case CombatlogEventSuffix._ABSORBED:
                 case CombatlogEventSuffix._HEAL_ABSORBED:
                     data.Add(EventData.ExtraGUID, suffixData[0]);
                     data.Add(EventData.ExtraName, suffixData[1]);
-                    data.Add(EventData.ExtraFlags, (UnitFlag)uint.Parse(suffixData[2]));
-                    data.Add(EventData.ExtraRaidFlags, (UnitFlag)uint.Parse(suffixData[3]));
+                    data.Add(EventData.ExtraFlags, (UnitFlag)ParsingUtil.HexStringToUint(suffixData[2]));
+                    data.Add(EventData.ExtraRaidFlags, (UnitFlag)ParsingUtil.HexStringToUint(suffixData[3]));
                     data.Add(EventData.ExtraSpellID, int.Parse(suffixData[4]));
                     data.Add(EventData.ExtraSpellName, suffixData[5]);
                     data.Add(EventData.ExtraSchool, (SpellSchool)ParsingUtil.HexStringToUint(suffixData[6]));

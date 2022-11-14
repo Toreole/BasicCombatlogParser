@@ -91,7 +91,8 @@ namespace CombatlogParser
 
             //Step 2: Create Tasks for all the seperate Encounters it found in the previous step
             Task<EncounterInfo>[] parseTasks = new Task<EncounterInfo>[encounterMetadatas.Count];
-            
+            for (int i = 0; i < parseTasks.Length; i++)
+                _ = ParseEncounter(encounterMetadatas[i], filePath, logMetadata.isAdvanced);
             for(int i = 0; i < parseTasks.Length; i++)
                 parseTasks[i] = Task.Run(() => ParseEncounter(encounterMetadatas[i], filePath, logMetadata.isAdvanced));
             //wait for all parses to finish.
@@ -185,7 +186,7 @@ namespace CombatlogParser
             //read all the events during the encounter.
             for(int l = 1; l < metadata.encounterLength-1; l++) 
             {
-                line = reader.ReadLine();
+                line = reader.ReadLine()!;
                 int pos = 20;
                 var timestamp = ParsingUtil.StringTimestampToDateTime(line[..18]);
 
@@ -219,7 +220,7 @@ namespace CombatlogParser
                     var targetRaidFlags = (RaidFlag)ParsingUtil.HexStringToUint(ParsingUtil.NextSubstring(line, ref pos));
 
                     //at this point Prefix params can be handled (if any)
-                    int prefixAmount = ParsingUtil.GetPrefixParamAmount(prefix);
+                    int prefixAmount = ParsingUtil.GetPrefixParamAmount(prefix, suffix);
                     string[] prefixData = new string[prefixAmount];
 
                     for (int j = 0; j < prefixAmount; j++)
@@ -530,7 +531,7 @@ namespace CombatlogParser
                     var targetRaidFlags = (RaidFlag)ParsingUtil.HexStringToUint(ParsingUtil.NextSubstring(line, ref i));
 
                     //at this point Prefix params can be handled (if any)
-                    int prefixAmount = ParsingUtil.GetPrefixParamAmount(cPrefix);
+                    int prefixAmount = ParsingUtil.GetPrefixParamAmount(cPrefix, cSuffix);
                     string[] prefixData = new string[prefixAmount];
                     
                     for (int j = 0; j < prefixAmount; j++)

@@ -172,13 +172,13 @@ namespace CombatlogParser
         /// <summary>
         /// Gets the amount of parameters that are associated with the given prefix.
         /// </summary>
-        public static int GetPrefixParamAmount(CombatlogEventPrefix prefix)
+        public static int GetPrefixParamAmount(CombatlogEventPrefix prefix, CombatlogEventSuffix suffix)
         {
             return prefix switch
             {
                 CombatlogEventPrefix.SWING => 0,
                 CombatlogEventPrefix.RANGE => 3,
-                CombatlogEventPrefix.SPELL => 3,
+                CombatlogEventPrefix.SPELL => 3, //(suffix == CombatlogEventSuffix._ABSORBED) ? 0 :
                 CombatlogEventPrefix.SPELL_PERIODIC => 3,
                 CombatlogEventPrefix.SPELL_BUILDING => 3,
                 CombatlogEventPrefix.ENVIRONMENTAL => 1,
@@ -199,7 +199,7 @@ namespace CombatlogParser
                 CombatlogEventSuffix._MISSED => 5, //actually 5, since the logfiles also include baseDamage after damage
                 CombatlogEventSuffix._HEAL => 5,
                 CombatlogEventSuffix._HEAL_ABSORBED => 9,
-                CombatlogEventSuffix._ABSORBED => 0,
+                CombatlogEventSuffix._ABSORBED => 9,
                 CombatlogEventSuffix._ENERGIZE => 4,
                 CombatlogEventSuffix._DRAIN => 4,
                 CombatlogEventSuffix._LEECH => 3,
@@ -240,10 +240,10 @@ namespace CombatlogParser
                 string[] vs = str.Split('|');
                 PowerType[] powerTypes = new PowerType[vs.Length];
                 for(int i = 0; i < vs.Length; i++)
-                    powerTypes[i] = (PowerType)int.Parse(vs[i]);
+                    powerTypes[i] = (PowerType)int.Parse(vs[i], NumberStyles.Number);
                 return powerTypes;
             }
-            return new PowerType[] { (PowerType)int.Parse(str) };
+            return new PowerType[] { (PowerType)int.Parse(str, NumberStyles.Number) };
         }
         /// <summary>
         /// Gets an int array from a string where values are seperated with a '|' 
@@ -258,10 +258,10 @@ namespace CombatlogParser
                 string[] vs = str.Split('|');
                 int[] ix = new int[vs.Length];
                 for (int i = 0; i < vs.Length; i++)
-                    ix[i] = int.Parse(vs[i]);
+                    ix[i] = int.Parse(vs[i], NumberStyles.Number);
                 return ix;
             }
-            return new int[] { int.Parse(str) };
+            return new int[] { int.Parse(str, NumberStyles.Number) };
         }
 
         /// <summary>
