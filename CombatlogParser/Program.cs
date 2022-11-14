@@ -2,7 +2,7 @@
 {
     public class Program
     {
-        private const string APP_VERSION = "0.1.0a";
+        private const string APP_VERSION = "0.1.1a";
 
         [STAThread]
         static void Main()
@@ -18,9 +18,10 @@
                 Config.Default.AppVersion = APP_VERSION;
                 Config.Default.Save();
             }
+            CombatLogParser.ImportCombatlog("combatlogLarge.txt"); //test with a relative path.
             //this is where the main application runs.
-            MainWindow app = new();
-            app.ShowDialog();
+            //MainWindow app = new();
+            //app.ShowDialog();
 
             //propertly shut down the DB before exiting.
             DB.Shutdown();

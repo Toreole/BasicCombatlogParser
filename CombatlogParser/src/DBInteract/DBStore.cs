@@ -85,5 +85,69 @@ namespace CombatlogParser
                 return -1;
             }
         }
+
+        public static int StorePerformance(PerformanceMetadata data)
+        {
+            var command = DB.CreateCommand();
+            if (command is null) //if the DB connection isnt established, this will be null. terminate before.
+                return -1;
+
+            command.CommandText =
+                @" INSERT INTO Performance_Metadata 
+                       ( playerGUID, dps, hps, roleID, specID, encounterUID )
+                   VALUES ( $playerGUID, $dps, $hps, $roleID, $specID, $encUID )";
+            //insert the parameters
+            var args = command.Parameters;
+            args.AddWithValue("$playerGUID", data.playerGUID);
+            args.AddWithValue("$dps", data.dps);
+            args.AddWithValue("$hps", data.hps);
+            args.AddWithValue("$roleID", data.roleID);
+            args.AddWithValue("$specID", data.specID);
+            args.AddWithValue("encUID", data.encounterUID);
+            //try because the insert command will raise an error given a duplicate
+            try
+            {
+                command.ExecuteNonQuery();
+                var com2 = DB.CreateCommand()!; //is never null here
+                //the INTEGER PRIMARY KEY performance_ID is an alias for the ROWID, so I can use the SQL function.
+                com2.CommandText = "SELECT last_insert_rowid()";
+                //given that the insert command executes without errors, this can never return null.
+                return (int)com2.ExecuteScalar()!;
+            }
+            catch (SqliteException exception)
+            {
+                Debug.WriteLine(exception.Message);
+                return -1;
+            }
+        }
+
+        public static void StorePlayer(PlayerMetadata data)
+        {
+            var command = DB.CreateCommand();
+            if (command is null) //if the DB connection isnt established, this will be null. terminate before.
+                return;
+
+            command.CommandText =
+                @" INSERT INTO Player_Metadata 
+                       ( playerGUID, name, realm, classID )
+                   VALUES ( $playerGUID, $name, $realm, $classID )
+                   ON CONFLICT ABORT";
+
+            //insert the parameters
+            var args = command.Parameters;
+            args.AddWithValue("$playerGUID", data.GUID);
+            args.AddWithValue("$name", data.name);
+            args.AddWithValue("$realm", data.realm);
+            args.AddWithValue("$classID", data.classID);
+            //try because the insert command will raise an error given a duplicate GUID
+            try
+            {
+                command.ExecuteNonQuery();
+            }
+            catch (SqliteException exception)
+            {
+                Debug.WriteLine(exception.Message);
+            }
+        }
     }
 }

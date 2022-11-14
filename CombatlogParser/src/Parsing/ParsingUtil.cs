@@ -197,7 +197,7 @@ namespace CombatlogParser
                 CombatlogEventSuffix._DAMAGE => 10,
                 CombatlogEventSuffix._DAMAGE_LANDED => 10,
                 CombatlogEventSuffix._MISSED => 5, //actually 5, since the logfiles also include baseDamage after damage
-                CombatlogEventSuffix._HEAL => 4,
+                CombatlogEventSuffix._HEAL => 5,
                 CombatlogEventSuffix._HEAL_ABSORBED => 9,
                 CombatlogEventSuffix._ABSORBED => 0,
                 CombatlogEventSuffix._ENERGIZE => 4,
@@ -252,6 +252,7 @@ namespace CombatlogParser
         /// <returns></returns>
         public static int[] AllIntsIn(string str)
         {
+            if (string.IsNullOrEmpty(str)) return new int[] { 0 };
             if (str.Contains('|'))
             {
                 string[] vs = str.Split('|');
@@ -276,6 +277,8 @@ namespace CombatlogParser
                 CombatlogEventSuffix._DAMAGE => true,
                 CombatlogEventSuffix._DAMAGE_LANDED => true,
                 CombatlogEventSuffix._CAST_SUCCESS => true,
+                CombatlogEventSuffix._HEAL => true,
+                CombatlogEventSuffix._ENERGIZE => true,
                 _ => false
             };
         }

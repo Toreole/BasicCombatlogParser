@@ -12,7 +12,7 @@ namespace CombatlogParser
     /// </summary>
     public partial class MainWindow : Window
     {
-        private Combatlog currentCombatlog;
+        private Combatlog currentCombatlog = new();
         private ObservableCollection<CombatlogEvent> events = new();
         private ObservableCollection<CombatlogEvent> damageEvents = new();
 
@@ -29,33 +29,33 @@ namespace CombatlogParser
             //apply the binding to the Label.ContentProperty 
             HeaderLabel.Content = "Combatlogs";
 
-            //try reading a large combatlog into a full Combatlog object.
-            currentCombatlog = CombatLogParser.ReadCombatlogFile("combatlogLarge.txt");
+            ////try reading a large combatlog into a full Combatlog object.
+            //currentCombatlog = CombatLogParser.ReadCombatlogFile("combatlogLarge.txt");
 
-            for(int i = 0; i < currentCombatlog.Encounters.Length; i++)
-            {
-                var enc = currentCombatlog.Encounters[i];
-                EncounterSelection.Items.Add($"{i}:{enc.EncounterName}: {(enc.EncounterSuccess? "Kill" : "Wipe")}  - ({ParsingUtil.MillisecondsToReadableTimeString(enc.EncounterDuration)})");
-            }
-            EncounterSelection.SelectionChanged += OnEncounterChanged;
+            //for(int i = 0; i < currentCombatlog.Encounters.Length; i++)
+            //{
+            //    var enc = currentCombatlog.Encounters[i];
+            //    EncounterSelection.Items.Add($"{i}:{enc.EncounterName}: {(enc.EncounterSuccess? "Kill" : "Wipe")}  - ({ParsingUtil.MillisecondsToReadableTimeString(enc.EncounterDuration)})");
+            //}
+            //EncounterSelection.SelectionChanged += OnEncounterChanged;
 
-            var dmgEventsBinding = new Binding()
-            {
-                Source = damageEvents
-            };
-            DamageEventsList.SetBinding(ListView.ItemsSourceProperty, dmgEventsBinding);
+            //var dmgEventsBinding = new Binding()
+            //{
+            //    Source = damageEvents
+            //};
+            //DamageEventsList.SetBinding(ListView.ItemsSourceProperty, dmgEventsBinding);
 
-            var eventsBinding = new Binding()
-            {
-                Source = events
-            };
-            CombatLogEventsList.SetBinding(ListView.ItemsSourceProperty, eventsBinding);
+            //var eventsBinding = new Binding()
+            //{
+            //    Source = events
+            //};
+            //CombatLogEventsList.SetBinding(ListView.ItemsSourceProperty, eventsBinding);
 
-            var dmgBreakdownBinding = new Binding()
-            {
-                Source = damageSummaries
-            };
-            DmgPerSourceList.SetBinding(ListView.ItemsSourceProperty, dmgBreakdownBinding);
+            //var dmgBreakdownBinding = new Binding()
+            //{
+            //    Source = damageSummaries
+            //};
+            //DmgPerSourceList.SetBinding(ListView.ItemsSourceProperty, dmgBreakdownBinding);
             //This bit works for initializing the Content to "Test", but it will not receive updates, as
             //the class does not implement INotifyPropertyChanged 
             //var binding = new Binding("Message")
@@ -121,7 +121,7 @@ namespace CombatlogParser
                 ))
                 {
                     if (petToOwnerGUID.ContainsKey(castEvent.SourceGUID) == false) //dont add duplicates of course.
-                        petToOwnerGUID.Add(castEvent.SourceGUID, castEvent.advancedParams[1]);
+                        petToOwnerGUID.Add(castEvent.SourceGUID, castEvent.GetOwnerGUID());
                 }
             }
 
@@ -138,7 +138,7 @@ namespace CombatlogParser
                 else if(dmgevent.IsSourcePet && dmgevent.SubeventPrefix == CombatlogEventPrefix.SWING && currentCombatlog.AdvancedLogEnabled)
                 {
                     //pet swing damage as the owner GUID as advanced param
-                    sourceGUID = dmgevent.advancedParams[1];
+                    sourceGUID = dmgevent.GetOwnerGUID();
                     if(petToOwnerGUID.ContainsKey(dmgevent.SourceGUID) == false)
                         petToOwnerGUID[dmgevent.SourceGUID] = sourceGUID;
                 }

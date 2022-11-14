@@ -43,7 +43,8 @@ namespace CombatlogParser
                         new("dps", "REAL"),
                         new("hps", "REAL"),
                         new("roleID", "INTEGER"),
-                        new("specID", "INTEGER")
+                        new("specID", "INTEGER"),
+                        new("encounterUID", "INTEGER")
                     }),
 
                     new DBTable("Player_Metadata", new DBColumn[]
@@ -66,7 +67,7 @@ namespace CombatlogParser
         {
             SQLitePCL.Batteries.Init();
             //the "arguments" for the connection string are seperated with ;
-            connection = new("DataSource=hello.db; Mode=ReadWriteCreate");
+            connection = new("DataSource=CombatlogMetadata.db; Mode=ReadWriteCreate");
             connection.Open();
         }
 
@@ -118,6 +119,10 @@ namespace CombatlogParser
                     try
                     {
                         command.ExecuteNonQuery();
+                    }
+                    catch(SqliteException ex)
+                    {
+
                     }
                     finally { } //dont really care about any exceptions that occur here.
                 }

@@ -191,7 +191,7 @@
                 case CombatlogEventPrefix.SPELL:
                     data.Add(EventData.SpellID, int.Parse(prefixData[0]));
                     data.Add(EventData.SpellName, prefixData[1]);
-                    data.Add(EventData.SpellSchool, int.Parse(prefixData[2]));
+                    data.Add(EventData.SpellSchool, (SpellSchool)ParsingUtil.HexStringToUint(prefixData[2]));
                     break;
                 case CombatlogEventPrefix.ENVIRONMENTAL:
                     data.Add(EventData.EnvironmentalType, prefixData[0]);

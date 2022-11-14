@@ -96,13 +96,42 @@ namespace CombatlogParser
                 parseTasks[i] = Task.Run(() => ParseEncounter(encounterMetadatas[i], filePath, logMetadata.isAdvanced));
             //wait for all parses to finish.
             Task.WaitAll(parseTasks);
-            
-            //Step 3: Process each encounter. This is for general HPS/DPS statistics
 
+            //NOTE: There is a potential out of memory issue in here if the log file is enormous
+            //but i hope that an average file is at max 1 GB in memory.
+
+            //Step 3: Process each encounter. This is for general HPS/DPS statistics
+            Task<PerformanceMetadata[]>[] processTasks = new Task<PerformanceMetadata[]>[encounterMetadatas.Count];
+            for (int i = 0; i < processTasks.Length; i++)
+                processTasks[i] = Task.Run(() => ProcessPerformances(parseTasks[i].Result, encounterMetadatas[i].encounterInfoUID, logMetadata.isAdvanced));
+            Task.WaitAll(processTasks);
 
             //Step 4: Store relevant results in the DB, clean up, provide access to the results to the main window
             //so the app can display it all to the user.
-
+            foreach(var arrTask in processTasks)
+            {
+                foreach(var performance in arrTask.Result)
+                {
+                    performance.performanceUID = (uint)DBStore.StorePerformance(performance);
+                }
+            }
+            var uniquePlayers = new List<PlayerMetadata>();
+            foreach(var encounter in parseTasks)
+            {
+                foreach(var pi in encounter.Result.Players)
+                    if(uniquePlayers.Exists(x => x.GUID == pi.GUID) == false)
+                    {
+                        uniquePlayers.Add(new()
+                        {
+                            GUID = pi.GUID,
+                            name = pi.Name,
+                            realm = pi.Realm,
+                            //classID = ... //--TODO
+                        });
+                    }
+            }
+            foreach (var p in uniquePlayers)
+                DBStore.StorePlayer(p);
         }
 
         //NOTE: I wonder if i should split each encounter into a seperate file, rather than keeping them all connected hmmm...
@@ -283,24 +312,26 @@ namespace CombatlogParser
         /// <param name="encounterInfo"></param>
         /// <param name="advanced"></param>
         /// <returns></returns>
-        private static PerformanceMetadata[] ProcessPerformances(EncounterInfo encounterInfo, bool advanced)
+        private static PerformanceMetadata[] ProcessPerformances(EncounterInfo encounterInfo, uint enc_UID, bool advanced)
         {
             PerformanceMetadata[] result = new PerformanceMetadata[encounterInfo.GroupSize];
             //1. Create metadata for every player.
             for(int i = 0; i < encounterInfo.GroupSize; i++)
             {
                 result[i] = new(encounterInfo.Players[i].GUID);
+                result[i].encounterUID = enc_UID;
             }
-            var allySource = new AllOfFilter(
-                new AnyOfFilter(
-                    new SourceFlagFilter(UnitFlag.COMBATLOG_OBJECT_AFFILIATION_RAID),
-                    new SourceFlagFilter(UnitFlag.COMBATLOG_OBJECT_AFFILIATION_PARTY),
-                    new SourceFlagFilter(UnitFlag.COMBATLOG_OBJECT_AFFILIATION_MINE)
-                    ),
-                new AnyOfFilter(
+            //1.1 fetch the names for all players.
+            foreach(var player in encounterInfo.Players)
+            {
+                var ev = encounterInfo.FirstEventForGUID(player.GUID);
+                if (ev != null)
+                    player.SetNameAndRealm(ev.SourceName);
+            }
+
+            var allySource = new AnyOfFilter(
                     new SourceFlagFilter(UnitFlag.COMBATLOG_OBJECT_REACTION_FRIENDLY),
                     new SourceFlagFilter(UnitFlag.COMBATLOG_OBJECT_REACTION_NEUTRAL)
-                    )
                 );
             var damageEvents = encounterInfo.AllEventsThatMatch(
                 SubeventFilter.DamageEvents, //all _DAMAGE events
@@ -349,13 +380,17 @@ namespace CombatlogParser
                 {
                     perf!.dps += (damageDone + damageAbsorbed);
                 }
-                else //source is not player, but a pet/guardian/npc summoned by a player.
+                else //source is not player, but a pet/guardian/npc summoned by a player that could not be identified to belong to a player.
                 {
 
                 }
             }
-
-
+            foreach(var performance in result)
+            {
+                performance.dps /= encounterInfo.EncounterDuration;
+                performance.hps /= encounterInfo.EncounterDuration;
+                //other performance members need to be assigned toon before returned.
+            }
             return result;
         }
 

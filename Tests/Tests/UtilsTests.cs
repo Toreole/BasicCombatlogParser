@@ -31,5 +31,17 @@ namespace CombatlogParser.Tests
                 Assert.That(resultC, Is.EqualTo("0:00.000"));
             });
         }
+
+        [Test]
+        public void MultiIntParse()
+        {
+            int[] resultA = ParsingUtil.AllIntsIn("0|10|500");
+            int[] resultB = ParsingUtil.AllIntsIn("10");
+            Assert.Multiple(() =>
+            {
+                Assert.That(resultA, Is.EqualTo(new int[] { 0, 10, 500 }));
+                Assert.That(resultB, Is.EqualTo(new int[] { 10 }));
+            });
+        }
     }
 }

@@ -90,5 +90,23 @@
             }
             return matchingEvents[0..matchingCount];
         }
+
+        public CombatlogEvent? FirstEventForGUID(string guid)
+        {
+            foreach (var e in CombatlogEvents)
+                if (e.SourceGUID == guid)
+                    return e;
+            return null;
+        }
+
+        public PlayerInfo? FindPlayerInfoByGUID(string sourceGUID)
+        {
+            foreach(var p in Players)
+            {
+                if (p.GUID == sourceGUID)
+                    return p;
+            }
+            return null;
+        }
     }
 }
