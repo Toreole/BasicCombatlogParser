@@ -248,4 +248,21 @@
             this.filter = filter;
         }
     }
+
+    /// <summary>
+    /// Composite filter that requires all supplied filters to match.
+    /// </summary>
+    public sealed class AllOfFilter : IEventFilter
+    {
+        private readonly IEventFilter[] filters;
+        public bool Match(CombatlogEvent ev)
+        {
+            foreach (var f in filters)
+                if (!f.Match(ev))
+                    return false;
+            return true;
+        }
+        public AllOfFilter(params IEventFilter[] filters)
+            => this.filters = filters;
+    }
 }

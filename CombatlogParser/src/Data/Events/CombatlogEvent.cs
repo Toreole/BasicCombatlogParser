@@ -187,6 +187,7 @@
                 case CombatlogEventPrefix.SPELL_PERIODIC:
                 case CombatlogEventPrefix.SPELL_BUILDING:
                 case CombatlogEventPrefix.RANGE:
+                case CombatlogEventPrefix.DAMAGE:
                 case CombatlogEventPrefix.SPELL:
                     data.Add(EventData.SpellID, int.Parse(prefixData[0]));
                     data.Add(EventData.SpellName, prefixData[1]);
@@ -195,6 +196,13 @@
                 case CombatlogEventPrefix.ENVIRONMENTAL:
                     data.Add(EventData.EnvironmentalType, prefixData[0]);
                     break;
+                case CombatlogEventPrefix.ENCHANT:
+                    data.Add(EventData.SpellName, prefixData[0]);
+                    data.Add(EventData.ItemID, int.Parse(prefixData[1]));
+                    data.Add(EventData.ItemName, prefixData[2]);
+                    break;
+                case CombatlogEventPrefix.UNIT:
+                    //UNIT technically has recapID and unconsciousOnDeath, but i dont care.
                 case CombatlogEventPrefix.SWING:
                 case CombatlogEventPrefix.UNDEFINED:
                     break;
@@ -205,6 +213,8 @@
         {
             switch(SubeventSuffix)
             {
+                case CombatlogEventSuffix._SPLIT:
+                case CombatlogEventSuffix._SHIELD:
                 case CombatlogEventSuffix._DAMAGE:
                     data.Add(EventData.Amount, long.Parse(suffixData[0]));
                     data.Add(EventData.BaseAmount, long.Parse(suffixData[1]));
@@ -308,6 +318,12 @@
                 case CombatlogEventSuffix._CREATE:
                 case CombatlogEventSuffix._SUMMON:
                 case CombatlogEventSuffix._RESURRECT:
+                case CombatlogEventSuffix._DIED:
+                case CombatlogEventSuffix._DESTROYED:
+                case CombatlogEventSuffix._DISSIPATES:
+                case CombatlogEventSuffix._REMOVED:
+                case CombatlogEventSuffix._APPLIED:
+                case CombatlogEventSuffix._KILL:
                 default:
                     break;
             }
@@ -382,7 +398,14 @@
             /// <summary> string (WIP) </summary>
             FailedType,
             /// <summary> string (WIP) </summary>
-            UnconsciousOnDeath
+            UnconsciousOnDeath,
+            /// <summary> int </summary>
+            ItemID,
+            /// <summary> string </summary>
+            ItemName,
+            /// <summary> int, THIS CAN BE DISREGARDED </summary>
+            RecapID,
+
         }
         public enum AdvancedParamID 
         {

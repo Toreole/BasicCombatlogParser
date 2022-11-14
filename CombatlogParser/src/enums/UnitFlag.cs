@@ -25,7 +25,7 @@
         //Type flags
         COMBATLOG_OBJECT_TYPE_PLAYER   = 0x0400, //controller by player
         COMBATLOG_OBJECT_TYPE_NPC      = 0x0800, //controlled by server
-        COMBATLOG_OBJECT_TYPE_PET      = 0x1000, //pets are controller by players or npcs, incl. mind control.
+        COMBATLOG_OBJECT_TYPE_PET      = 0x1000, //pets are controlled by players or npcs, incl. mind control.
         COMBATLOG_OBJECT_TYPE_GUARDIAN = 0x2000, //not controlled, automatic defense
         COMBATLOG_OBJECT_TYPE_OBJECT   = 0x4000, //anything else, traps, totems.
         COMBATLOG_OBJECT_TYPE_MASK     = 0xFC00,

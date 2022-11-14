@@ -36,7 +36,29 @@
         /// <summary>
         /// prefix params: environmentalType
         /// </summary>
-        ENVIRONMENTAL
+        ENVIRONMENTAL,
+
+        //"SPECIAL EVENTS"
+
+        /// <summary>
+        /// (DAMAGE_SPLIT, DAMAGE_SHIELD, DAMAGE_SHIELD_MISSED) See SPELL and _DAMAGE/_MISSED
+        /// </summary>
+        DAMAGE,
+
+        /// <summary>
+        /// prefixes: spellName, itemID, itemName
+        /// </summary>
+        ENCHANT,
+
+        /// <summary>
+        /// [NONE]
+        /// </summary>
+        PARTY,
+
+        /// <summary>
+        /// recapID, [unconsciousOnDeath]
+        /// </summary>
+        UNIT,
     }
 
     /// <summary>
@@ -71,6 +93,7 @@
         /// Suffix params:
         /// missType, isOffHand, amountMissed, baseAmount, critical
         /// </summary>
+        //_SHIELD_MISSED, //- is technically a different event, but uses the exact same params.
         _MISSED,
 
         /// <summary>
@@ -230,7 +253,28 @@
         /// Suffix params:
         /// [NONE]
         /// </summary>
-        _RESURRECT
+        _RESURRECT,
+
+        /// <summary>
+        /// see _DAMAGE
+        /// </summary>
+        _SPLIT,
+        _SHIELD,
+
+        /// <summary>
+        /// for ENCHANT
+        /// </summary>
+        _REMOVED,
+        _APPLIED,
+
+        /// <summary>
+        /// no params, for PARTY_KILL, UNIT_DIED, UNIT_DESTROYED, UNIT_DISSPATES.
+        /// </summary>
+        _KILL,
+        _DIED,
+        _DESTROYED,
+        _DISSIPATES
+
     }
 
     /// <summary>
@@ -239,51 +283,6 @@
     public enum CombatlogMiscEvents
     {
         UNDEFINED = -1,
-
-        /// <summary>
-        /// See SPELL and _DAMAGE
-        /// </summary>
-        DAMAGE_SPLIT,
-
-        /// <summary>
-        /// See SPELL and _DAMAGE
-        /// </summary>
-        DAMAGE_SHIELD,
-
-        /// <summary>
-        /// See SPELL and _MISSED
-        /// </summary>
-        DAMAGE_SHIELD_MISSED,
-
-        /// <summary>
-        /// spellName, itemID, itemName
-        /// </summary>
-        ENCHANT_APPLIED,
-
-        /// <summary>
-        /// spellName, itemID, itemName
-        /// </summary>
-        ENCHANT_REMOVED,
-
-        /// <summary>
-        /// [NONE]
-        /// </summary>
-        PARTY_KILL,
-
-        /// <summary>
-        /// recapID, [unconsciousOnDeath]
-        /// </summary>
-        UNIT_DIED,
-
-        /// <summary>
-        /// recapID, [unconsciousOnDeath]
-        /// </summary>
-        UNIT_DESTROYED,
-
-        /// <summary>
-        /// recapID, [unconsciousOnDeath]
-        /// </summary>
-        UNIT_DISSIPATES,
 
         /// <summary>
         /// encounterID, encounterName, difficultyID, groupSize, instanceID
@@ -320,6 +319,14 @@
         /// Is fired upon ENCOUNTER_START. For more see:
         /// https://wowpedia.fandom.com/wiki/COMBAT_LOG_EVENT#COMBATANT_INFO
         /// </summary>
-        COMBATANT_INFO
+        COMBATANT_INFO,
+
+        CHALLENGE_MODE_START,
+        CHALLENGE_MODE_END,
+
+        ARENA_MATCH_START,
+        ARENA_MATCH_END,
+        EMOTE,
+
     }
 }

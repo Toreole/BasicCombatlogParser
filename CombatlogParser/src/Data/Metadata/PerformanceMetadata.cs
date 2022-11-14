@@ -1,4 +1,4 @@
-﻿namespace CombatlogParser.src.Data.Metadata
+﻿namespace CombatlogParser.Data.Metadata
 {
     public sealed class PerformanceMetadata
     {
@@ -18,5 +18,10 @@
         public double hps;
         public byte roleID;
         public byte specID;
+
+        public PerformanceMetadata(string playerGUID)
+        {
+            this.playerGUID = playerGUID;
+        }
     }
 }
