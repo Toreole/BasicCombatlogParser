@@ -6,7 +6,7 @@ namespace CombatlogParser.Data.Events
     {
         //the leading bits of data.
         public int spellId;
-        public string spellName { get; private set; }
+        public string spellName { get; private set; } //these get/set properties are a temporary measure to display stuff on-screen.
         public SpellSchool spellSchool { get; private set; }
 
         //advanced params. these are optional.

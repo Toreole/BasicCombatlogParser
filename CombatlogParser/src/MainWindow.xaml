@@ -52,9 +52,9 @@
                     <ListView x:Name="DamageEventsList" d:ItemsSource="{d:SampleData ItemCount=5}">
                         <ListView.View>
                             <GridView>
-                                <GridViewColumn Header="Timestamp" DisplayMemberBinding="{Binding Path=Timestamp}"/>
+                                <!--Unnecessary info possibly <GridViewColumn Header="Timestamp" DisplayMemberBinding="{Binding Path=Timestamp}"/>-->
                                 <GridViewColumn Header="Source Name" DisplayMemberBinding="{Binding Path=SourceName}"/>
-                                <GridViewColumn Header="Source Flags" DisplayMemberBinding="{Binding Path=SourceFlags}"/>
+                                <!--Dont want this to show up. <GridViewColumn Header="Source Flags" DisplayMemberBinding="{Binding Path=SourceFlags}"/>-->
                                 <GridViewColumn Header="Target Name" DisplayMemberBinding="{Binding Path=TargetName}"/>
                                 <GridViewColumn Header="Spell" DisplayMemberBinding="{Binding Path=spellName}"/>
                                 <GridViewColumn Header="School" DisplayMemberBinding="{Binding Path=spellSchool}" />
