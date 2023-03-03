@@ -9,7 +9,7 @@ namespace CombatlogParser.Data
     public class DamageSummary
     {
         public string SourceName { get; set; }
-        public uint TotalDamage { get; set; }
+        public long TotalDamage { get; set; }
         public float DPS { get; set; }
     }
 }

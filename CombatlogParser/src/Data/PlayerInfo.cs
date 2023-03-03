@@ -5,8 +5,8 @@
     /// </summary>
     public class PlayerInfo
     {
-        public string Name { get; private set; } = string.Empty;
-        public string Realm { get; private set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
+        public string Realm { get; set; } = string.Empty;
         public string GUID { get; set; } = string.Empty;
         public int Strength { get; set; }
         public int Agility { get; set; }

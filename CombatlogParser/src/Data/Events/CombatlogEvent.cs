@@ -1,4 +1,5 @@
-﻿using static CombatlogParser.ParsingUtil;
+﻿using System.Windows.Navigation;
+using static CombatlogParser.ParsingUtil;
 
 namespace CombatlogParser.Data.Events
 {
@@ -239,26 +240,38 @@ namespace CombatlogParser.Data.Events
 
         public static AdvancedParams Get(string data, ref int dataIndex)
         {
+            int initialIndex = dataIndex;
             //god this is ugly wtf
-            return new AdvancedParams(
-                infoGUID: NextSubstring(data, ref dataIndex),
-                ownerGUID: NextSubstring(data, ref dataIndex),
-                currentHP: int.Parse(NextSubstring(data, ref dataIndex)),
-                maxHP: int.Parse(NextSubstring(data, ref dataIndex)),
-                attackPower: int.Parse(NextSubstring(data, ref dataIndex)),
-                spellPower: int.Parse(NextSubstring(data, ref dataIndex)),
-                armor: int.Parse(NextSubstring(data, ref dataIndex)),
-                absorb: int.Parse(NextSubstring(data, ref dataIndex)),
-                powerType: (PowerType)int.Parse(NextSubstring(data, ref dataIndex)),
-                currentPower: int.Parse(NextSubstring(data, ref dataIndex)),
-                maxPower: int.Parse(NextSubstring(data, ref dataIndex)),
-                powerCost: int.Parse(NextSubstring(data, ref dataIndex)),
-                positionX: float.Parse(NextSubstring(data, ref dataIndex)),
-                positionY: float.Parse(NextSubstring(data, ref dataIndex)),
-                uiMapID: int.Parse(NextSubstring(data, ref dataIndex)),
-                facing: float.Parse(NextSubstring(data, ref dataIndex)),
-                level: int.Parse(NextSubstring(data, ref dataIndex))
-                );
+            try
+            {
+                return new AdvancedParams(
+                    infoGUID: NextSubstring(data, ref dataIndex),
+                    ownerGUID: NextSubstring(data, ref dataIndex),
+                    currentHP: int.Parse(NextSubstring(data, ref dataIndex)),
+                    maxHP: int.Parse(NextSubstring(data, ref dataIndex)),
+                    attackPower: int.Parse(NextSubstring(data, ref dataIndex)),
+                    spellPower: int.Parse(NextSubstring(data, ref dataIndex)),
+                    armor: int.Parse(NextSubstring(data, ref dataIndex)),
+                    absorb: int.Parse(NextSubstring(data, ref dataIndex)),
+                    powerType: (PowerType)int.Parse(NextSubstring(data, ref dataIndex)),
+                    currentPower: int.Parse(NextSubstring(data, ref dataIndex)),
+                    maxPower: int.Parse(NextSubstring(data, ref dataIndex)),
+                    powerCost: int.Parse(NextSubstring(data, ref dataIndex)),
+                    positionX: float.Parse(NextSubstring(data, ref dataIndex)),
+                    positionY: float.Parse(NextSubstring(data, ref dataIndex)),
+                    uiMapID: int.Parse(NextSubstring(data, ref dataIndex)),
+                    facing: float.Parse(NextSubstring(data, ref dataIndex)),
+                    level: int.Parse(NextSubstring(data, ref dataIndex))
+                    );
+            }
+            catch (Exception fe)
+            {
+                Console.WriteLine(fe.Message);
+                Console.WriteLine($"index: {initialIndex}, data=" + data);
+                string sub = data[initialIndex..];
+                Console.WriteLine($"data at index= {sub}");
+            }
+            return new AdvancedParams("", "", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
         }
     }
 }

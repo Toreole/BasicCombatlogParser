@@ -56,10 +56,10 @@
                                 <GridViewColumn Header="Source Name" DisplayMemberBinding="{Binding Path=SourceName}"/>
                                 <GridViewColumn Header="Source Flags" DisplayMemberBinding="{Binding Path=SourceFlags}"/>
                                 <GridViewColumn Header="Target Name" DisplayMemberBinding="{Binding Path=TargetName}"/>
-                                <GridViewColumn Header="Spell" DisplayMemberBinding="{Binding Path=PrefixParam1}"/>
-                                <GridViewColumn Header="School" DisplayMemberBinding="{Binding Path=PrefixParam2}" />
-                                <GridViewColumn Header="Damage" DisplayMemberBinding="{Binding Path=SuffixParam0}"/>
-                                <GridViewColumn Header="Base Damage" DisplayMemberBinding="{Binding Path=SuffixParam1}"/>
+                                <GridViewColumn Header="Spell" DisplayMemberBinding="{Binding Path=spellName}"/>
+                                <GridViewColumn Header="School" DisplayMemberBinding="{Binding Path=spellSchool}" />
+                                <GridViewColumn Header="Damage" DisplayMemberBinding="{Binding Path=amount}"/>
+                                <GridViewColumn Header="Base Damage" DisplayMemberBinding="{Binding Path=baseAmount}"/>
                             </GridView>
                         </ListView.View>
                     </ListView>

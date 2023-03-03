@@ -1,4 +1,4 @@
-﻿namespace CombatlogParser.Data
+﻿namespace CombatlogParser.Data.Events
 {
     public class MiscEvent : LogEntryBase
     {

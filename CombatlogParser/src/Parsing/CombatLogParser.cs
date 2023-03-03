@@ -90,37 +90,30 @@ namespace CombatlogParser
                 }
             }
 
-            //Step 2: Create Tasks for all the seperate Encounters it found in the previous step
-            Task<EncounterInfo>[] parseTasks = new Task<EncounterInfo>[encounterMetadatas.Count];
-            for (int i = 0; i < parseTasks.Length; i++)
-                _ = ParseEncounter(encounterMetadatas[i], filePath, logMetadata.isAdvanced);
-            for(int i = 0; i < parseTasks.Length; i++)
-                parseTasks[i] = Task.Run(() => ParseEncounter(encounterMetadatas[i], filePath, logMetadata.isAdvanced));
-            //wait for all parses to finish.
-            Task.WaitAll(parseTasks);
+            var parsedEncounters = new EncounterInfo[encounterMetadatas.Count];
+            for (int i = 0; i < parsedEncounters.Length; i++)
+                parsedEncounters[i] = ParseEncounter(encounterMetadatas[i], filePath, logMetadata.isAdvanced);
+
+            MainWindow.ParsedEncounters = parsedEncounters;
 
             //NOTE: There is a potential out of memory issue in here if the log file is enormous
             //but i hope that an average file is at max 1 GB in memory.
 
             //Step 3: Process each encounter. This is for general HPS/DPS statistics
-            Task<PerformanceMetadata[]>[] processTasks = new Task<PerformanceMetadata[]>[encounterMetadatas.Count];
-            for (int i = 0; i < processTasks.Length; i++)
-                processTasks[i] = Task.Run(() => ProcessPerformances(parseTasks[i].Result, encounterMetadatas[i].encounterInfoUID, logMetadata.isAdvanced));
-            Task.WaitAll(processTasks);
-
+            PerformanceMetadata[] performances = new PerformanceMetadata[encounterMetadatas.Count];
+            for (int i = 0; i < performances.Length; i++)
+                performances = ProcessPerformances(parsedEncounters[i], encounterMetadatas[i].encounterInfoUID, logMetadata.isAdvanced);
+            
             //Step 4: Store relevant results in the DB, clean up, provide access to the results to the main window
             //so the app can display it all to the user.
-            foreach(var arrTask in processTasks)
+            foreach(var performance in performances)
             {
-                foreach(var performance in arrTask.Result)
-                {
-                    performance.performanceUID = (uint)DBStore.StorePerformance(performance);
-                }
+                performance.performanceUID = (uint)DBStore.StorePerformance(performance);
             }
             var uniquePlayers = new List<PlayerMetadata>();
-            foreach(var encounter in parseTasks)
+            foreach(var encounter in parsedEncounters)
             {
-                foreach(var pi in encounter.Result.Players)
+                foreach(var pi in encounter.Players)
                     if(uniquePlayers.Exists(x => x.GUID == pi.GUID) == false)
                     {
                         uniquePlayers.Add(new()
@@ -235,6 +228,20 @@ namespace CombatlogParser
                 }
             }
 
+            var playerEvents = events.GetEvents<DamageEvent>().AllThatMatch(new SourceFlagFilter(UnitFlag.COMBATLOG_OBJECT_TYPE_PLAYER));
+            List<string> playerGUIDs = new List<string>();
+            foreach (var e in playerEvents)
+                if (playerGUIDs.Contains(e.SourceGUID) == false)
+                    playerGUIDs.Add(e.SourceGUID);
+            var players = new PlayerInfo[playerGUIDs.Count];
+            for (int i = 0; i < playerGUIDs.Count; i++)
+                players[i] = new PlayerInfo()
+                {
+                    GUID = playerGUIDs[i],
+                    Name = "",
+                    Realm = ""
+                };
+
             return new EncounterInfo()
             {
                 CombatlogEvents = events.ToArray(),
@@ -246,7 +253,7 @@ namespace CombatlogParser
                 GroupSize = grpSize,
                 EncounterDuration = encDurationMS,
                 EncounterEndTime = encEndT,
-                //Players = /*GET THIS FROM COMBATANT_INFO EVENTS*/
+                Players = players 
             };
         }
 
@@ -279,10 +286,11 @@ namespace CombatlogParser
                     new SourceFlagFilter(UnitFlag.COMBATLOG_OBJECT_REACTION_FRIENDLY),
                     new SourceFlagFilter(UnitFlag.COMBATLOG_OBJECT_REACTION_NEUTRAL)
                 );
-            var damageEvents = encounterInfo.AllEventsThatMatch(
-                SubeventFilter.DamageEvents, //all _DAMAGE events
-                allySource,                  //where the source is friendly or neutral (belongs to the raid/party)
-                new TargetFlagFilter(UnitFlag.COMBATLOG_OBJECT_REACTION_HOSTILE) //and the target is hostile.
+            var damageEvents = encounterInfo.CombatlogEvents.GetEvents<DamageEvent>().AllThatMatch(
+                new AllOfFilter(
+                    allySource,                  //where the source is friendly or neutral (belongs to the raid/party)
+                    new TargetFlagFilter(UnitFlag.COMBATLOG_OBJECT_REACTION_HOSTILE) //and the target is hostile.
+                )
                 );
             //the dictionary to look up the actual source GUID (pet->player, player->player, guardian->player, etc)
             var sourceToOwnerGUID = new Dictionary<string, string>();
@@ -322,7 +330,7 @@ namespace CombatlogParser
 
                 //try to add the damage done directly to the player by their GUID
                 //by this point, the dictionary has ALL possible GUIDs of units in it. therefore this is OK!
-                if(result.TryGetByGUID(sourceToOwnerGUID[ev.SourceGUID], out var perf))
+                if(result.TryGetByGUID(ev.SourceGUID, out var perf))
                 {
                     perf!.dps += (damageDone + damageAbsorbed);
                 }

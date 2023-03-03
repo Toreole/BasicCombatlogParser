@@ -20,8 +20,8 @@
             }
             CombatLogParser.ImportCombatlog("combatlogLarge.txt"); //test with a relative path.
             //this is where the main application runs.
-            //MainWindow app = new();
-            //app.ShowDialog();
+            MainWindow app = new();
+            app.ShowDialog();
 
             //propertly shut down the DB before exiting.
             DB.Shutdown();
