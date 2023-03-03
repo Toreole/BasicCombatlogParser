@@ -449,16 +449,6 @@ namespace CombatlogParser
                     timestamp > currentEncounter.EncounterStartTime && //only include events that happen *after* start of encounter.
                     ParsingUtil.TryParsePrefixAffixSubeventF(sub, out CombatlogEventPrefix cPrefix, out CombatlogEventSuffix cSuffix))
                 {
-                    
-                    //sourceGUID and name
-                    string sourceGUID = ParsingUtil.NextSubstring(line, ref i);
-                    string sourceName;
-                    if (cPrefix == CombatlogEventPrefix.ENVIRONMENTAL || sourceGUID == "0000000000000000")
-                    {
-                        sourceName = "Environment";
-                        ParsingUtil.MovePastNextDivisor(line, ref i);
-                    }
-
                     CombatlogEvent? clevent = CombatlogEvent.Create(line);
                     if (clevent != null)
                         encounterEvents.Add(clevent);

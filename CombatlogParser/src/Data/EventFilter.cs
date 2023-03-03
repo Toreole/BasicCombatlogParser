@@ -1,4 +1,6 @@
-﻿namespace CombatlogParser.Data
+﻿using CombatlogParser.Data.Events;
+
+namespace CombatlogParser.Data
 {
     public interface IEventFilter
     {
@@ -191,28 +193,6 @@
 
         public static readonly SourceFlagFilter FriendlyPets = new(UnitFlag.COMBATLOG_OBJECT_AFFILIATION_RAID | UnitFlag.COMBATLOG_OBJECT_TYPE_PET);
         public static readonly SourceFlagFilter FriendlyGuardians = new(UnitFlag.COMBATLOG_OBJECT_AFFILIATION_RAID | UnitFlag.COMBATLOG_OBJECT_TYPE_GUARDIAN);
-    }
-
-    /// <summary>
-    /// Filters for ABSORB/MISS missed type given the _MISSED subevent suffix
-    /// </summary>
-    public sealed class MissTypeFilter : IEventFilter
-    {
-        private MissType missType;
-        public bool Match(CombatlogEvent ev)
-        {
-            return ev.SubeventSuffix == CombatlogEventSuffix._MISSED &&
-                Enum.Parse<MissType>((string)ev.SuffixParam0) == missType;
-        }
-
-        public static readonly MissTypeFilter Absorbed = new()
-        {
-            missType = MissType.ABSORB
-        };
-        public static readonly MissTypeFilter Missed = new()
-        {
-            missType = MissType.MISS
-        };
     }
 
     /// <summary>

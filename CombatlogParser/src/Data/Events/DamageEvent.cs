@@ -13,32 +13,33 @@ namespace CombatlogParser.Data.Events
         public AdvancedParams advancedParams;
 
         //what follows
-        public int amount;
-        public int overkill;
+        public uint amount;
+        public uint overkill;
         public SpellSchool damageSchool;
-        public int resisted;
-        public int blocked;
-        public int absorbed;
+        public uint resisted;
+        public uint blocked;
+        public uint absorbed;
         public bool critical;
         public bool glancing;
         public bool crushing;
         public bool isOffHand;
 
-        public DamageEvent(string subEvent, string entry, int dataIndex) : base(EventType.DAMAGE)
+        public DamageEvent(CombatlogEventPrefix prefix, string entry, int dataIndex) 
+            : base(EventType.DAMAGE, prefix, CombatlogEventSuffix._DAMAGE)
         {
-            if(subEvent.StartsWithF("SWING"))
+            if(prefix is CombatlogEventPrefix.SWING)
             {
                 spellId = 1;
                 spellName = "Melee";
                 spellSchool = SpellSchool.Physical;
             }
-            else if(subEvent.StartsWithF("RANGE"))
+            else if(prefix is CombatlogEventPrefix.RANGE)
             {
                 spellId = 75;
                 spellName = "Auto Shot";
                 spellSchool = SpellSchool.Physical;
             }
-            else
+            else //is CombatlogEventPrefix.SPELL
             {
                 spellId = int.Parse(NextSubstring(entry, ref dataIndex));
                 spellName = NextSubstring(entry, ref dataIndex);
@@ -46,12 +47,12 @@ namespace CombatlogParser.Data.Events
             }
             advancedParams = AdvancedParams.Get(entry, ref dataIndex);
 
-            amount = int.Parse(NextSubstring(entry, ref dataIndex));
-            overkill = int.Parse(NextSubstring(entry, ref dataIndex));
+            amount = uint.Parse(NextSubstring(entry, ref dataIndex));
+            overkill = uint.Parse(NextSubstring(entry, ref dataIndex));
             damageSchool = spellSchool; MovePastNextDivisor(entry, ref dataIndex);
-            resisted = int.Parse(NextSubstring(entry, ref dataIndex));
-            blocked = int.Parse(NextSubstring(entry, ref dataIndex));
-            absorbed = int.Parse(NextSubstring(entry, ref dataIndex));
+            resisted = uint.Parse(NextSubstring(entry, ref dataIndex));
+            blocked = uint.Parse(NextSubstring(entry, ref dataIndex));
+            absorbed = uint.Parse(NextSubstring(entry, ref dataIndex));
             critical = NextSubstring(entry, ref dataIndex) == "1";
             glancing = NextSubstring(entry, ref dataIndex) == "1";
             crushing = NextSubstring(entry, ref dataIndex) == "1";

@@ -1,4 +1,4 @@
-﻿namespace CombatlogParser
+﻿namespace CombatlogParser.Data.Events
 {
     public enum EventType
     {

@@ -1,4 +1,5 @@
 ﻿using CombatlogParser.Data;
+using CombatlogParser.Data.Events;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Windows;
@@ -71,14 +72,16 @@ namespace CombatlogParser
             EncounterInfo encounter = currentCombatlog.Encounters[index];
             damageEvents.Clear();
 
-            var filteredDamageEvents = encounter.AllEventsThatMatch(
-                SubeventFilter.DamageEvents, //Damage done
-                new TargetFlagFilter(UnitFlag.COMBATLOG_OBJECT_REACTION_HOSTILE | UnitFlag.COMBATLOG_OBJECT_TYPE_NPC), //to hostile NPCs
-                new AnyOfFilter(
-                    new SourceFlagFilter(UnitFlag.COMBATLOG_OBJECT_REACTION_FRIENDLY), //by either friendly
-                    new SourceFlagFilter(UnitFlag.COMBATLOG_OBJECT_REACTION_NEUTRAL) //or neutral sources
+            IEventFilter filter = new AllOfFilter(
+                    new TargetFlagFilter(UnitFlag.COMBATLOG_OBJECT_REACTION_HOSTILE | UnitFlag.COMBATLOG_OBJECT_TYPE_NPC), //to hostile NPCs
+                    new AnyOfFilter(
+                        new SourceFlagFilter(UnitFlag.COMBATLOG_OBJECT_REACTION_FRIENDLY), //by either friendly
+                        new SourceFlagFilter(UnitFlag.COMBATLOG_OBJECT_REACTION_NEUTRAL) //or neutral sources
                     )
-            );
+                );
+
+            var filteredDamageEvents = encounter.CombatlogEvents.GetEvents<DamageEvent>().AllThatMatch(filter);
+
             foreach (var d in filteredDamageEvents)
                 damageEvents.Add(d);
 
@@ -146,14 +149,14 @@ namespace CombatlogParser
                 //add to existing data
                 if (damageSumDict.TryGetValue(sourceGUID, out DamageSummary? sum))
                 {
-                    sum.TotalDamage += uint.Parse((string)dmgevent.SuffixParam0);
+                    sum.TotalDamage += dmgevent.amount;
                 }
                 else //create new sum
                 {
                     damageSumDict[sourceGUID] = new()
                     {
                         SourceName = dmgevent.SourceName, //--NOTE: This sometimes still adds a summary with the Pets name. Which is bad.
-                        TotalDamage = uint.Parse((string)dmgevent.SuffixParam0)
+                        TotalDamage = dmgevent.amount
                     };
                 }
             }

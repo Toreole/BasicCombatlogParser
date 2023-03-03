@@ -32,9 +32,11 @@ namespace CombatlogParser.Data.Events
 
         public bool IsSourcePet => SourceFlags.HasFlagf(UnitFlag.COMBATLOG_OBJECT_TYPE_PET);
 
-        protected CombatlogEvent(EventType eventType)
+        protected CombatlogEvent(EventType eventType, CombatlogEventPrefix prefix, CombatlogEventSuffix suffix)
         {
             this.eventType = eventType;
+            this.SubeventPrefix = prefix;
+            this.SubeventSuffix = suffix;
         }
 
         /// <summary>
@@ -64,23 +66,27 @@ namespace CombatlogParser.Data.Events
             //2. start after the two empty spaces behind the timestamp.
             int index = 20;
             string subEvent = NextSubstring(combatlogEntry, ref index);
-
             //make sure that its a valid combat event.
-            if (subEvent.StartsWithAnyOf("SWING", "SPELL", "RANGE", "ENVIRONMENTAL"))
+            if (!TryParsePrefixAffixSubeventF(subEvent, out var prefix, out var suffix))
+                return null;
+            if (prefix is CombatlogEventPrefix.PARTY || 
+                prefix is CombatlogEventPrefix.UNIT || 
+                prefix is CombatlogEventPrefix.ENVIRONMENTAL)
+                return null;
+            //basic data
+            string sourceGUID = NextSubstring(combatlogEntry, ref index);
+            string sourceName = NextSubstring(combatlogEntry, ref index);
+            var sourceFlags = NextFlags(combatlogEntry, ref index);
+            var sourceRFlags = NextRaidFlags(combatlogEntry, ref index);
+            string destGUID = NextSubstring(combatlogEntry, ref index);
+            string destName = NextSubstring(combatlogEntry, ref index);
+            var destFlags = NextFlags(combatlogEntry, ref index);
+            var destRFlags = NextRaidFlags(combatlogEntry, ref index);
+            //divide into basic 
+            switch (suffix)
             {
-                //basic data
-                string sourceGUID = NextSubstring(combatlogEntry, ref index);
-                string sourceName = NextSubstring(combatlogEntry, ref index);
-                var sourceFlags = NextFlags(combatlogEntry, ref index);
-                var sourceRFlags = NextRaidFlags(combatlogEntry, ref index);
-                string destGUID = NextSubstring(combatlogEntry, ref index);
-                string destName = NextSubstring(combatlogEntry, ref index);
-                var destFlags = NextFlags(combatlogEntry, ref index);
-                var destRFlags = NextRaidFlags(combatlogEntry, ref index);
-                //divide into basic 
-                if(subEvent.EndsWithF("DAMAGE"))
-                {
-                    return new DamageEvent(subEvent, combatlogEntry, index)
+                case CombatlogEventSuffix._DAMAGE:
+                    return new DamageEvent(prefix, combatlogEntry, index)
                     {
                         Timestamp = timestamp,
                         SourceGUID = sourceGUID,
@@ -92,9 +98,84 @@ namespace CombatlogParser.Data.Events
                         TargetFlags = destFlags,
                         TargetRaidFlags = destRFlags
                     };
-                }
+                //case CombatlogEventSuffix._DURABILITY_DAMAGE:
+                //    break;
+                //case CombatlogEventSuffix._DAMAGE_LANDED:
+                //    break;
+                //case CombatlogEventSuffix._MISSED:
+                //    break;
+                //case CombatlogEventSuffix._HEAL:
+                //    break;
+                //case CombatlogEventSuffix._HEAL_ABSORBED:
+                //    break;
+                //case CombatlogEventSuffix._ABSORBED:
+                //    break;
+                //case CombatlogEventSuffix._ENERGIZE:
+                //    break;
+                //case CombatlogEventSuffix._DRAIN:
+                //    break;
+                //case CombatlogEventSuffix._LEECH:
+                //    break;
+                //case CombatlogEventSuffix._INTERRUPT:
+                //    break;
+                //case CombatlogEventSuffix._DISPEL:
+                //    break;
+                //case CombatlogEventSuffix._DISPEL_FAILED:
+                //    break;
+                //case CombatlogEventSuffix._STOLEN:
+                //    break;
+                //case CombatlogEventSuffix._EXTRA_ATTACKS:
+                //    break;
+                //case CombatlogEventSuffix._AURA_APPLIED:
+                //    break;
+                //case CombatlogEventSuffix._AURA_REMOVED:
+                //    break;
+                //case CombatlogEventSuffix._AURA_APPLIED_DOSE:
+                //    break;
+                //case CombatlogEventSuffix._AURA_REMOVED_DOSE:
+                //    break;
+                //case CombatlogEventSuffix._AURA_REFRESH:
+                //    break;
+                //case CombatlogEventSuffix._AURA_BROKEN:
+                //    break;
+                //case CombatlogEventSuffix._AURA_BROKEN_SPELL:
+                //    break;
+                //case CombatlogEventSuffix._CAST_START:
+                //    break;
+                //case CombatlogEventSuffix._CAST_SUCCESS:
+                //    break;
+                //case CombatlogEventSuffix._CAST_FAILED:
+                //    break;
+                //case CombatlogEventSuffix._INSTAKILL:
+                //    break;
+                //case CombatlogEventSuffix._CREATE:
+                //    break;
+                //case CombatlogEventSuffix._DURABILITY_DAMAGE_ALL:
+                //    break;
+                //case CombatlogEventSuffix._SUMMON:
+                //    break;
+                //case CombatlogEventSuffix._RESURRECT:
+                //    break;
+                //case CombatlogEventSuffix._SPLIT:
+                //    break;
+                //case CombatlogEventSuffix._SHIELD:
+                //    break;
+                //case CombatlogEventSuffix._REMOVED:
+                //    break;
+                //case CombatlogEventSuffix._APPLIED:
+                //    break;
+                //case CombatlogEventSuffix._KILL:
+                //    break;
+                //case CombatlogEventSuffix._DIED:
+                //    break;
+                //case CombatlogEventSuffix._DESTROYED:
+                //    break;
+                //case CombatlogEventSuffix._DISSIPATES:
+                //    break;
+                case CombatlogEventSuffix.UNDEFINED:
+                default:
+                    return null;
             }
-            return null;
         }
     }
 
@@ -176,7 +257,7 @@ namespace CombatlogParser.Data.Events
                 positionY: float.Parse(NextSubstring(data, ref dataIndex)),
                 uiMapID: int.Parse(NextSubstring(data, ref dataIndex)),
                 facing: float.Parse(NextSubstring(data, ref dataIndex)),
-                level: int.Parse(NextSubstring(data, ref dataIndex)
+                level: int.Parse(NextSubstring(data, ref dataIndex))
                 );
         }
     }

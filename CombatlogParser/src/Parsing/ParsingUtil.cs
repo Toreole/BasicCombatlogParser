@@ -1,4 +1,5 @@
-﻿using System.Globalization;
+﻿using CombatlogParser.Data.Events;
+using System.Globalization;
 using System.Runtime.CompilerServices;
 
 namespace CombatlogParser
