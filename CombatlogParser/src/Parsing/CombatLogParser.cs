@@ -1,6 +1,7 @@
 ﻿using System.IO;
 using System.Text.RegularExpressions;
 using CombatlogParser.Data;
+using CombatlogParser.Data.Events;
 using CombatlogParser.Data.Metadata;
 using CombatlogParser.Parsing;
 
@@ -195,67 +196,9 @@ namespace CombatlogParser
                 //other events are to be handled differently.
                 if(ParsingUtil.TryParsePrefixAffixSubeventF(subevent, out var prefix, out var suffix))
                 {
-                    string sourceGUID = ParsingUtil.NextSubstring(line, ref pos);
-                    string sourceName;
-                    if (prefix == CombatlogEventPrefix.ENVIRONMENTAL || sourceGUID == "0000000000000000")
-                    {
-                        sourceName = "Environment";
-                        ParsingUtil.MovePastNextDivisor(line, ref pos);
-                    }
-                    else
-                    {
-                        sourceName = ParsingUtil.NextSubstring(line, ref pos);
-                    }
-
-                    //source flags.
-                    var sourceFlags = (UnitFlag)ParsingUtil.HexStringToUint(ParsingUtil.NextSubstring(line, ref pos));
-                    var sourceRaidFlags = (RaidFlag)ParsingUtil.HexStringToUint(ParsingUtil.NextSubstring(line, ref pos));
-
-                    //targetGUID and name
-                    var targetGUID = ParsingUtil.NextSubstring(line, ref pos);
-                    var targetName = ParsingUtil.NextSubstring(line, ref pos);
-
-                    //target flags
-                    var targetFlags = (UnitFlag)ParsingUtil.HexStringToUint(ParsingUtil.NextSubstring(line, ref pos));
-                    var targetRaidFlags = (RaidFlag)ParsingUtil.HexStringToUint(ParsingUtil.NextSubstring(line, ref pos));
-
-                    //at this point Prefix params can be handled (if any)
-                    int prefixAmount = ParsingUtil.GetPrefixParamAmount(prefix, suffix);
-                    string[] prefixData = new string[prefixAmount];
-
-                    for (int j = 0; j < prefixAmount; j++)
-                    {
-                        prefixData[j] = ParsingUtil.NextSubstring(line, ref pos);
-                    }
-
-                    //then follow the advanced combatlog params
-                    //watch out! not all events have the advanced params!
-                    bool hasAdv = advanced && ParsingUtil.SubeventContainsAdvancedParams(suffix);
-                    string[] advancedData = hasAdv ? new string[17] : Array.Empty<string>();
-                    if (hasAdv)
-                        for (int j = 0; j < 17; j++)
-                            advancedData[j] = ParsingUtil.NextSubstring(line, ref pos);
-
-                    //lastly, suffix event params.
-                    int suffixAmount = ParsingUtil.GetSuffixParamAmount(suffix);
-                    string[] suffixData = new string[suffixAmount];
-                    for (int j = 0; j < suffixAmount; j++)
-                    {
-                        suffixData[j] = ParsingUtil.NextSubstring(line, ref pos);
-                    }
-
-                    CombatlogEvent clevent = new(prefix, prefixData, suffix, suffixData, advancedData)
-                    {
-                        SourceGUID = sourceGUID,
-                        SourceName = sourceName,
-                        SourceFlags = sourceFlags,
-                        SourceRaidFlags = sourceRaidFlags,
-                        TargetGUID = targetGUID,
-                        TargetName = targetName,
-                        TargetFlags = targetFlags,
-                        TargetRaidFlags = targetRaidFlags
-                    };
-                    events.Add(clevent);
+                    CombatlogEvent? clevent = CombatlogEvent.Create(line);
+                    if(clevent != null)
+                        events.Add(clevent);
                 }
                 //TODO: Other events should also be handled.
                 else if(ParsingUtil.TryParseMiscEventF(subevent, out var ev))
@@ -319,8 +262,10 @@ namespace CombatlogParser
             //1. Create metadata for every player.
             for(int i = 0; i < encounterInfo.GroupSize; i++)
             {
-                result[i] = new(encounterInfo.Players[i].GUID);
-                result[i].encounterUID = enc_UID;
+                result[i] = new(encounterInfo.Players[i].GUID)
+                {
+                    encounterUID = enc_UID
+                };
             }
             //1.1 fetch the names for all players.
             foreach(var player in encounterInfo.Players)
@@ -370,10 +315,10 @@ namespace CombatlogParser
                 return Array.Empty<PerformanceMetadata>();
             }
             //add together all the damage events.
-            foreach(var ev in damageEvents)
+            foreach(var ev in encounterInfo.CombatlogEvents.GetEvents<DamageEvent>())
             {
-                long damageDone = ev.Get<long>(CombatlogEvent.EventData.Amount);
-                long damageAbsorbed = ev.Get<long>(CombatlogEvent.EventData.Absorbed);
+                long damageDone = ev.amount;
+                long damageAbsorbed = ev.absorbed;
 
                 //try to add the damage done directly to the player by their GUID
                 //by this point, the dictionary has ALL possible GUIDs of units in it. therefore this is OK!
@@ -513,60 +458,10 @@ namespace CombatlogParser
                         sourceName = "Environment";
                         ParsingUtil.MovePastNextDivisor(line, ref i);
                     }
-                    else
-                    {
-                        sourceName = ParsingUtil.NextSubstring(line, ref i);
-                    }
 
-                    //source flags.
-                    var sourceFlags = (UnitFlag)ParsingUtil.HexStringToUint(ParsingUtil.NextSubstring(line, ref i));
-                    var sourceRaidFlags = (RaidFlag)ParsingUtil.HexStringToUint(ParsingUtil.NextSubstring(line, ref i));
-
-                    //targetGUID and name
-                    var targetGUID = ParsingUtil.NextSubstring(line, ref i);
-                    var targetName = ParsingUtil.NextSubstring(line, ref i);
-
-                    //target flags
-                    var targetFlags = (UnitFlag)ParsingUtil.HexStringToUint(ParsingUtil.NextSubstring(line, ref i));
-                    var targetRaidFlags = (RaidFlag)ParsingUtil.HexStringToUint(ParsingUtil.NextSubstring(line, ref i));
-
-                    //at this point Prefix params can be handled (if any)
-                    int prefixAmount = ParsingUtil.GetPrefixParamAmount(cPrefix, cSuffix);
-                    string[] prefixData = new string[prefixAmount];
-                    
-                    for (int j = 0; j < prefixAmount; j++)
-                    {
-                        prefixData[j] = ParsingUtil.NextSubstring(line, ref i);
-                    }
-
-                    //then follow the advanced combatlog params
-                    //watch out! not all events have the advanced params!
-                    bool hasAdv = combatlog.AdvancedLogEnabled && ParsingUtil.SubeventContainsAdvancedParams(cSuffix);
-                    string[] advancedData = hasAdv ? new string[17] : Array.Empty<string>();
-                    if (hasAdv)
-                        for (int j = 0; j < 17; j++)
-                            advancedData[j] = ParsingUtil.NextSubstring(line, ref i);
-
-                    //lastly, suffix event params.
-                    int suffixAmount = ParsingUtil.GetSuffixParamAmount(cSuffix);
-                    string[] suffixData = new string[suffixAmount];
-                    for (int j = 0; j < suffixAmount; j++)
-                    {
-                        suffixData[j] = ParsingUtil.NextSubstring(line, ref i);
-                    }
-
-                    CombatlogEvent clevent = new(cPrefix, prefixData, cSuffix, suffixData, advancedData)
-                    { 
-                        SourceGUID = sourceGUID,
-                        SourceName = sourceName,
-                        SourceFlags = sourceFlags,
-                        SourceRaidFlags = sourceRaidFlags,
-                        TargetGUID = targetGUID,
-                        TargetName = targetName,
-                        TargetFlags = targetFlags,
-                        TargetRaidFlags = targetRaidFlags
-                    };
-                    encounterEvents.Add(clevent);
+                    CombatlogEvent? clevent = CombatlogEvent.Create(line);
+                    if (clevent != null)
+                        encounterEvents.Add(clevent);
                     //SPELL_INSTAKILL is part of the regular combatlogevents.
                     //SPELL_INSTAKILL: guid, name, flag, flag, guid, name, flag, flag, [unknown], [unknown], unconscious? <- Unsure what this is.
                 }

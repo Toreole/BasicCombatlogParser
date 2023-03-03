@@ -1,5 +1,12 @@
 ﻿namespace CombatlogParser
 {
+    public enum EventType
+    {
+        INVALID = -1,
+        UNDEFINED = 0,
+        DAMAGE = 1
+    }
+
     /// <summary>
     /// The prefixes for combat subevents.
     /// </summary>

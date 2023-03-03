@@ -43,7 +43,7 @@ namespace CombatlogParser
         /// Converts a hex string in the "0x[0-F]+" format into a 32 unsigned integer.
         /// </summary>
         /// <returns></returns>
-        public static uint HexStringToUint(string hex)
+        public static uint HexStringToUInt(string hex)
         {
             return Convert.ToUInt32(hex, 16);
         }
@@ -420,6 +420,23 @@ namespace CombatlogParser
                     return true;
                 }
             ev = CombatlogMiscEvents.UNDEFINED;
+            return false;
+        }
+
+        public static UnitFlag NextFlags(string data, ref int index)
+        {
+            return (UnitFlag)HexStringToUInt(NextSubstring(data, ref index));
+        }
+        public static RaidFlag NextRaidFlags(string data, ref int index)
+        {
+            return (RaidFlag)HexStringToUInt(NextSubstring(data, ref index));
+        }
+
+        public static bool StartsWithAnyOf(this string str, params string[] sub)
+        {
+            foreach (string s in sub)
+                if (str.StartsWithF(s))
+                    return true;
             return false;
         }
     }
