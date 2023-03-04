@@ -48,11 +48,11 @@ namespace CombatlogParser
             };
             DamageEventsList.SetBinding(ListView.ItemsSourceProperty, dmgEventsBinding);
 
-            var eventsBinding = new Binding()
-            {
-                Source = events
-            };
-            CombatLogEventsList.SetBinding(ListView.ItemsSourceProperty, eventsBinding);
+            //var eventsBinding = new Binding()
+            //{
+            //    Source = events
+            //};
+            //CombatLogEventsList.SetBinding(ListView.ItemsSourceProperty, eventsBinding); //the "All Events" list is disabled.
 
             var dmgBreakdownBinding = new Binding()
             {
@@ -82,9 +82,10 @@ namespace CombatlogParser
                     )
                 );
 
-            var filteredDamageEvents = encounter.CombatlogEvents.GetEvents<DamageEvent>().AllThatMatch(filter);
+            var allDamageEvents = encounter.CombatlogEvents.GetEvents<DamageEvent>();
+            var filteredDamageEvents = allDamageEvents.AllThatMatch(filter); //basically all damage to enemies.
 
-            foreach (var d in filteredDamageEvents)
+            foreach (var d in allDamageEvents)
                 damageEvents.Add(d);
 
             damageSumDict.Clear();

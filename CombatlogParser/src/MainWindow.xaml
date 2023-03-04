@@ -19,7 +19,7 @@
         <Label x:Name="HeaderLabel" Content="Combatlog Viewer" HorizontalAlignment="Left" VerticalAlignment="Top" FontSize="20" FontWeight="Bold" Margin="10,10,0,0"/>
 
         <TabControl Margin="0,76,0,0">
-            <TabItem Header="All Events">
+            <!--<TabItem Header="All Events">
                 <Grid Background="#FFE5E5E5">
                     <ListView x:Name="CombatLogEventsList" d:ItemsSource="{d:SampleData ItemCount=5}">
                         <ListView.View>
@@ -46,7 +46,7 @@
                         </ListView.View>
                     </ListView>
                 </Grid>
-            </TabItem>
+            </TabItem>--> <!--The "All Events" Tab is silly and i dont like it-->
             <TabItem Header="Damage Done">
                 <Grid Background="#FFE5E5E5">
                     <ListView x:Name="DamageEventsList" d:ItemsSource="{d:SampleData ItemCount=5}">
