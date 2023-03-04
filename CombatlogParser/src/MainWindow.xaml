@@ -73,7 +73,7 @@
                             <GridViewColumn Header="Source Name" DisplayMemberBinding="{Binding Path=SourceName}"/>
                             <GridViewColumn Header="Total Damage"
                                             CellTemplate="{StaticResource DmgTemplate}"/>
-                            <GridViewColumn Header="DPS" DisplayMemberBinding="{Binding Path=DPS}"/>
+                            <GridViewColumn Header="DPS" DisplayMemberBinding="{Binding Path=DPS, StringFormat=N1}"/>
                         </GridView>
                     </ListView.View>
                 </ListView>

@@ -13,7 +13,7 @@
         /// <summary>
         /// the start index of the first event in the filestream.
         /// </summary>
-        public ulong encounterStartIndex;
+        public long encounterStartIndex;
         /// <summary>
         /// the ID of the in-game encounter.
         /// </summary>

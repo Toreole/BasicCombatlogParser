@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Reflection;
 using System.Text.RegularExpressions;
 using CombatlogParser.Data;
 using CombatlogParser.Data.Events;
@@ -9,6 +10,19 @@ namespace CombatlogParser
 {
     public static class CombatLogParser
     {
+        private readonly static FieldInfo charPosField;
+        private readonly static FieldInfo charLenField;
+        private readonly static FieldInfo charBufferField;
+
+        static CombatLogParser()
+        {
+            BindingFlags privateMember = BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly;
+            charBufferField = typeof(StreamReader).GetField("_charBuffer", privateMember);
+            charLenField = typeof(StreamReader).GetField("_charLen", privateMember);
+            charPosField = typeof(StreamReader).GetField("_charPos", privateMember);
+        }
+
+
         public static void ImportCombatlog(string filePath)
         {
             System.Windows.Controls.ProgressBar progressBar = new();
@@ -19,7 +33,7 @@ namespace CombatlogParser
             string fileName = Path.GetFileName(filePath);
 
             //create a text reader for the file
-            using TextReader reader = new StreamReader(fileStream);
+            using StreamReader reader = new StreamReader(fileStream);
 
             string line = reader.ReadLine()!;
 
@@ -61,7 +75,7 @@ namespace CombatlogParser
                         encounterMetadata = new EncounterInfoMetadata()
                         {
                             logID = (uint)logID,
-                            encounterStartIndex = (ulong)position
+                            encounterStartIndex = position
                         };
                         encounterMetadata.wowEncounterID = uint.Parse(ParsingUtil.NextSubstring(next, ref i));
                         ParsingUtil.MovePastNextDivisor(next, ref i); //skip past the name of the encounter.
@@ -84,9 +98,14 @@ namespace CombatlogParser
                     else
                         length++;
 
-                    next = reader.ReadLine();
+                    //var charBuffer = (char[])charBufferField.GetValue(reader);
+                    var charLen = (int)charLenField.GetValue(reader)!;
+                    var charPos = (int)charPosField.GetValue(reader)!;
+
+                    var actualPosition = reader.BaseStream.Position - charLen + charPos;
                     //update the position
-                    position = fileStream.Position;
+                    position = actualPosition;
+                    next = reader.ReadLine();
                 }
             }
 
@@ -100,15 +119,16 @@ namespace CombatlogParser
             //but i hope that an average file is at max 1 GB in memory.
 
             //Step 3: Process each encounter. This is for general HPS/DPS statistics
-            PerformanceMetadata[] performances = new PerformanceMetadata[encounterMetadatas.Count];
-            for (int i = 0; i < performances.Length; i++)
-                performances = ProcessPerformances(parsedEncounters[i], encounterMetadatas[i].encounterInfoUID, logMetadata.isAdvanced);
-            
-            //Step 4: Store relevant results in the DB, clean up, provide access to the results to the main window
-            //so the app can display it all to the user.
-            foreach(var performance in performances)
+            PerformanceMetadata[] performances;
+            for (int i = 0; i < parsedEncounters.Length; i++)
             {
-                performance.performanceUID = (uint)DBStore.StorePerformance(performance);
+                performances = ProcessPerformances(parsedEncounters[i], encounterMetadatas[i].encounterInfoUID, logMetadata.isAdvanced);
+                //Step 4: Store relevant results in the DB, clean up, provide access to the results to the main window
+                //so the app can display it all to the user.
+                //foreach (var performance in performances)
+                //{
+                //    performance.performanceUID = (uint)DBStore.StorePerformance(performance);
+                //}
             }
             var uniquePlayers = new List<PlayerMetadata>();
             foreach(var encounter in parsedEncounters)
@@ -142,7 +162,7 @@ namespace CombatlogParser
             using var fileStream = File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
             using TextReader reader = new StreamReader(fileStream);
 
-            fileStream.Position = (long)metadata.encounterStartIndex;
+            fileStream.Position = metadata.encounterStartIndex;
             //encounterLength is guaranteed to be more or equal to the amount of actual combat events in the encounter.
             List<CombatlogEvent> events = new (metadata.encounterLength);
             List<MiscEvent> miscEvents = new(100); //not expecting a whole lot tbh.
@@ -222,8 +242,14 @@ namespace CombatlogParser
                 {
                     //the end of the encounter.
                     encEndT = timestamp;
-                    for (int j = 0; j < 5; j++) //skip past encounterID, encounterName, difficultyID, groupSize, success
+                    for (int skip = 0; skip < 6; skip++)
                         ParsingUtil.MovePastNextDivisor(line, ref pos);
+                    //var encounterEnd = ParsingUtil.NextSubstring(line, ref pos);
+                    //var encounterId = ParsingUtil.NextSubstring(line, ref pos);
+                    //var encounterName = ParsingUtil.NextSubstring(line, ref pos);
+                    //var difficultyId = ParsingUtil.NextSubstring(line, ref pos);
+                    //var groupsize = ParsingUtil.NextSubstring(line, ref pos);
+                    //var succ = ParsingUtil.NextSubstring(line, ref pos);
                     encDurationMS = uint.Parse(ParsingUtil.NextSubstring(line, ref pos));
                 }
             }
@@ -267,7 +293,7 @@ namespace CombatlogParser
         {
             PerformanceMetadata[] result = new PerformanceMetadata[encounterInfo.GroupSize];
             //1. Create metadata for every player.
-            for(int i = 0; i < encounterInfo.GroupSize; i++)
+            for (int i = 0; i < encounterInfo.GroupSize && i < encounterInfo.Players.Length; i++)
             {
                 result[i] = new(encounterInfo.Players[i].GUID)
                 {
@@ -323,7 +349,7 @@ namespace CombatlogParser
                 return Array.Empty<PerformanceMetadata>();
             }
             //add together all the damage events.
-            foreach(var ev in encounterInfo.CombatlogEvents.GetEvents<DamageEvent>())
+            foreach(var ev in damageEvents)
             {
                 long damageDone = ev.amount;
                 long damageAbsorbed = ev.absorbed;
@@ -341,8 +367,9 @@ namespace CombatlogParser
             }
             foreach(var performance in result)
             {
-                performance.dps /= encounterInfo.EncounterDuration;
-                performance.hps /= encounterInfo.EncounterDuration;
+                if (performance is null) continue;
+                performance.dps /= (encounterInfo.EncounterDuration / 1000);
+                performance.hps /= (encounterInfo.EncounterDuration / 1000);
                 //other performance members need to be assigned toon before returned.
             }
             return result;
