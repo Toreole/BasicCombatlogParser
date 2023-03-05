@@ -4,7 +4,8 @@
     {
         INVALID = -1,
         UNDEFINED = 0,
-        DAMAGE = 1
+        DAMAGE = 1,
+        SUMMON
     }
 
     /// <summary>

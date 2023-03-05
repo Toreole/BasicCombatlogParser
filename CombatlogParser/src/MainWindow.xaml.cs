@@ -102,7 +102,7 @@ namespace CombatlogParser
             }
             
             //2. register all pets that were summoned during the encounter.
-            foreach(CombatlogEvent summonEvent in encounter.AllEventsThatMatch(SubeventFilter.SummonEvents))
+            foreach(SummonEvent summonEvent in encounter.CombatlogEvents.GetEvents<SummonEvent>())
             {
                 //pets are the target, source is the summoning player.
                 //no check needed here, dictionary is guaranteed to be empty. 
@@ -130,18 +130,18 @@ namespace CombatlogParser
                 string sourceGUID = dmgevent.SourceGUID;
                 //check for pet melee attacks
                 //check if this is registered as a pet. warlock demons do not have the pet flag, therefore cant be easily checked outside of SPELL_SUMMON events.
-                //if(petToOwnerGUID.TryGetValue(sourceGUID, out string? ownerGUID))
-                //{
-                //    sourceGUID = ownerGUID;
-                //}
-                //else if(dmgevent.IsSourcePet && dmgevent.SubeventPrefix == CombatlogEventPrefix.SWING && false) //--WOAH
+                if (petToOwnerGUID.TryGetValue(sourceGUID, out string? ownerGUID))
+                {
+                    sourceGUID = ownerGUID;
+                }
+                //else if (dmgevent.IsSourcePet && dmgevent.SubeventPrefix == CombatlogEventPrefix.SWING && false) //--WOAH
                 //{
                 //    //pet swing damage as the owner GUID as advanced param
                 //    sourceGUID = dmgevent.GetOwnerGUID();
-                //    if(petToOwnerGUID.ContainsKey(dmgevent.SourceGUID) == false)
+                //    if (petToOwnerGUID.ContainsKey(dmgevent.SourceGUID) == false)
                 //        petToOwnerGUID[dmgevent.SourceGUID] = sourceGUID;
                 //}
-                
+
                 //add to existing data
                 if (damageSumDict.TryGetValue(sourceGUID, out DamageSummary? sum))
                 {

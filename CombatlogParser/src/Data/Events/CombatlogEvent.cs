@@ -153,8 +153,19 @@ namespace CombatlogParser.Data.Events
                 //    break;
                 //case CombatlogEventSuffix._DURABILITY_DAMAGE_ALL:
                 //    break;
-                //case CombatlogEventSuffix._SUMMON:
-                //    break;
+                case CombatlogEventSuffix._SUMMON:
+                    return new SummonEvent(prefix, combatlogEntry, index)
+                    {
+                        Timestamp = timestamp,
+                        SourceGUID = sourceGUID,
+                        SourceName = sourceName,
+                        SourceFlags = sourceFlags,
+                        SourceRaidFlags = sourceRFlags,
+                        TargetGUID = destGUID,
+                        TargetName = destName,
+                        TargetFlags = destFlags,
+                        TargetRaidFlags = destRFlags
+                    };
                 //case CombatlogEventSuffix._RESURRECT:
                 //    break;
                 //case CombatlogEventSuffix._SPLIT:

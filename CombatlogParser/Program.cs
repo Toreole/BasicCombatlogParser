@@ -18,7 +18,16 @@
                 Config.Default.AppVersion = APP_VERSION;
                 Config.Default.Save();
             }
-            CombatLogParser.ImportCombatlog("combatlogLarge.txt"); //test with a relative path.
+            string fallbackFile = "combatlogLarge.txt";
+            var dialog = new Microsoft.Win32.OpenFileDialog();
+            dialog.FileName = "Combatlog";
+            dialog.DefaultExt = ".txt";
+            dialog.Filter = "Text documents (.txt)|*.txt";
+
+            bool? result = dialog.ShowDialog();
+
+            CombatLogParser.ImportCombatlog((result?? false)? dialog.FileName : fallbackFile);
+
             //this is where the main application runs.
             MainWindow app = new();
             app.ShowDialog();
