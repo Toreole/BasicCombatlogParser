@@ -25,11 +25,11 @@ namespace CombatlogParser
                    ON CONFLICT ABORT";
             //insert the parameters
             var args = command.Parameters;
-            args.AddWithValue("$fn", data.fileName);
-            args.AddWithValue("$time", data.msTimeStamp);
-            args.AddWithValue("$adv", data.isAdvanced? 1 : 0);
-            args.AddWithValue("$build", data.buildVersion);
-            args.AddWithValue("$project", (int)data.projectID);
+            args.AddWithValue("$fn", data.FileName);
+            args.AddWithValue("$time", data.MsTimeStamp);
+            args.AddWithValue("$adv", data.IsAdvanced? 1 : 0);
+            args.AddWithValue("$build", data.BuildVersion);
+            args.AddWithValue("$project", (int)data.ProjectID);
             //try because the insert command will raise an error given a duplicate fileName
             try
             {
@@ -63,12 +63,12 @@ namespace CombatlogParser
                    ON CONFLICT ABORT";
             //insert the parameters
             var args = command.Parameters;
-            args.AddWithValue("$log", data.logID);
-            args.AddWithValue("$start", data.encounterStartIndex);
-            args.AddWithValue("$wowEncID", data.wowEncounterID);
-            args.AddWithValue("$success", data.success);
-            args.AddWithValue("$difficulty", data.difficultyID);
-            args.AddWithValue("$length", data.encounterLength);
+            args.AddWithValue("$log", data.CombatlogMetadataId);
+            args.AddWithValue("$start", data.EncounterStartIndex);
+            args.AddWithValue("$wowEncID", data.WowEncounterID);
+            args.AddWithValue("$success", data.Success);
+            args.AddWithValue("$difficulty", data.DifficultyID);
+            args.AddWithValue("$length", data.EncounterLengthInFile);
             //try because the insert command will raise an error given a duplicate fileName
             try
             {
@@ -98,12 +98,12 @@ namespace CombatlogParser
                    VALUES ( $playerGUID, $dps, $hps, $roleID, $specID, $encUID )";
             //insert the parameters
             var args = command.Parameters;
-            args.AddWithValue("$playerGUID", data.playerGUID);
-            args.AddWithValue("$dps", data.dps);
-            args.AddWithValue("$hps", data.hps);
-            args.AddWithValue("$roleID", data.roleID);
-            args.AddWithValue("$specID", data.specID);
-            args.AddWithValue("encUID", data.encounterUID);
+            args.AddWithValue("$playerGUID", data.PlayerGUID);
+            args.AddWithValue("$dps", data.Dps);
+            args.AddWithValue("$hps", data.Hps);
+            args.AddWithValue("$roleID", data.RoleId);
+            args.AddWithValue("$specID", data.SpecID);
+            args.AddWithValue("encUID", data.EncounterID);
             //try because the insert command will raise an error given a duplicate
             try
             {
@@ -136,9 +136,9 @@ namespace CombatlogParser
             //insert the parameters
             var args = command.Parameters;
             args.AddWithValue("$playerGUID", data.GUID);
-            args.AddWithValue("$name", data.name);
-            args.AddWithValue("$realm", data.realm);
-            args.AddWithValue("$classID", data.classID);
+            args.AddWithValue("$name", data.Name);
+            args.AddWithValue("$realm", data.Realm);
+            args.AddWithValue("$classID", data.ClassID);
             //try because the insert command will raise an error given a duplicate GUID
             try
             {

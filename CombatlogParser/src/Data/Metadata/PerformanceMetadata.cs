@@ -1,27 +1,34 @@
-﻿namespace CombatlogParser.Data.Metadata
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace CombatlogParser.Data.Metadata
 {
     public sealed class PerformanceMetadata
     {
         /// <summary>
         /// unique ID of the performance. autoincrement
         /// </summary>
-        public uint performanceUID;
+        [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public uint Id { get; set; }
         /// <summary>
         /// GUID of the player
         /// </summary>
-        public string playerGUID = "";
+        public string PlayerGUID { get; set; } = "";
+        public uint PlayerMetadataId { get; set; }
+        public PlayerMetadata? PlayerMetadata { get; set; }
         /// <summary>
         /// encounterInfo UID
         /// </summary>
-        public uint encounterUID;
-        public double dps;
-        public double hps;
-        public byte roleID;
-        public byte specID;
+        public uint EncounterId { get; set; }
+        public double Dps { get; set; }
+        public double Hps { get; set; }
+        public byte RoleId { get; set; }
+        public byte SpecID { get; set; }
 
         public PerformanceMetadata(string playerGUID)
         {
-            this.playerGUID = playerGUID;
+            this.PlayerGUID = playerGUID;
         }
     }
 }

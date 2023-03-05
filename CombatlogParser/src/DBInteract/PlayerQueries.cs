@@ -23,9 +23,9 @@ namespace CombatlogParser
                 results.Add(new PlayerMetadata()
                 {
                     GUID = reader.GetString(0),
-                    name = reader.GetString(1),
-                    realm = reader.GetString(2),
-                    classID = reader.GetByte(3)
+                    Name = reader.GetString(1),
+                    Realm = reader.GetString(2),
+                    ClassID = reader.GetByte(3)
                 });
             }
             return results.ToArray();

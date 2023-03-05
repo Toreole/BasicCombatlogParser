@@ -27,12 +27,12 @@ namespace CombatlogParser
             {
                 return new CombatlogMetadata()
                 {
-                    uID = logID,
-                    fileName = reader.GetString(0),
-                    msTimeStamp = reader.GetInt64(1),
-                    isAdvanced = reader.GetBoolean(2),
-                    buildVersion = reader.GetString(3),
-                    projectID = (WowProjectID)reader.GetInt32(4)
+                    Id = logID,
+                    FileName = reader.GetString(0),
+                    MsTimeStamp = reader.GetInt64(1),
+                    IsAdvanced = reader.GetBoolean(2),
+                    BuildVersion = reader.GetString(3),
+                    ProjectID = (WowProjectID)reader.GetInt32(4)
                 };
             }
             return null;
