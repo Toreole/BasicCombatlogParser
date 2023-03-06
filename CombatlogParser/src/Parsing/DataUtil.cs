@@ -13,10 +13,10 @@ namespace CombatlogParser.Parsing
         /// <returns></returns>
         public static bool TryGetByGUID(this PerformanceMetadata[] pds, string searchGUID, out PerformanceMetadata? perf)
         {
-            foreach (var p in pds)
-                if (p.PlayerGUID.EndsWithF(searchGUID))
+            foreach (var performance in pds)
+                if (performance.PlayerMetadata!.GUID.EndsWithF(searchGUID))
                 {
-                    perf = p;
+                    perf = performance;
                     return true;
                 }
             perf = null;

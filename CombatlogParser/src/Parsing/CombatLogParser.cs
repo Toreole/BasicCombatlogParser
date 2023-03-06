@@ -5,6 +5,7 @@ using CombatlogParser.Data;
 using CombatlogParser.Data.Events;
 using CombatlogParser.Data.Metadata;
 using CombatlogParser.Parsing;
+using Windows.Services.Maps.Guidance;
 
 namespace CombatlogParser
 {
@@ -53,7 +54,7 @@ namespace CombatlogParser
                 logMetadata.MsTimeStamp = offset.ToUnixTimeMilliseconds();
             }
             //store the log in the db and cache the ID
-            int logID = DBStore.StoreCombatlog(logMetadata);
+            uint logID = DBStore.StoreCombatlog(logMetadata);
 
             //update the position
             position = fileStream.Position;
@@ -77,9 +78,9 @@ namespace CombatlogParser
                             CombatlogMetadataId = (uint)logID,
                             EncounterStartIndex = position
                         };
-                        encounterMetadata.WowEncounterID = uint.Parse(ParsingUtil.NextSubstring(next, ref i));
+                        encounterMetadata.WowEncounterId = uint.Parse(ParsingUtil.NextSubstring(next, ref i));
                         ParsingUtil.MovePastNextDivisor(next, ref i); //skip past the name of the encounter.
-                        encounterMetadata.DifficultyID = int.Parse(ParsingUtil.NextSubstring(next, ref i));
+                        encounterMetadata.DifficultyId = int.Parse(ParsingUtil.NextSubstring(next, ref i));
                     }
                     else if (next.ContainsSubstringAt("ENCOUNTER_END", 20))
                     {
@@ -89,7 +90,7 @@ namespace CombatlogParser
                             for (int j = 0; j < 4; j++) //skip past encounterID, encounterName, difficultyID, groupSize
                                 ParsingUtil.MovePastNextDivisor(line, ref i);
                             encounterMetadata.Success = ParsingUtil.NextSubstring(line, ref i) == "1";
-                            int encID = DBStore.StoreEncounter(encounterMetadata); //add it to the db
+                            uint encID = DBStore.StoreEncounter(encounterMetadata); //add it to the db
                             encounterMetadata.Id = (uint)encID;
                             encounterMetadata.EncounterLengthInFile = length;
                             encounterMetadatas.Add(encounterMetadata); //also add it to the list.
@@ -273,8 +274,8 @@ namespace CombatlogParser
                 CombatlogEvents = events.ToArray(),
                 EncounterStartTime = encStartT,
                 EncounterSuccess = metadata.Success,
-                DifficultyID = metadata.DifficultyID,
-                EncounterID = metadata.WowEncounterID,
+                DifficultyID = metadata.DifficultyId,
+                EncounterID = metadata.WowEncounterId,
                 EncounterName = encName,
                 GroupSize = grpSize,
                 EncounterDuration = encDurationMS,
@@ -295,9 +296,10 @@ namespace CombatlogParser
             //1. Create metadata for every player.
             for (int i = 0; i < encounterInfo.GroupSize && i < encounterInfo.Players.Length; i++)
             {
-                result[i] = new(encounterInfo.Players[i].GUID)
+                result[i] = new()
                 {
-                    EncounterId = enc_UID
+                    PlayerMetadataId = 0, //TODO; needs to be discovered in the DB or registered.
+                    EncounterInfoMetadataId = enc_UID
                 };
             }
             //1.1 fetch the names for all players.

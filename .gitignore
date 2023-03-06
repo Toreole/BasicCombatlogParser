@@ -347,3 +347,6 @@ healthchecksdb
 
 # Backup folder for Package Reference Convert tool in Visual Studio 2017
 MigrationBackup/
+
+# The SQLite .db that is created by EFCore Migrations inside Visual Studio
+*.db

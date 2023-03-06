@@ -8,10 +8,12 @@ namespace CombatlogParser.Data.Metadata
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public uint Id { get; set; }
-        [Required]
         public string GUID { get; set; } = "";
         public string Name { get; set; } = "";
         public string Realm { get; set; } = "";
-        public byte ClassID { get; set; }
+        public byte ClassId { get; set; }
+
+        //not strictly necessary, use a specialized query for this instead, using Take() before ToList()
+        //public List<PerformanceMetadata> PerformanceMetadatas { get; set; } = new List<PerformanceMetadata>();
     }
 }
