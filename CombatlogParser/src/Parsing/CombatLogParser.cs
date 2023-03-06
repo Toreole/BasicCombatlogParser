@@ -5,12 +5,12 @@ using CombatlogParser.Data;
 using CombatlogParser.Data.Events;
 using CombatlogParser.Data.Metadata;
 using CombatlogParser.Parsing;
-using Windows.Services.Maps.Guidance;
 
 namespace CombatlogParser
 {
     public static class CombatLogParser
     {
+        private const int MIN_ENCOUNTER_DURATION = 5000; //encounters that last less than 5 seconds will not be regarded.
         private readonly static FieldInfo charPosField;
         private readonly static FieldInfo charLenField;
         private readonly static FieldInfo charBufferField;
@@ -18,9 +18,9 @@ namespace CombatlogParser
         static CombatLogParser()
         {
             BindingFlags privateMember = BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly;
-            charBufferField = typeof(StreamReader).GetField("_charBuffer", privateMember);
-            charLenField = typeof(StreamReader).GetField("_charLen", privateMember);
-            charPosField = typeof(StreamReader).GetField("_charPos", privateMember);
+            charBufferField = typeof(StreamReader).GetField("_charBuffer", privateMember)!;
+            charLenField = typeof(StreamReader).GetField("_charLen", privateMember)!;
+            charPosField = typeof(StreamReader).GetField("_charPos", privateMember)!;
         }
 
 
@@ -34,27 +34,30 @@ namespace CombatlogParser
             string fileName = Path.GetFileName(filePath);
 
             //create a text reader for the file
-            using StreamReader reader = new StreamReader(fileStream);
+            using StreamReader reader = new(fileStream);
 
             string line = reader.ReadLine()!;
 
-            //the metadata for the entire file
-            CombatlogMetadata logMetadata = new();
+            uint logId;
+            bool advancedLogEnabled;
+            //Create the CombatlogMetadata and save it to the DB.
             {
+                //the metadata for the entire file
+                CombatlogMetadata logMetadata = new();
                 Regex regex = new("([A-Z0-9._ /: ]+)");
                 var matches = regex.Matches(line);
                 //logMetadata.logVersion = int.Parse(matches[1].Value);
-                logMetadata.IsAdvanced   = matches[3].Value == "1";
+                advancedLogEnabled = logMetadata.IsAdvanced = matches[3].Value == "1";
                 logMetadata.BuildVersion = matches[5].Value;
-                logMetadata.ProjectID    = (WowProjectID)int.Parse(matches[7].Value);
-                logMetadata.FileName     = fileName;
+                logMetadata.ProjectID = (WowProjectID)int.Parse(matches[7].Value);
+                logMetadata.FileName = fileName;
 
                 DateTime dtTimestamp = ParsingUtil.StringTimestampToDateTime(line[..18]);
                 DateTimeOffset offset = new(dtTimestamp);
                 logMetadata.MsTimeStamp = offset.ToUnixTimeMilliseconds();
+                //store the log in the db and cache the ID
+                logId = DBStore.StoreCombatlog(logMetadata);
             }
-            //store the log in the db and cache the ID
-            uint logID = DBStore.StoreCombatlog(logMetadata);
 
             //update the position
             position = fileStream.Position;
@@ -62,92 +65,86 @@ namespace CombatlogParser
 
             List<EncounterInfoMetadata> encounterMetadatas = new();
             //Step 1: Read the entire file, mark the start (and end) of encounters.
-            {
-                //single variable encounterMetadata is not needed outside of this scope.
-                EncounterInfoMetadata? encounterMetadata = null;
-                int length = 0;
-                while (next != null)
-                {
-                    int i = 20;
-                    if (next.ContainsSubstringAt("ENCOUNTER_START", 20))
-                    {
-                        length = 1;
-                        ParsingUtil.MovePastNextDivisor(next, ref i); //move past ENCOUNTER_START,
-                        encounterMetadata = new EncounterInfoMetadata()
-                        {
-                            CombatlogMetadataId = (uint)logID,
-                            EncounterStartIndex = position
-                        };
-                        encounterMetadata.WowEncounterId = uint.Parse(ParsingUtil.NextSubstring(next, ref i));
-                        ParsingUtil.MovePastNextDivisor(next, ref i); //skip past the name of the encounter.
-                        encounterMetadata.DifficultyId = int.Parse(ParsingUtil.NextSubstring(next, ref i));
-                    }
-                    else if (next.ContainsSubstringAt("ENCOUNTER_END", 20))
-                    {
-                        if (encounterMetadata != null)
-                        {
-                            length++;
-                            for (int j = 0; j < 4; j++) //skip past encounterID, encounterName, difficultyID, groupSize
-                                ParsingUtil.MovePastNextDivisor(line, ref i);
-                            encounterMetadata.Success = ParsingUtil.NextSubstring(line, ref i) == "1";
-                            uint encID = DBStore.StoreEncounter(encounterMetadata); //add it to the db
-                            encounterMetadata.Id = (uint)encID;
-                            encounterMetadata.EncounterLengthInFile = length;
-                            encounterMetadatas.Add(encounterMetadata); //also add it to the list.
-                        }
-                    }
-                    else
-                        length++;
+            FetchEncounterInfoMetadata(ref position, reader, line, logId, ref next, encounterMetadatas);
 
-                    //var charBuffer = (char[])charBufferField.GetValue(reader);
-                    var charLen = (int)charLenField.GetValue(reader)!;
-                    var charPos = (int)charPosField.GetValue(reader)!;
 
-                    var actualPosition = reader.BaseStream.Position - charLen + charPos;
-                    //update the position
-                    position = actualPosition;
-                    next = reader.ReadLine();
-                }
-            }
-
-            var parsedEncounters = new EncounterInfo[encounterMetadatas.Count];
-            for (int i = 0; i < parsedEncounters.Length; i++)
-                parsedEncounters[i] = ParseEncounter(encounterMetadatas[i], filePath, logMetadata.IsAdvanced);
-
-            MainWindow.ParsedEncounters = parsedEncounters;
-
-            //NOTE: There is a potential out of memory issue in here if the log file is enormous
-            //but i hope that an average file is at max 1 GB in memory.
-
-            //Step 3: Process each encounter. This is for general HPS/DPS statistics
-            PerformanceMetadata[] performances;
-            for (int i = 0; i < parsedEncounters.Length; i++)
-            {
-                performances = ProcessPerformances(parsedEncounters[i], encounterMetadatas[i].Id, logMetadata.IsAdvanced);
-                //Step 4: Store relevant results in the DB, clean up, provide access to the results to the main window
-                //so the app can display it all to the user.
-                //foreach (var performance in performances)
-                //{
-                //    performance.performanceUID = (uint)DBStore.StorePerformance(performance);
-                //}
-            }
             var uniquePlayers = new List<PlayerMetadata>();
-            foreach(var encounter in parsedEncounters)
+            //Step 2: Parse the encounters individually
+            for (int i = 0; i < encounterMetadatas.Count; i++)
             {
-                foreach(var pi in encounter.Players)
-                    if(uniquePlayers.Exists(x => x.GUID == pi.GUID) == false)
+                var parsedEncounter = ParseEncounter(encounterMetadatas[i], filePath, advancedLogEnabled);
+                foreach(var player in parsedEncounter.Players)
+                {
+                    if (uniquePlayers.Exists(other => other.GUID == player.GUID))
+                        continue;
+                    uniquePlayers.Add(new()
                     {
-                        uniquePlayers.Add(new()
-                        {
-                            GUID = pi.GUID,
-                            Name = pi.Name,
-                            Realm = pi.Realm,
-                            //classID = ... //--TODO
-                        });
-                    }
+                        GUID = player.GUID,
+                        Name = player.Name,
+                        Realm = player.Realm,
+                        ClassId = player.Class
+                    });
+                }
+                //process performances inside of the current encounter immediately.
+                var performances = ProcessPerformances(parsedEncounter, encounterMetadatas[i].Id, advancedLogEnabled);
             }
+
+            MainWindow.Encounters = encounterMetadatas.Take(encounterMetadatas.Count).ToArray();
+
             foreach (var p in uniquePlayers)
                 DBStore.StorePlayer(p);
+        }
+
+        private static void FetchEncounterInfoMetadata(ref long position, StreamReader reader, string line, uint logId, ref string? next, List<EncounterInfoMetadata> encounterMetadatas)
+        {
+
+            //single variable encounterMetadata is not needed outside of this scope.
+            EncounterInfoMetadata? encounterMetadata = null;
+            int length = 0;
+            while (next != null)
+            {
+                int i = 20;
+                if (next.ContainsSubstringAt("ENCOUNTER_START", 20))
+                {
+                    length = 1;
+                    ParsingUtil.MovePastNextDivisor(next, ref i); //move past ENCOUNTER_START,
+                    encounterMetadata = new EncounterInfoMetadata()
+                    {
+                        CombatlogMetadataId = (uint)logId,
+                        EncounterStartIndex = position
+                    };
+                    encounterMetadata.WowEncounterId = uint.Parse(ParsingUtil.NextSubstring(next, ref i));
+                    ParsingUtil.MovePastNextDivisor(next, ref i); //skip past the name of the encounter.
+                    encounterMetadata.DifficultyId = int.Parse(ParsingUtil.NextSubstring(next, ref i));
+                }
+                else if (next.ContainsSubstringAt("ENCOUNTER_END", 20))
+                {
+                    if (encounterMetadata != null)
+                    {
+                        length++;
+                        for (int j = 0; j < 4; j++) //skip past encounterID, encounterName, difficultyID, groupSize
+                            ParsingUtil.MovePastNextDivisor(line, ref i);
+                        encounterMetadata.Success = ParsingUtil.NextSubstring(line, ref i) == "1";
+                        uint encID = DBStore.StoreEncounter(encounterMetadata); //add it to the db
+                        encounterMetadata.Id = (uint)encID;
+                        encounterMetadata.EncounterLengthInFile = length;
+                        encounterMetadata.EncounterDurationMS = long.Parse(ParsingUtil.NextSubstring(line, ref i));
+                        if(encounterMetadata.EncounterDurationMS > MIN_ENCOUNTER_DURATION)
+                            encounterMetadatas.Add(encounterMetadata); //also add it to the list.
+                    }
+                }
+                else
+                    length++;
+
+                var charBuffer = (char[])charBufferField.GetValue(reader)!;
+                var charLen = (int)charLenField.GetValue(reader)!;
+                var charPos = (int)charPosField.GetValue(reader)!;
+
+                var actualPosition = reader.BaseStream.Position - reader.CurrentEncoding.GetByteCount(charBuffer, charPos, charLen - charPos);
+                //update the position
+                position = actualPosition;
+                next = reader.ReadLine();
+            }
         }
 
         //NOTE: I wonder if i should split each encounter into a seperate file, rather than keeping them all connected hmmm...
@@ -158,8 +155,10 @@ namespace CombatlogParser
         /// <param name="filePath">The full file path to the combatlog.txt</param>
         /// <param name="advanced">Whether the log is using advanced parameters.</param>
         /// <returns></returns>
-        private static EncounterInfo ParseEncounter(EncounterInfoMetadata metadata, string filePath, bool advanced)
+        public static EncounterInfo ParseEncounter(EncounterInfoMetadata metadata, string? filePath = null, bool advanced = true)
         {
+            if (string.IsNullOrEmpty(filePath))
+                filePath = metadata.CombatlogMetadata?.FileName ?? throw new FileNotFoundException("No filepath given.");
             using var fileStream = File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
             using TextReader reader = new StreamReader(fileStream);
 
@@ -290,7 +289,7 @@ namespace CombatlogParser
         /// <param name="encounterInfo"></param>
         /// <param name="advanced"></param>
         /// <returns></returns>
-        private static PerformanceMetadata[] ProcessPerformances(EncounterInfo encounterInfo, uint enc_UID, bool advanced)
+        private static PerformanceMetadata[] ProcessPerformances(EncounterInfo encounterInfo, uint encounterMetadataId, bool advanced)
         {
             PerformanceMetadata[] result = new PerformanceMetadata[encounterInfo.GroupSize];
             //1. Create metadata for every player.
@@ -299,7 +298,7 @@ namespace CombatlogParser
                 result[i] = new()
                 {
                     PlayerMetadataId = 0, //TODO; needs to be discovered in the DB or registered.
-                    EncounterInfoMetadataId = enc_UID
+                    EncounterInfoMetadataId = encounterMetadataId
                 };
             }
             //1.1 fetch the names for all players.

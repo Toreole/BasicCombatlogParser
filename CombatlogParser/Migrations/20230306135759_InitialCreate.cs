@@ -36,7 +36,7 @@ namespace CombatlogParser.Migrations
                     GUID = table.Column<string>(type: "TEXT", nullable: false),
                     Name = table.Column<string>(type: "TEXT", nullable: false),
                     Realm = table.Column<string>(type: "TEXT", nullable: false),
-                    ClassId = table.Column<byte>(type: "INTEGER", nullable: false)
+                    ClassId = table.Column<int>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -76,7 +76,7 @@ namespace CombatlogParser.Migrations
                     Dps = table.Column<double>(type: "REAL", nullable: false),
                     Hps = table.Column<double>(type: "REAL", nullable: false),
                     RoleId = table.Column<byte>(type: "INTEGER", nullable: false),
-                    SpecId = table.Column<byte>(type: "INTEGER", nullable: false),
+                    SpecId = table.Column<int>(type: "INTEGER", nullable: false),
                     WowEncounterId = table.Column<uint>(type: "INTEGER", nullable: false),
                     EncounterInfoMetadataId = table.Column<uint>(type: "INTEGER", nullable: false),
                     PlayerMetadataId = table.Column<uint>(type: "INTEGER", nullable: false)

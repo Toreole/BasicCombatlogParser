@@ -99,7 +99,7 @@ namespace CombatlogParser.Migrations
                     b.Property<byte>("RoleId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<byte>("SpecId")
+                    b.Property<int>("SpecId")
                         .HasColumnType("INTEGER");
 
                     b.Property<uint>("WowEncounterId")
@@ -120,7 +120,7 @@ namespace CombatlogParser.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<byte>("ClassId")
+                    b.Property<int>("ClassId")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("GUID")

@@ -1,7 +1,5 @@
 ﻿using CombatlogParser.Data.Metadata;
 using CombatlogParser.DBInteract;
-using Microsoft.Data.Sqlite;
-using System.Diagnostics;
 
 namespace CombatlogParser
 {

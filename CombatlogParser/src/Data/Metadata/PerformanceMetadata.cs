@@ -27,7 +27,7 @@ namespace CombatlogParser.Data.Metadata
         /// <summary>
         /// Id of the spec played.
         /// </summary>
-        public byte SpecId { get; set; }
+        public SpecId SpecId { get; set; }
         /// <summary>
         /// the ID of the in-game encounter.
         /// </summary>

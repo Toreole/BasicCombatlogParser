@@ -1,5 +1,6 @@
 ﻿using CombatlogParser.Data;
 using CombatlogParser.Data.Events;
+using CombatlogParser.Data.Metadata;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Windows;
@@ -24,6 +25,7 @@ namespace CombatlogParser
         private ObservableCollection<DamageSummary> damageSummaries = new();
 
         public static EncounterInfo[] ParsedEncounters { get; internal set; } = Array.Empty<EncounterInfo>();
+        public static EncounterInfoMetadata[] Encounters { get; internal set; }
 
         public MainWindow()
         {

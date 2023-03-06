@@ -12,6 +12,8 @@
         public int Agility { get; set; }
         public int Stamina { get; set; }
         public int Intelligence { get; set; }
+        public ClassId Class { get; set; }
+        public SpecId SpecId { get; set; }
 
         public void SetNameAndRealm(string sourceName)
         {
