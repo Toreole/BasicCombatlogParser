@@ -75,7 +75,7 @@
 
     public static class ClassSpecUtil
     {
-        public static ClassId GetClass(this SpecId spec)
+        public static ClassId GetClassId(this SpecId spec)
         {
             return spec switch
             {

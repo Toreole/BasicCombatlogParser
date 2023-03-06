@@ -5,6 +5,7 @@ using CombatlogParser.Data;
 using CombatlogParser.Data.Events;
 using CombatlogParser.Data.Metadata;
 using CombatlogParser.Parsing;
+using static CombatlogParser.ParsingUtil;
 
 namespace CombatlogParser
 {
@@ -52,7 +53,7 @@ namespace CombatlogParser
                 logMetadata.ProjectID = (WowProjectID)int.Parse(matches[7].Value);
                 logMetadata.FileName = fileName;
 
-                DateTime dtTimestamp = ParsingUtil.StringTimestampToDateTime(line[..18]);
+                DateTime dtTimestamp = StringTimestampToDateTime(line[..18]);
                 DateTimeOffset offset = new(dtTimestamp);
                 logMetadata.MsTimeStamp = offset.ToUnixTimeMilliseconds();
                 //store the log in the db and cache the ID
@@ -107,15 +108,15 @@ namespace CombatlogParser
                 if (next.ContainsSubstringAt("ENCOUNTER_START", 20))
                 {
                     length = 1;
-                    ParsingUtil.MovePastNextDivisor(next, ref i); //move past ENCOUNTER_START,
+                    MovePastNextDivisor(next, ref i); //move past ENCOUNTER_START,
                     encounterMetadata = new EncounterInfoMetadata()
                     {
                         CombatlogMetadataId = (uint)logId,
                         EncounterStartIndex = position
                     };
-                    encounterMetadata.WowEncounterId = uint.Parse(ParsingUtil.NextSubstring(next, ref i));
-                    ParsingUtil.MovePastNextDivisor(next, ref i); //skip past the name of the encounter.
-                    encounterMetadata.DifficultyId = int.Parse(ParsingUtil.NextSubstring(next, ref i));
+                    encounterMetadata.WowEncounterId = uint.Parse(NextSubstring(next, ref i));
+                    MovePastNextDivisor(next, ref i); //skip past the name of the encounter.
+                    encounterMetadata.DifficultyId = int.Parse(NextSubstring(next, ref i));
                 }
                 else if (next.ContainsSubstringAt("ENCOUNTER_END", 20))
                 {
@@ -123,12 +124,12 @@ namespace CombatlogParser
                     {
                         length++;
                         for (int j = 0; j < 4; j++) //skip past encounterID, encounterName, difficultyID, groupSize
-                            ParsingUtil.MovePastNextDivisor(line, ref i);
-                        encounterMetadata.Success = ParsingUtil.NextSubstring(line, ref i) == "1";
+                            MovePastNextDivisor(line, ref i);
+                        encounterMetadata.Success = NextSubstring(line, ref i) == "1";
                         uint encID = DBStore.StoreEncounter(encounterMetadata); //add it to the db
                         encounterMetadata.Id = (uint)encID;
                         encounterMetadata.EncounterLengthInFile = length;
-                        encounterMetadata.EncounterDurationMS = long.Parse(ParsingUtil.NextSubstring(line, ref i));
+                        encounterMetadata.EncounterDurationMS = long.Parse(NextSubstring(line, ref i));
                         if(encounterMetadata.EncounterDurationMS > MIN_ENCOUNTER_DURATION)
                             encounterMetadatas.Add(encounterMetadata); //also add it to the list.
                     }
@@ -163,9 +164,6 @@ namespace CombatlogParser
             using TextReader reader = new StreamReader(fileStream);
 
             fileStream.Position = metadata.EncounterStartIndex;
-            //encounterLength is guaranteed to be more or equal to the amount of actual combat events in the encounter.
-            List<CombatlogEvent> events = new (metadata.EncounterLengthInFile);
-            List<MiscEvent> miscEvents = new(100); //not expecting a whole lot tbh.
 
             //data to be inserted into the resulting EncounterInfo later
             DateTime encStartT = DateTime.Now;
@@ -177,44 +175,72 @@ namespace CombatlogParser
             uint encDurationMS = 0;
             DateTime encEndT = DateTime.Now;
 
-
             string? line = reader.ReadLine()!;
             //double check the encounter start 
             if(line.ContainsSubstringAt("ENCOUNTER_START", 20))
             {
-                encStartT = ParsingUtil.StringTimestampToDateTime(line[..18]);
+                encStartT = StringTimestampToDateTime(line[..18]);
                 int i = 20;
-                ParsingUtil.MovePastNextDivisor(line, ref i);
+                MovePastNextDivisor(line, ref i);
                 //wowEncID = uint.Parse(ParsingUtil.NextSubstring(line, ref i));
-                ParsingUtil.MovePastNextDivisor(line, ref i); //redundant, skip.
-                encName = ParsingUtil.NextSubstring(line, ref i);
+                MovePastNextDivisor(line, ref i); //redundant, skip.
+                encName = NextSubstring(line, ref i);
                 //diffID = int.Parse(ParsingUtil.NextSubstring(line, ref i)); //redundant, skip.
-                ParsingUtil.MovePastNextDivisor(line, ref i);
-                grpSize = int.Parse(ParsingUtil.NextSubstring(line, ref i));
-                wowInstID = uint.Parse(ParsingUtil.NextSubstring(line, ref i));
+                MovePastNextDivisor(line, ref i);
+                grpSize = int.Parse(NextSubstring(line, ref i));
+                wowInstID = uint.Parse(NextSubstring(line, ref i));
             }
 
-            //TODO for the future: grab PlayerInfo[] from the COMBATANT_INFO events that are fired right after 
+            //encounterLength is guaranteed to be more or equal to the amount of actual combat events in the encounter.
+            List<CombatlogEvent> events = new(metadata.EncounterLengthInFile - grpSize);
+            List<MiscEvent> miscEvents = new(100); //not expecting a whole lot tbh.
+
+            //grab basic PlayerInfo[] from the COMBATANT_INFO events that are fired right after 
             //ENCOUNTER_START and their amount should equal the grpSize.
-            
-            //read all the events during the encounter.
-            for(int l = 1; l < metadata.EncounterLengthInFile-1; l++) 
+            PlayerInfo[] players = new PlayerInfo[grpSize];
+            for(int i = 0; i < grpSize; i++)
             {
                 line = reader.ReadLine()!;
                 int pos = 20;
-                var timestamp = ParsingUtil.StringTimestampToDateTime(line[..18]);
+                if (NextSubstring(line, ref pos) != "COMBATANT_INFO")
+                    break;
+                //order of params:
+                //(0)playerGUID,(1)Strength,(2)Agility,(3)Stamina,(4)Intelligence,(5)Dodge,(6)Parry,
+                //(7)Block,(8)CritMelee,(9)CritRanged,(10)CritSpell,(11)Speed,
+                //(12)Lifesteal,(13)HasteMelee,(14)HasteRanged,(15)HasteSpell,(16)Avoidance,(17)Mastery,
+                //(18)VersatilityDamageDone,(19)VersatilityHealingDone,(20)VersatilityDamageTaken,
+                //(21)Armor,(22)CurrentSpecID,
+                PlayerInfo player = new()
+                {
+                    GUID = NextSubstring(line, ref pos),
+                    Strength = int.Parse(NextSubstring(line, ref pos)),
+                    Agility = int.Parse(NextSubstring(line, ref pos)),
+                    Stamina = int.Parse(NextSubstring(line, ref pos)),
+                    Intelligence = int.Parse(NextSubstring(line, ref pos))
+                };
+                for (int skip = 5; skip < 22; skip++) MovePastNextDivisor(line, ref pos);
+                player.SpecId = (SpecId)int.Parse(NextSubstring(line, ref pos));
+                player.Class = player.SpecId.GetClassId();
+            }
 
-                string subevent = ParsingUtil.NextSubstring(line, ref pos);
+            //read all the events during the encounter.
+            for (int l = 1; l < metadata.EncounterLengthInFile-(1+grpSize); l++) 
+            {
+                line = reader.ReadLine()!;
+                int pos = 20;
+                var timestamp = StringTimestampToDateTime(line[..18]);
+
+                string subevent = NextSubstring(line, ref pos);
                 //confirm that the subevent is a combatlog event (it has a prefix and a suffix)
                 //other events are to be handled differently.
-                if(ParsingUtil.TryParsePrefixAffixSubeventF(subevent, out var prefix, out var suffix))
+                if(TryParsePrefixAffixSubeventF(subevent, out var prefix, out var suffix))
                 {
                     CombatlogEvent? clevent = CombatlogEvent.Create(line);
                     if(clevent != null)
                         events.Add(clevent);
                 }
                 //TODO: Other events should also be handled.
-                else if(ParsingUtil.TryParseMiscEventF(subevent, out var ev))
+                else if(TryParseMiscEventF(subevent, out var ev))
                 {
                     switch(ev)
                     {
@@ -237,13 +263,13 @@ namespace CombatlogParser
             if((line = reader.ReadLine()) != null)
             {
                 int pos = 20;
-                var timestamp = ParsingUtil.StringTimestampToDateTime(line[..18]);
+                var timestamp = StringTimestampToDateTime(line[..18]);
                 if (line.ContainsSubstringAt("ENCOUNTER_END", pos))
                 {
                     //the end of the encounter.
                     encEndT = timestamp;
                     for (int skip = 0; skip < 6; skip++)
-                        ParsingUtil.MovePastNextDivisor(line, ref pos);
+                        MovePastNextDivisor(line, ref pos);
                     //var encounterEnd = ParsingUtil.NextSubstring(line, ref pos);
                     //var encounterId = ParsingUtil.NextSubstring(line, ref pos);
                     //var encounterName = ParsingUtil.NextSubstring(line, ref pos);
@@ -254,19 +280,15 @@ namespace CombatlogParser
                 }
             }
 
-            var playerEvents = events.GetEvents<DamageEvent>().AllThatMatch(new SourceFlagFilter(UnitFlag.COMBATLOG_OBJECT_TYPE_PLAYER));
-            List<string> playerGUIDs = new List<string>();
-            foreach (var e in playerEvents)
-                if (playerGUIDs.Contains(e.SourceGUID) == false)
-                    playerGUIDs.Add(e.SourceGUID);
-            var players = new PlayerInfo[playerGUIDs.Count];
-            for (int i = 0; i < playerGUIDs.Count; i++)
-                players[i] = new PlayerInfo()
-                {
-                    GUID = playerGUIDs[i],
-                    Name = "",
-                    Realm = ""
-                };
+            //try to fill in the name and realm of the players from events theyre involved in.
+            foreach(var player in players)
+            {
+                var fullName = events.Find(e => e.SourceGUID == player.GUID)?.SourceName
+                    ?? events.Find(e => e.TargetGUID == player.GUID)?.TargetName;
+                if (string.IsNullOrEmpty(fullName))
+                    continue;
+                player.SetNameAndRealm(fullName);
+            }
 
             return new EncounterInfo()
             {
@@ -325,7 +347,7 @@ namespace CombatlogParser
             {
                 foreach (var e in encounterInfo.CombatlogEvents)
                 {
-                    if (!ParsingUtil.SubeventContainsAdvancedParams(e.SubeventSuffix))
+                    if (!SubeventContainsAdvancedParams(e.SubeventSuffix))
                         continue;
                     //if the source unit is the advanced info unit
                     if(e.SourceGUID == e.GetInfoGUID())
@@ -395,20 +417,20 @@ namespace CombatlogParser
             string? line = reader.ReadLine()!;
             try
             {
-                combatlog.LogStartTimestamp = ParsingUtil.StringTimestampToDateTime(line[..18]);
+                combatlog.LogStartTimestamp = StringTimestampToDateTime(line[..18]);
                 int i = 20;
                 //skip COMBAT_LOG_VERSION
-                ParsingUtil.MovePastNextDivisor(line, ref i);
-                combatlog.CombatlogVersion = int.Parse(ParsingUtil.NextSubstring(line, ref i));
+                MovePastNextDivisor(line, ref i);
+                combatlog.CombatlogVersion = int.Parse(NextSubstring(line, ref i));
                 //skip ADVANCED_LOG_ENABLED
-                ParsingUtil.MovePastNextDivisor(line, ref i);
-                combatlog.AdvancedLogEnabled = ParsingUtil.NextSubstring(line, ref i) == "1";
+                MovePastNextDivisor(line, ref i);
+                combatlog.AdvancedLogEnabled = NextSubstring(line, ref i) == "1";
                 //skip BUILD_VERSION
-                ParsingUtil.MovePastNextDivisor(line, ref i);
-                combatlog.BuildVersion = ParsingUtil.NextSubstring(line, ref i);
+                MovePastNextDivisor(line, ref i);
+                combatlog.BuildVersion = NextSubstring(line, ref i);
                 //skip PROJECT_ID
-                ParsingUtil.MovePastNextDivisor(line, ref i);
-                combatlog.ProjectID = int.Parse(ParsingUtil.NextSubstring(line, ref i));
+                MovePastNextDivisor(line, ref i);
+                combatlog.ProjectID = int.Parse(NextSubstring(line, ref i));
             }
             catch //IndexOutOfRange 
             {
@@ -425,9 +447,9 @@ namespace CombatlogParser
             while ((line = reader.ReadLine()) != null)
             {
                 int i = 20;
-                string sub = ParsingUtil.NextSubstring(line, ref i);
+                string sub = NextSubstring(line, ref i);
 
-                var timestamp = ParsingUtil.StringTimestampToDateTime(line[..18]);
+                var timestamp = StringTimestampToDateTime(line[..18]);
 
                 if (Enum.TryParse(sub, out CombatlogMiscEvents miscEvent))//should be a misc event.
                 {
@@ -439,20 +461,20 @@ namespace CombatlogParser
                         currentEncounter = new()
                         {
                             EncounterStartTime = timestamp,
-                            EncounterID = uint.Parse(ParsingUtil.NextSubstring(line, ref i)),
-                            EncounterName = ParsingUtil.NextSubstring(line, ref i),
-                            DifficultyID = int.Parse(ParsingUtil.NextSubstring(line, ref i)),
-                            GroupSize = int.Parse(ParsingUtil.NextSubstring(line, ref i)),
-                            InstanceID = uint.Parse(ParsingUtil.NextSubstring(line, ref i))
+                            EncounterID = uint.Parse(NextSubstring(line, ref i)),
+                            EncounterName = NextSubstring(line, ref i),
+                            DifficultyID = int.Parse(NextSubstring(line, ref i)),
+                            GroupSize = int.Parse(NextSubstring(line, ref i)),
+                            InstanceID = uint.Parse(NextSubstring(line, ref i))
                         };
                     }
                     //encounter end.
                     else if(miscEvent == CombatlogMiscEvents.ENCOUNTER_END && currentEncounter != null)
                     {
                         for (int j = 0; j < 4; j++) //skip past encounterID, encounterName, difficultyID, groupSize
-                            ParsingUtil.MovePastNextDivisor(line, ref i);
-                        currentEncounter.EncounterSuccess = ParsingUtil.NextSubstring(line, ref i) == "1";
-                        currentEncounter.EncounterDuration = uint.Parse(ParsingUtil.NextSubstring(line, ref i));
+                            MovePastNextDivisor(line, ref i);
+                        currentEncounter.EncounterSuccess = NextSubstring(line, ref i) == "1";
+                        currentEncounter.EncounterDuration = uint.Parse(NextSubstring(line, ref i));
                         //trim the encounterEvents list, and assign it as array to the currentEncounter.
                         encounterEvents.TrimExcess();
                         currentEncounter.CombatlogEvents = encounterEvents.ToArray();
@@ -483,7 +505,7 @@ namespace CombatlogParser
                 //try parsing the substring to a CombatlogSubevent.
                 else if (currentEncounter != null && 
                     timestamp > currentEncounter.EncounterStartTime && //only include events that happen *after* start of encounter.
-                    ParsingUtil.TryParsePrefixAffixSubeventF(sub, out CombatlogEventPrefix cPrefix, out CombatlogEventSuffix cSuffix))
+                    TryParsePrefixAffixSubeventF(sub, out CombatlogEventPrefix cPrefix, out CombatlogEventSuffix cSuffix))
                 {
                     CombatlogEvent? clevent = CombatlogEvent.Create(line);
                     if (clevent != null)

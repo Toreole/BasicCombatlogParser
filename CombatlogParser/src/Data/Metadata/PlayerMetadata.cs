@@ -15,5 +15,16 @@ namespace CombatlogParser.Data.Metadata
 
         //not strictly necessary, use a specialized query for this instead, using Take() before ToList()
         //public List<PerformanceMetadata> PerformanceMetadatas { get; set; } = new List<PerformanceMetadata>();
+
+        public static PlayerMetadata From(PlayerInfo playerInfo)
+        {
+            return new PlayerMetadata()
+            {
+                GUID = playerInfo.GUID,
+                Name = playerInfo.Name,
+                Realm = playerInfo.Realm,
+                ClassId = playerInfo.Class
+            };
+        }
     }
 }
