@@ -4,6 +4,7 @@ using System.Text.RegularExpressions;
 using CombatlogParser.Data;
 using CombatlogParser.Data.Events;
 using CombatlogParser.Data.Metadata;
+using CombatlogParser.DBInteract;
 using CombatlogParser.Parsing;
 using static CombatlogParser.ParsingUtil;
 
@@ -24,15 +25,32 @@ namespace CombatlogParser
             charPosField = typeof(StreamReader).GetField("_charPos", privateMember)!;
         }
 
+        private static bool DBContainsLog(string file)
+        {
+            using CombatlogDBContext context = new();
+            return context.Combatlogs.Any(log => log.FileName == file);
+        }
+
+        private static string LocalPath(string file)
+            => Path.Combine(Config.Default.Local_Log_Directory, file);
 
         public static void ImportCombatlog(string filePath)
         {
-            System.Windows.Controls.ProgressBar progressBar = new();
-            using FileStream fileStream = File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
-            long position = fileStream.Position; //should be 0 here. or well the start of the file at least.
-
             //just the name of the file.
             string fileName = Path.GetFileName(filePath);
+            if (DBContainsLog(fileName))
+            {
+                //Log has already been imported, dont do it again.
+                return;
+            }
+            //Create a copy of the file in the current local log directory.
+            string copiedLogPath = LocalPath(fileName);
+            File.Copy(filePath, copiedLogPath);
+
+            System.Windows.Controls.ProgressBar progressBar = new();
+            using FileStream fileStream = File.Open(copiedLogPath, FileMode.Open, FileAccess.Read, FileShare.Read);
+            long position = fileStream.Position; //should be 0 here. or well the start of the file at least.
+
 
             //create a text reader for the file
             using StreamReader reader = new(fileStream);
@@ -57,7 +75,8 @@ namespace CombatlogParser
                 DateTimeOffset offset = new(dtTimestamp);
                 logMetadata.MsTimeStamp = offset.ToUnixTimeMilliseconds();
                 //store the log in the db and cache the ID
-                logId = DBStore.StoreCombatlog(logMetadata);
+                DBStore.StoreCombatlog(logMetadata);
+                logId = logMetadata.Id;
             }
 
             //update the position
@@ -73,7 +92,7 @@ namespace CombatlogParser
             //Step 2: Parse the encounters individually
             for (int i = 0; i < encounterMetadatas.Count; i++)
             {
-                var parsedEncounter = ParseEncounter(encounterMetadatas[i], filePath, advancedLogEnabled);
+                var parsedEncounter = ParseEncounter(encounterMetadatas[i], advancedLogEnabled, copiedLogPath);
                 foreach(var player in parsedEncounter.Players)
                 {
                     if (uniquePlayers.Exists(other => other.GUID == player.GUID))
@@ -90,7 +109,7 @@ namespace CombatlogParser
                 var performances = ProcessPerformances(parsedEncounter, encounterMetadatas[i].Id, advancedLogEnabled);
             }
 
-            MainWindow.Encounters = encounterMetadatas.Take(encounterMetadatas.Count).ToArray();
+            //MainWindow.Encounters = encounterMetadatas.Take(encounterMetadatas.Count).ToArray();
 
             foreach (var p in uniquePlayers)
                 DBStore.StorePlayer(p);
@@ -98,7 +117,6 @@ namespace CombatlogParser
 
         private static void FetchEncounterInfoMetadata(ref long position, StreamReader reader, string line, uint logId, ref string? next, List<EncounterInfoMetadata> encounterMetadatas)
         {
-
             //single variable encounterMetadata is not needed outside of this scope.
             EncounterInfoMetadata? encounterMetadata = null;
             int length = 0;
@@ -126,12 +144,14 @@ namespace CombatlogParser
                         for (int j = 0; j < 4; j++) //skip past encounterID, encounterName, difficultyID, groupSize
                             MovePastNextDivisor(line, ref i);
                         encounterMetadata.Success = NextSubstring(line, ref i) == "1";
-                        uint encID = DBStore.StoreEncounter(encounterMetadata); //add it to the db
-                        encounterMetadata.Id = (uint)encID;
+                        
                         encounterMetadata.EncounterLengthInFile = length;
                         encounterMetadata.EncounterDurationMS = long.Parse(NextSubstring(line, ref i));
                         if(encounterMetadata.EncounterDurationMS > MIN_ENCOUNTER_DURATION)
+                        {
+                            DBStore.StoreEncounter(encounterMetadata); //add it to the db
                             encounterMetadatas.Add(encounterMetadata); //also add it to the list.
+                        }
                     }
                 }
                 else
@@ -156,10 +176,11 @@ namespace CombatlogParser
         /// <param name="filePath">The full file path to the combatlog.txt</param>
         /// <param name="advanced">Whether the log is using advanced parameters.</param>
         /// <returns></returns>
-        public static EncounterInfo ParseEncounter(EncounterInfoMetadata metadata, string? filePath = null, bool advanced = true)
+        public static EncounterInfo ParseEncounter(EncounterInfoMetadata metadata, bool advanced = true, string ? filePath = null)
         {
             if (string.IsNullOrEmpty(filePath))
-                filePath = metadata.CombatlogMetadata?.FileName ?? throw new FileNotFoundException("No filepath given.");
+                filePath = (metadata.CombatlogMetadata != null)?
+                    LocalPath(metadata.CombatlogMetadata.FileName) : throw new FileNotFoundException("No filepath given.");
             using var fileStream = File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
             using TextReader reader = new StreamReader(fileStream);
 
@@ -235,7 +256,7 @@ namespace CombatlogParser
                 //other events are to be handled differently.
                 if(TryParsePrefixAffixSubeventF(subevent, out var prefix, out var suffix))
                 {
-                    CombatlogEvent? clevent = CombatlogEvent.Create(line);
+                    CombatlogEvent? clevent = CombatlogEvent.Create(line, prefix, suffix);
                     if(clevent != null)
                         events.Add(clevent);
                 }
@@ -507,7 +528,7 @@ namespace CombatlogParser
                     timestamp > currentEncounter.EncounterStartTime && //only include events that happen *after* start of encounter.
                     TryParsePrefixAffixSubeventF(sub, out CombatlogEventPrefix cPrefix, out CombatlogEventSuffix cSuffix))
                 {
-                    CombatlogEvent? clevent = CombatlogEvent.Create(line);
+                    CombatlogEvent? clevent = CombatlogEvent.Create(line, cPrefix, cSuffix);
                     if (clevent != null)
                         encounterEvents.Add(clevent);
                     //SPELL_INSTAKILL is part of the regular combatlogevents.

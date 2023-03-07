@@ -24,9 +24,6 @@ namespace CombatlogParser
         private Dictionary<string, DamageSummary> damageSumDict = new();
         private ObservableCollection<DamageSummary> damageSummaries = new();
 
-        public static EncounterInfo[] ParsedEncounters { get; internal set; } = Array.Empty<EncounterInfo>();
-        public static EncounterInfoMetadata[] Encounters { get; internal set; }
-
         public MainWindow()
         {
             InitializeComponent();
@@ -37,12 +34,12 @@ namespace CombatlogParser
             ////try reading a large combatlog into a full Combatlog object.
             //currentCombatlog = CombatLogParser.ReadCombatlogFile("combatlogLarge.txt");
 
-            for (int i = 0; i < ParsedEncounters.Length; i++)
-            {
-                var enc = ParsedEncounters[i];
-                EncounterSelection.Items.Add($"{i}:{enc.EncounterName}: {(enc.EncounterSuccess ? "Kill" : "Wipe")}  - ({ParsingUtil.MillisecondsToReadableTimeString(enc.EncounterDuration)})");
-            }
-            EncounterSelection.SelectionChanged += OnEncounterChanged;
+            //for (int i = 0; i < Encounters.Length; i++)
+            //{
+            //    var enc = Encounters[i];
+            //    EncounterSelection.Items.Add($"{i}:{enc.WowEncounterId}: {(enc.Success ? "Kill" : "Wipe")}  - ({ParsingUtil.MillisecondsToReadableTimeString((uint)enc.EncounterDurationMS)})");
+            //}
+            //EncounterSelection.SelectionChanged += OnEncounterChanged;
 
             var dmgEventsBinding = new Binding()
             {
@@ -73,7 +70,9 @@ namespace CombatlogParser
         private void OnEncounterChanged(object sender, SelectionChangedEventArgs e)
         {
             int index = EncounterSelection.SelectedIndex;
-            EncounterInfo encounter = ParsedEncounters[index];
+            //read the encounter back into memory. at this point the encounter metadata and the combatlog metadata should be linked.
+            //EncounterInfo encounter = CombatLogParser.ParseEncounter(Encounters[index]);
+
             damageEvents.Clear();
 
             IEventFilter filter = new AllOfFilter(
@@ -84,80 +83,80 @@ namespace CombatlogParser
                     )
                 );
 
-            var allDamageEvents = encounter.CombatlogEvents.GetEvents<DamageEvent>();
-            var filteredDamageEvents = allDamageEvents.AllThatMatch(filter); //basically all damage to enemies.
+            //var allDamageEvents = encounter.CombatlogEvents.GetEvents<DamageEvent>();
+            //var filteredDamageEvents = allDamageEvents.AllThatMatch(filter); //basically all damage to enemies.
 
-            foreach (var d in allDamageEvents)
-                damageEvents.Add(d);
+            //foreach (var d in allDamageEvents)
+            //    damageEvents.Add(d);
 
             damageSumDict.Clear();
             damageSummaries.Clear();
             petToOwnerGUID.Clear();
 
             //1. Populate the damageSumDict with all unique players.
-            foreach(var player in encounter.Players)
-            {
-                damageSumDict.Add(player.GUID, new() {
-                    SourceName = encounter.CombatlogEvents.First(x => x.SourceGUID == player.GUID)?.SourceName ?? "Unknown"
-                });
+            //foreach(var player in encounter.Players)
+            //{
+            //    damageSumDict.Add(player.GUID, new() {
+            //        SourceName = encounter.CombatlogEvents.First(x => x.SourceGUID == player.GUID)?.SourceName ?? "Unknown"
+            //    });
                 
-            }
+            //}
             
             //2. register all pets that were summoned during the encounter.
-            foreach(SummonEvent summonEvent in encounter.CombatlogEvents.GetEvents<SummonEvent>())
-            {
-                //pets are the target, source is the summoning player.
-                //no check needed here, dictionary is guaranteed to be empty. 
-                //summon events only happen once per unit summoned
-                petToOwnerGUID.Add(summonEvent.TargetGUID, summonEvent.SourceGUID); 
-            }
+            //foreach(SummonEvent summonEvent in encounter.CombatlogEvents.GetEvents<SummonEvent>())
+            //{
+            //    //pets are the target, source is the summoning player.
+            //    //no check needed here, dictionary is guaranteed to be empty. 
+            //    //summon events only happen once per unit summoned
+            //    petToOwnerGUID.Add(summonEvent.TargetGUID, summonEvent.SourceGUID); 
+            //}
             //3. accessing advanced params, therefore need to check if advanced logging is enabled.
             if (false) //--NOTE THIS NEEDS AN UPDATE.
             {
                 //register all pets that had some form of cast_success
-                foreach (CombatlogEvent castEvent in encounter.AllEventsThatMatch(
-                    SubeventFilter.CastSuccessEvents, //SPELL_CAST_SUCCESS
-                    new NotFilter(new SourceFlagFilter(UnitFlag.COMBATLOG_OBJECT_TYPE_PLAYER)), //Guardians / pets / NPCs 
-                    new NotFilter(new SourceFlagFilter(UnitFlag.COMBATLOG_OBJECT_REACTION_HOSTILE)) //allied guardians/pets are never hostile.
-                ))
-                {
-                    if (petToOwnerGUID.ContainsKey(castEvent.SourceGUID) == false) //dont add duplicates of course.
-                        petToOwnerGUID.Add(castEvent.SourceGUID, castEvent.GetOwnerGUID());
-                }
+                //foreach (CombatlogEvent castEvent in encounter.AllEventsThatMatch(
+                //    SubeventFilter.CastSuccessEvents, //SPELL_CAST_SUCCESS
+                //    new NotFilter(new SourceFlagFilter(UnitFlag.COMBATLOG_OBJECT_TYPE_PLAYER)), //Guardians / pets / NPCs 
+                //    new NotFilter(new SourceFlagFilter(UnitFlag.COMBATLOG_OBJECT_REACTION_HOSTILE)) //allied guardians/pets are never hostile.
+                //))
+                //{
+                //    if (petToOwnerGUID.ContainsKey(castEvent.SourceGUID) == false) //dont add duplicates of course.
+                //        petToOwnerGUID.Add(castEvent.SourceGUID, castEvent.GetOwnerGUID());
+                //}
             }
 
             //4. sort out the damage events.
-            foreach(var dmgevent in filteredDamageEvents)
-            {
-                string sourceGUID = dmgevent.SourceGUID;
-                //check for pet melee attacks
-                //check if this is registered as a pet. warlock demons do not have the pet flag, therefore cant be easily checked outside of SPELL_SUMMON events.
-                if (petToOwnerGUID.TryGetValue(sourceGUID, out string? ownerGUID))
-                {
-                    sourceGUID = ownerGUID;
-                }
-                //else if (dmgevent.IsSourcePet && dmgevent.SubeventPrefix == CombatlogEventPrefix.SWING && false) //--WOAH
-                //{
-                //    //pet swing damage as the owner GUID as advanced param
-                //    sourceGUID = dmgevent.GetOwnerGUID();
-                //    if (petToOwnerGUID.ContainsKey(dmgevent.SourceGUID) == false)
-                //        petToOwnerGUID[dmgevent.SourceGUID] = sourceGUID;
-                //}
+            //foreach(var dmgevent in filteredDamageEvents)
+            //{
+            //    string sourceGUID = dmgevent.SourceGUID;
+            //    //check for pet melee attacks
+            //    //check if this is registered as a pet. warlock demons do not have the pet flag, therefore cant be easily checked outside of SPELL_SUMMON events.
+            //    if (petToOwnerGUID.TryGetValue(sourceGUID, out string? ownerGUID))
+            //    {
+            //        sourceGUID = ownerGUID;
+            //    }
+            //    //else if (dmgevent.IsSourcePet && dmgevent.SubeventPrefix == CombatlogEventPrefix.SWING && false) //--WOAH
+            //    //{
+            //    //    //pet swing damage as the owner GUID as advanced param
+            //    //    sourceGUID = dmgevent.GetOwnerGUID();
+            //    //    if (petToOwnerGUID.ContainsKey(dmgevent.SourceGUID) == false)
+            //    //        petToOwnerGUID[dmgevent.SourceGUID] = sourceGUID;
+            //    //}
 
-                //add to existing data
-                if (damageSumDict.TryGetValue(sourceGUID, out DamageSummary? sum))
-                {
-                    sum.TotalDamage += dmgevent.amount;
-                }
-                else //create new sum
-                {
-                    damageSumDict[sourceGUID] = new()
-                    {
-                        SourceName = dmgevent.SourceName, //--NOTE: This sometimes still adds a summary with the Pets name. Which is bad.
-                        TotalDamage = dmgevent.amount
-                    };
-                }
-            }
+            //    //add to existing data
+            //    //if (damageSumDict.TryGetValue(sourceGUID, out DamageSummary? sum))
+            //    //{
+            //    //    sum.TotalDamage += dmgevent.amount;
+            //    //}
+            //    //else //create new sum
+            //    //{
+            //    //    damageSumDict[sourceGUID] = new()
+            //    //    {
+            //    //        SourceName = dmgevent.SourceName, //--NOTE: This sometimes still adds a summary with the Pets name. Which is bad.
+            //    //        TotalDamage = dmgevent.amount
+            //    //    };
+            //    //}
+            //}
 
             /* skipping this bit for now.
             //add up all damage done to absorb shields on enemies.
@@ -184,12 +183,12 @@ namespace CombatlogParser
             List<DamageSummary> sums = new List<DamageSummary>(damageSumDict.Values);
             sums.Sort((x, y) => x.TotalDamage > y.TotalDamage ? -1 : 1);
             //divide damage to calculate DPS across the encounter.
-            float encounterSeconds = ParsedEncounters[index].LengthInSeconds;
-            foreach(var dmgsum in sums)
-            {
-                dmgsum.DPS = dmgsum.TotalDamage / encounterSeconds;
-                damageSummaries.Add(dmgsum);
-            }
+            //float encounterSeconds = Encounters[index].EncounterDurationMS / 1000;
+            //foreach(var dmgsum in sums)
+            //{
+            //    dmgsum.DPS = dmgsum.TotalDamage / encounterSeconds;
+            //    damageSummaries.Add(dmgsum);
+            //}
         }
     }
 }

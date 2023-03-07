@@ -3,6 +3,7 @@
     /// <summary>
     /// Represents an entire Combatlog file.
     /// </summary>
+    [Obsolete("Outdated type from the first early prototype. keeping for reference, but should not be used anymore.")]
     public class Combatlog
     {
 

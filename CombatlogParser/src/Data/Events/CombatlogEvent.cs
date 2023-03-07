@@ -20,14 +20,14 @@ namespace CombatlogParser.Data.Events
         public string SubEvent => Enum.GetName(SubeventPrefix) + Enum.GetName(SubeventSuffix); 
 
         //these 8 parameters are guaranteed to be included in combatlog events.
-        public string SourceGUID { get; init; } = "";
-        public string SourceName { get; init; } = "";
-        public UnitFlag SourceFlags { get; init; } = 0x0;
-        public RaidFlag SourceRaidFlags { get; init; } = 0x0;
-        public string TargetGUID { get; init; } = "";
-        public string TargetName { get; init; } = "";
-        public UnitFlag TargetFlags { get; init; } = 0x0;
-        public RaidFlag TargetRaidFlags { get; init; } = 0x0;
+        public string SourceGUID { get; private set; } = "";
+        public string SourceName { get; private set; } = "";
+        public UnitFlag SourceFlags { get; private set; } = 0x0;
+        public RaidFlag SourceRaidFlags { get; private set; } = 0x0;
+        public string TargetGUID { get; private set; } = "";
+        public string TargetName { get; private set; } = "";
+        public UnitFlag TargetFlags { get; private set; } = 0x0;
+        public RaidFlag TargetRaidFlags { get; private set; } = 0x0;
 
         public readonly EventType eventType = EventType.UNDEFINED;
 
@@ -60,16 +60,14 @@ namespace CombatlogParser.Data.Events
             return string.Empty;
         }
 
-        public static CombatlogEvent? Create(string combatlogEntry)
+        public static CombatlogEvent? Create(string combatlogEntry, CombatlogEventPrefix prefix, CombatlogEventSuffix suffix)
         {
             //1. timestamp parsed.
             var timestamp = StringTimestampToDateTime(combatlogEntry[..18]);
             //2. start after the two empty spaces behind the timestamp.
             int index = 20;
-            string subEvent = NextSubstring(combatlogEntry, ref index);
+            _ = NextSubstring(combatlogEntry, ref index); //subevent skipped
             //make sure that its a valid combat event.
-            if (!TryParsePrefixAffixSubeventF(subEvent, out var prefix, out var suffix))
-                return null;
             if (prefix is CombatlogEventPrefix.PARTY || 
                 prefix is CombatlogEventPrefix.UNIT || 
                 prefix is CombatlogEventPrefix.ENVIRONMENTAL)
@@ -84,21 +82,9 @@ namespace CombatlogParser.Data.Events
             var destFlags = NextFlags(combatlogEntry, ref index);
             var destRFlags = NextRaidFlags(combatlogEntry, ref index);
             //divide into basic 
-            switch (suffix)
+            CombatlogEvent? ev = suffix switch
             {
-                case CombatlogEventSuffix._DAMAGE:
-                    return new DamageEvent(prefix, combatlogEntry, index)
-                    {
-                        Timestamp = timestamp,
-                        SourceGUID = sourceGUID,
-                        SourceName = sourceName,
-                        SourceFlags = sourceFlags,
-                        SourceRaidFlags = sourceRFlags,
-                        TargetGUID = destGUID,
-                        TargetName = destName,
-                        TargetFlags = destFlags,
-                        TargetRaidFlags = destRFlags
-                    };
+                CombatlogEventSuffix._DAMAGE => new DamageEvent(prefix, combatlogEntry, index),
                 //case CombatlogEventSuffix._DURABILITY_DAMAGE:
                 //    break;
                 //case CombatlogEventSuffix._DAMAGE_LANDED:
@@ -153,19 +139,7 @@ namespace CombatlogParser.Data.Events
                 //    break;
                 //case CombatlogEventSuffix._DURABILITY_DAMAGE_ALL:
                 //    break;
-                case CombatlogEventSuffix._SUMMON:
-                    return new SummonEvent(prefix, combatlogEntry, index)
-                    {
-                        Timestamp = timestamp,
-                        SourceGUID = sourceGUID,
-                        SourceName = sourceName,
-                        SourceFlags = sourceFlags,
-                        SourceRaidFlags = sourceRFlags,
-                        TargetGUID = destGUID,
-                        TargetName = destName,
-                        TargetFlags = destFlags,
-                        TargetRaidFlags = destRFlags
-                    };
+                CombatlogEventSuffix._SUMMON => new SummonEvent(prefix, combatlogEntry, index),
                 //case CombatlogEventSuffix._RESURRECT:
                 //    break;
                 //case CombatlogEventSuffix._SPLIT:
@@ -184,10 +158,26 @@ namespace CombatlogParser.Data.Events
                 //    break;
                 //case CombatlogEventSuffix._DISSIPATES:
                 //    break;
-                case CombatlogEventSuffix.UNDEFINED:
-                default:
-                    return null;
-            }
+                _ or CombatlogEventSuffix.UNDEFINED => null
+            };
+            return ev;
+        }
+
+        /// <summary>
+        /// Reads the basic combatlog event data. sourceGUID...destRaidFlags
+        /// </summary>
+        /// <param name="entry"></param>
+        /// <param name="dataIndex"></param>
+        protected void ReadData(string entry, ref int dataIndex)
+        {
+            SourceGUID = NextSubstring(entry, ref dataIndex);
+            SourceName = NextSubstring(entry, ref dataIndex);
+            SourceFlags = NextFlags(entry, ref dataIndex);
+            SourceRaidFlags = NextRaidFlags(entry, ref dataIndex);
+            TargetGUID = NextSubstring(entry, ref dataIndex);
+            TargetName = NextSubstring(entry, ref dataIndex);
+            TargetFlags = NextFlags(entry, ref dataIndex);
+            TargetRaidFlags = NextRaidFlags(entry, ref dataIndex);
         }
     }
 

@@ -15,10 +15,12 @@
                 Config.Default.Save();
             }
             string fallbackFile = "combatlogLarge.txt";
-            var dialog = new Microsoft.Win32.OpenFileDialog();
-            dialog.FileName = "Combatlog";
-            dialog.DefaultExt = ".txt";
-            dialog.Filter = "Text documents (.txt)|*.txt";
+            var dialog = new Microsoft.Win32.OpenFileDialog
+            {
+                FileName = System.IO.Path.Combine(Config.Default.WoW_Log_Directories, "Combatlog"),
+                DefaultExt = ".txt",
+                Filter = "Text documents (.txt)|*.txt"
+            };
 
             bool? result = dialog.ShowDialog();
 

@@ -28,6 +28,7 @@ namespace CombatlogParser.Data.Events
         public DamageEvent(CombatlogEventPrefix prefix, string entry, int dataIndex) 
             : base(EventType.DAMAGE, prefix, CombatlogEventSuffix._DAMAGE)
         {
+            base.ReadData(entry, ref dataIndex);
             if(prefix is CombatlogEventPrefix.SWING)
             {
                 spellId = 1;
