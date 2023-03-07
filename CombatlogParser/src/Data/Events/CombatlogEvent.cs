@@ -62,25 +62,14 @@ namespace CombatlogParser.Data.Events
 
         public static CombatlogEvent? Create(string combatlogEntry, CombatlogEventPrefix prefix, CombatlogEventSuffix suffix)
         {
-            //1. timestamp parsed.
-            var timestamp = StringTimestampToDateTime(combatlogEntry[..18]);
-            //2. start after the two empty spaces behind the timestamp.
+            //start after the two empty spaces behind the timestamp.
             int index = 20;
-            _ = NextSubstring(combatlogEntry, ref index); //subevent skipped
             //make sure that its a valid combat event.
             if (prefix is CombatlogEventPrefix.PARTY || 
                 prefix is CombatlogEventPrefix.UNIT || 
                 prefix is CombatlogEventPrefix.ENVIRONMENTAL)
                 return null;
-            //basic data
-            string sourceGUID = NextSubstring(combatlogEntry, ref index);
-            string sourceName = NextSubstring(combatlogEntry, ref index);
-            var sourceFlags = NextFlags(combatlogEntry, ref index);
-            var sourceRFlags = NextRaidFlags(combatlogEntry, ref index);
-            string destGUID = NextSubstring(combatlogEntry, ref index);
-            string destName = NextSubstring(combatlogEntry, ref index);
-            var destFlags = NextFlags(combatlogEntry, ref index);
-            var destRFlags = NextRaidFlags(combatlogEntry, ref index);
+            MovePastNextDivisor(combatlogEntry, ref index); //subevent skipped
             //divide into basic 
             CombatlogEvent? ev = suffix switch
             {
@@ -91,8 +80,7 @@ namespace CombatlogParser.Data.Events
                 //    break;
                 //case CombatlogEventSuffix._MISSED:
                 //    break;
-                //case CombatlogEventSuffix._HEAL:
-                //    break;
+                CombatlogEventSuffix._HEAL => new HealEvent(prefix, combatlogEntry, index),
                 //case CombatlogEventSuffix._HEAL_ABSORBED:
                 //    break;
                 //case CombatlogEventSuffix._ABSORBED:
@@ -170,6 +158,7 @@ namespace CombatlogParser.Data.Events
         /// <param name="dataIndex"></param>
         protected void ReadData(string entry, ref int dataIndex)
         {
+            Timestamp = StringTimestampToDateTime(entry[..18]);
             SourceGUID = NextSubstring(entry, ref dataIndex);
             SourceName = NextSubstring(entry, ref dataIndex);
             SourceFlags = NextFlags(entry, ref dataIndex);

@@ -9,10 +9,10 @@ namespace CombatlogParser
         /// <summary>
         /// Gets the stored Metadata for all players whose names start with the provided string. This should be case-insenstive.
         /// </summary>
-        public static PlayerMetadata[] AllPlayersWithNameLike(string start)
+        public static PlayerMetadata[] FindPlayersWithNameLike(string start)
         {
             using CombatlogDBContext dbContext = new();
-            var result = dbContext.Players.Where(p => EF.Functions.Like(p.Name, start)).ToArray();
+            var result = dbContext.Players.Where(p => EF.Functions.Like(p.Name, start)).Take(10).ToArray();
             return result;
         }
     }

@@ -5,7 +5,8 @@
         INVALID = -1,
         UNDEFINED = 0,
         DAMAGE = 1,
-        SUMMON
+        HEALING = 2,
+        SUMMON = 3,
     }
 
     /// <summary>

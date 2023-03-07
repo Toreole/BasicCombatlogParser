@@ -1,4 +1,5 @@
 ﻿using CombatlogParser.Data.Metadata;
+using CombatlogParser.DBInteract;
 
 namespace CombatlogParser
 {
@@ -9,28 +10,20 @@ namespace CombatlogParser
         /// </summary>
         /// <param name="logID"></param>
         /// <returns>null if no such log can be found.</returns>
-        public static CombatlogMetadata? GetCombatlogMetadataByID(uint logID)
+        public static CombatlogMetadata? GetCombatlogMetadataByID(uint logId)
         {
-           
-            return null;
+            using CombatlogDBContext context = new();
+            return context.Combatlogs.FirstOrDefault(x => x.Id == logId);
         }
 
-        /// <summary>
-        /// Checks whether a combatlog has already been imported by confirming whether a log with the same fileName exists in the metadata table.
-        /// </summary>
-        public static bool CombatlogAlreadyImported(string fileName)
+        public static CombatlogMetadata?[] GetCombatlogMetadata(uint lastId, int pageSize = 10)
         {
-           
-            return false;
-        }
-
-        /// <summary>
-        /// Gets the number of rows in the Combatlog_Metadata table.
-        /// </summary>
-        public static int GetCombatlogMetadataCount()
-        {
-            
-            return 0; 
+            using CombatlogDBContext context = new();
+            return context.Combatlogs
+                .OrderBy(x => x.Id)
+                .Where(c => c.Id > lastId)
+                .Take(pageSize)
+                .ToArray();
         }
     }
 }

@@ -395,14 +395,23 @@ namespace CombatlogParser
             //add together all the damage events.
             foreach(var ev in damageEvents)
             {
-                long damageDone = ev.amount;
-                long damageAbsorbed = ev.absorbed;
-
                 //try to add the damage done directly to the player by their GUID
                 //by this point, the dictionary has ALL possible GUIDs of units in it. therefore this is OK!
                 if(result.TryGetByGUID(ev.SourceGUID, out var perf))
                 {
-                    perf!.Dps += (damageDone + damageAbsorbed);
+                    perf!.Dps += (ev.Amount + ev.Absorbed);
+                }
+                else //source is not player, but a pet/guardian/npc summoned by a player that could not be identified to belong to a player.
+                {
+
+                }
+            }
+            //add together all the healing events.
+            foreach(var ev in encounterInfo.CombatlogEvents.GetEvents<HealEvent>())
+            {
+                if (result.TryGetByGUID(ev.SourceGUID, out var perf))
+                {
+                    perf!.Hps += ev.Amount + ev.Absorbed;
                 }
                 else //source is not player, but a pet/guardian/npc summoned by a player that could not be identified to belong to a player.
                 {
