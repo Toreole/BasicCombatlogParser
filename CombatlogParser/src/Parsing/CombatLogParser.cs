@@ -51,7 +51,6 @@ namespace CombatlogParser
             using FileStream fileStream = File.Open(copiedLogPath, FileMode.Open, FileAccess.Read, FileShare.Read);
             long position = fileStream.Position; //should be 0 here. or well the start of the file at least.
 
-
             //create a text reader for the file
             using StreamReader reader = new(fileStream);
 
@@ -334,6 +333,9 @@ namespace CombatlogParser
         /// <returns></returns>
         private static PerformanceMetadata[] ProcessPerformances(EncounterInfo encounterInfo, uint encounterMetadataId, bool advanced)
         {
+            if (!advanced)
+                //TODO: Write to log that encounter cant be processed without advanced parameters.
+                return Array.Empty<PerformanceMetadata>();
             PerformanceMetadata[] result = new PerformanceMetadata[encounterInfo.GroupSize];
             //1. Create metadata for every player.
             for (int i = 0; i < encounterInfo.GroupSize && i < encounterInfo.Players.Length; i++)
@@ -352,6 +354,21 @@ namespace CombatlogParser
                     player.SetNameAndRealm(ev.SourceName);
             }
 
+            //the dictionary to look up the actual source GUID (pet->player, player->player, guardian->player, etc)
+            var sourceToOwnerGUID = new Dictionary<string, string>();
+            foreach (var e in encounterInfo.CombatlogEvents.GetAdvancedParamEvents()) 
+            {
+                var sourceGUID = e.SourceGUID;
+                //if the source unit is the advanced info unit
+                if (sourceGUID != e.AdvancedParams.infoGUID)
+                    continue;
+                var owner = e.AdvancedParams.ownerGUID;
+                //"000000000000" is the default GUID for "no owner".
+                //regular GUIDs start with "Player", "Creature" or "Pet".
+                if (sourceToOwnerGUID.ContainsKey(sourceGUID) == false)
+                    sourceToOwnerGUID.Add(sourceGUID, owner[0] == '0' ? sourceGUID : owner);
+            }
+
             var allySource = new AnyOfFilter(
                     new SourceFlagFilter(UnitFlag.COMBATLOG_OBJECT_REACTION_FRIENDLY),
                     new SourceFlagFilter(UnitFlag.COMBATLOG_OBJECT_REACTION_NEUTRAL)
@@ -362,38 +379,8 @@ namespace CombatlogParser
                     new TargetFlagFilter(UnitFlag.COMBATLOG_OBJECT_REACTION_HOSTILE) //and the target is hostile.
                 )
                 );
-            //the dictionary to look up the actual source GUID (pet->player, player->player, guardian->player, etc)
-            var sourceToOwnerGUID = new Dictionary<string, string>();
-            if (advanced)
-            {
-                foreach (var e in encounterInfo.CombatlogEvents)
-                {
-                    if (!SubeventContainsAdvancedParams(e.SubeventSuffix))
-                        continue;
-                    //if the source unit is the advanced info unit
-                    if(e.SourceGUID == e.GetInfoGUID())
-                    {
-                        var owner = e.GetOwnerGUID();
-                        //"000000000000" is the default GUID for "no owner".
-                        //regular GUIDs start with Player/Creature prefixes.
-                        //Since this event is confirmed to have advanced params, GetOwnerGUID will never return string.Empty.
-                        if (owner[0] != '0') 
-                        {
-                            if (sourceToOwnerGUID.ContainsKey(e.SourceGUID) == false)
-                                sourceToOwnerGUID.Add(e.SourceGUID, owner);
-                        }
-                        else if (sourceToOwnerGUID.ContainsKey(e.SourceGUID) == false)
-                            sourceToOwnerGUID.Add(e.SourceGUID, e.SourceGUID);
-                    }
-                }
-            }
-            else
-            {
-                //TODO: Write to log that encounter cant be processed without advanced parameters.
-                return Array.Empty<PerformanceMetadata>();
-            }
             //add together all the damage events.
-            foreach(var ev in damageEvents)
+            foreach (var ev in damageEvents)
             {
                 //try to add the damage done directly to the player by their GUID
                 //by this point, the dictionary has ALL possible GUIDs of units in it. therefore this is OK!

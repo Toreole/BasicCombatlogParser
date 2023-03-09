@@ -1,23 +1,14 @@
-﻿using System.Windows.Navigation;
-using static CombatlogParser.ParsingUtil;
+﻿using static CombatlogParser.ParsingUtil;
 
 namespace CombatlogParser.Data.Events
 {
     /// <summary>
     /// Represents a single event in a combatlog. There are many kinds of events that go into the specifics.
-    /// This is a somewhat polymorphic class.
     /// </summary>
     public class CombatlogEvent : LogEntryBase
     {
-        /// <summary>
-        /// The advanced combatlog parameters.
-        /// </summary>
-        private object[] advancedParams = Array.Empty<string>();
-
         public CombatlogEventPrefix SubeventPrefix { get; private set; } = CombatlogEventPrefix.UNDEFINED;
         public CombatlogEventSuffix SubeventSuffix { get; private set; } = CombatlogEventSuffix.UNDEFINED;
-
-        public string SubEvent => Enum.GetName(SubeventPrefix) + Enum.GetName(SubeventSuffix); 
 
         //these 8 parameters are guaranteed to be included in combatlog events.
         public string SourceGUID { get; private set; } = "";
@@ -33,31 +24,23 @@ namespace CombatlogParser.Data.Events
 
         public bool IsSourcePet => SourceFlags.HasFlagf(UnitFlag.COMBATLOG_OBJECT_TYPE_PET);
 
-        protected CombatlogEvent(EventType eventType, CombatlogEventPrefix prefix, CombatlogEventSuffix suffix)
+        //inheriting types should use these params: CombatlogEventPrefix prefix, string entry, int dataIndex
+        //EventType and Suffix are provided by the inheriting type itself. One of them is a duplicate tbh.
+        protected CombatlogEvent(string entry, ref int dataIndex, EventType eventType, CombatlogEventPrefix prefix, CombatlogEventSuffix suffix)
         {
+            Timestamp = StringTimestampToDateTime(entry[..18]);
+            SourceGUID = NextSubstring(entry, ref dataIndex);
+            SourceName = NextSubstring(entry, ref dataIndex);
+            SourceFlags = NextFlags(entry, ref dataIndex);
+            SourceRaidFlags = NextRaidFlags(entry, ref dataIndex);
+            TargetGUID = NextSubstring(entry, ref dataIndex);
+            TargetName = NextSubstring(entry, ref dataIndex);
+            TargetFlags = NextFlags(entry, ref dataIndex);
+            TargetRaidFlags = NextRaidFlags(entry, ref dataIndex);
+
             this.eventType = eventType;
-            this.SubeventPrefix = prefix;
-            this.SubeventSuffix = suffix;
-        }
-
-        /// <summary>
-        /// the GUID of the unit that is the source of the event. (advanced param)
-        /// </summary>
-        public string GetInfoGUID()
-        {
-            if (advancedParams.Length > 0)
-                return (string)advancedParams[0];
-            return string.Empty;
-        }
-
-        /// <summary>
-        /// the GUID of the unit that is the owner of the infoGUID. (advanced param)
-        /// </summary>
-        public string GetOwnerGUID()
-        {
-            if (advancedParams.Length > 0)
-                return (string)advancedParams[1];
-            return string.Empty;
+            SubeventPrefix = prefix;
+            SubeventSuffix = suffix;
         }
 
         public static CombatlogEvent? Create(string combatlogEntry, CombatlogEventPrefix prefix, CombatlogEventSuffix suffix)
@@ -150,24 +133,6 @@ namespace CombatlogParser.Data.Events
             };
             return ev;
         }
-
-        /// <summary>
-        /// Reads the basic combatlog event data. sourceGUID...destRaidFlags
-        /// </summary>
-        /// <param name="entry"></param>
-        /// <param name="dataIndex"></param>
-        protected void ReadData(string entry, ref int dataIndex)
-        {
-            Timestamp = StringTimestampToDateTime(entry[..18]);
-            SourceGUID = NextSubstring(entry, ref dataIndex);
-            SourceName = NextSubstring(entry, ref dataIndex);
-            SourceFlags = NextFlags(entry, ref dataIndex);
-            SourceRaidFlags = NextRaidFlags(entry, ref dataIndex);
-            TargetGUID = NextSubstring(entry, ref dataIndex);
-            TargetName = NextSubstring(entry, ref dataIndex);
-            TargetFlags = NextFlags(entry, ref dataIndex);
-            TargetRaidFlags = NextRaidFlags(entry, ref dataIndex);
-        }
     }
 
     public class AdvancedParams
@@ -175,93 +140,40 @@ namespace CombatlogParser.Data.Events
         public readonly string infoGUID;
         public readonly string ownerGUID;
         public readonly int currentHP;
-        public int maxHP;
-        public int attackPower;
-        public int spellPower;
-        public int armor;
-        public int absorb;
-        public PowerType powerType;
-        public int currentPower;
-        public int maxPower;
-        public int powerCost;
-        public float positionX;
-        public float positionY;
-        public int uiMapID;
-        public float facing;
-        public int level;
+        public readonly int maxHP;
+        public readonly int attackPower;
+        public readonly int spellPower;
+        public readonly int armor;
+        public readonly int absorb;
+        public readonly PowerType powerType;
+        public readonly int currentPower;
+        public readonly int maxPower;
+        public readonly int powerCost;
+        public readonly float positionX;
+        public readonly float positionY;
+        public readonly int uiMapID;
+        public readonly float facing;
+        public readonly int level;
 
-        private AdvancedParams(
-            string infoGUID, 
-            string ownerGUID,
-            int currentHP,
-            int maxHP,
-            int attackPower,
-            int spellPower,
-            int armor,
-            int absorb,
-            PowerType powerType,
-            int currentPower,
-            int maxPower,
-            int powerCost,
-            float positionX,
-            float positionY,
-            int uiMapID,
-            float facing,
-            int level)
+        public AdvancedParams(string data, ref int dataIndex)
         {
-            this.infoGUID = infoGUID;
-            this.ownerGUID = ownerGUID;
-            this.currentHP = currentHP;
-            this.maxHP = maxHP;
-            this.attackPower = attackPower;
-            this.spellPower = spellPower;
-            this.armor = armor;
-            this.absorb = absorb;
-            this.powerType = powerType;
-            this.currentPower = currentPower;
-            this.maxPower = maxPower;
-            this.powerCost = powerCost;
-            this.positionX = positionX;
-            this.positionY = positionY;
-            this.uiMapID = uiMapID;
-            this.facing = facing;
-            this.level = level;
-        }
-
-        public static AdvancedParams Get(string data, ref int dataIndex)
-        {
-            int initialIndex = dataIndex;
-            //god this is ugly wtf
-            try
-            {
-                return new AdvancedParams(
-                    infoGUID: NextSubstring(data, ref dataIndex),
-                    ownerGUID: NextSubstring(data, ref dataIndex),
-                    currentHP: int.Parse(NextSubstring(data, ref dataIndex)),
-                    maxHP: int.Parse(NextSubstring(data, ref dataIndex)),
-                    attackPower: int.Parse(NextSubstring(data, ref dataIndex)),
-                    spellPower: int.Parse(NextSubstring(data, ref dataIndex)),
-                    armor: int.Parse(NextSubstring(data, ref dataIndex)),
-                    absorb: int.Parse(NextSubstring(data, ref dataIndex)),
-                    powerType: (PowerType)int.Parse(NextSubstring(data, ref dataIndex)),
-                    currentPower: int.Parse(NextSubstring(data, ref dataIndex)),
-                    maxPower: int.Parse(NextSubstring(data, ref dataIndex)),
-                    powerCost: int.Parse(NextSubstring(data, ref dataIndex)),
-                    positionX: float.Parse(NextSubstring(data, ref dataIndex)),
-                    positionY: float.Parse(NextSubstring(data, ref dataIndex)),
-                    uiMapID: int.Parse(NextSubstring(data, ref dataIndex)),
-                    facing: float.Parse(NextSubstring(data, ref dataIndex)),
-                    level: int.Parse(NextSubstring(data, ref dataIndex))
-                    );
-            }
-            catch (Exception fe)
-            {
-                Console.WriteLine(fe.Message);
-                Console.WriteLine($"index: {initialIndex}, data=" + data);
-                string sub = data[initialIndex..];
-                Console.WriteLine($"data at index= {sub}");
-            }
-            return new AdvancedParams("", "", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+            infoGUID = NextSubstring(data, ref dataIndex);
+            ownerGUID = NextSubstring(data, ref dataIndex);
+            currentHP = int.Parse(NextSubstring(data, ref dataIndex));
+            maxHP = int.Parse(NextSubstring(data, ref dataIndex));
+            attackPower = int.Parse(NextSubstring(data, ref dataIndex));
+            spellPower = int.Parse(NextSubstring(data, ref dataIndex));
+            armor = int.Parse(NextSubstring(data, ref dataIndex));
+            absorb = int.Parse(NextSubstring(data, ref dataIndex));
+            powerType = (PowerType)int.Parse(NextSubstring(data, ref dataIndex));
+            currentPower = int.Parse(NextSubstring(data, ref dataIndex));
+            maxPower = int.Parse(NextSubstring(data, ref dataIndex));
+            powerCost = int.Parse(NextSubstring(data, ref dataIndex));
+            positionX = float.Parse(NextSubstring(data, ref dataIndex));
+            positionY = float.Parse(NextSubstring(data, ref dataIndex));
+            uiMapID = int.Parse(NextSubstring(data, ref dataIndex));
+            facing = float.Parse(NextSubstring(data, ref dataIndex));
+            level = int.Parse(NextSubstring(data, ref dataIndex));
         }
     }
 }

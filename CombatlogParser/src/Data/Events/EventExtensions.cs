@@ -12,6 +12,17 @@
             return items;
         }
 
+        public static IAdvancedParamEvent[] GetAdvancedParamEvents(this ICollection<CombatlogEvent> source) 
+        {
+            var items = new IAdvancedParamEvent[source.Count(x => x is IAdvancedParamEvent)];
+            int i = 0;
+            foreach (var e in source)
+                if (e is IAdvancedParamEvent a)
+                    items[i++] = a;
+            return items;
+        }
+
+
         public static TEvent[] AllThatMatch<TEvent>(this ICollection<TEvent> source, IEventFilter filter) where TEvent: CombatlogEvent
         {
             TEvent[] items = new TEvent[source.Count(x => filter.Match(x))];

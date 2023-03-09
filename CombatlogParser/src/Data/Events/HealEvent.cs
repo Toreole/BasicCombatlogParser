@@ -2,7 +2,7 @@
 
 namespace CombatlogParser.Data.Events
 {
-    public class HealEvent : CombatlogEvent
+    public class HealEvent : CombatlogEvent, IAdvancedParamEvent
     {
         //spell/spell_periodic
         public int SpellId { get; init; }
@@ -18,13 +18,13 @@ namespace CombatlogParser.Data.Events
         public int Absorbed { get; init; }
         public bool Critical { get; init; }
 
-        public HealEvent(CombatlogEventPrefix prefix, string entry, int dataIndex) : base(EventType.HEALING, prefix, CombatlogEventSuffix._HEAL)
+        public HealEvent(CombatlogEventPrefix prefix, string entry, int dataIndex) 
+            : base(entry, ref dataIndex, EventType.HEALING, prefix, CombatlogEventSuffix._HEAL)
         {
-            base.ReadData(entry, ref dataIndex);
             SpellId = int.Parse(NextSubstring(entry, ref dataIndex));
             SpellName = NextSubstring(entry, ref dataIndex);
             SpellSchool = (SpellSchool)HexStringToUInt(NextSubstring(entry, ref dataIndex));
-            AdvancedParams = AdvancedParams.Get(entry, ref dataIndex);
+            AdvancedParams = new(entry, ref dataIndex);
             Amount = int.Parse(NextSubstring(entry, ref dataIndex));
             BaseAmount = int.Parse(NextSubstring(entry, ref dataIndex));
             Overheal = int.Parse(NextSubstring(entry, ref dataIndex));

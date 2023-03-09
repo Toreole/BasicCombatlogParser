@@ -2,7 +2,7 @@
 
 namespace CombatlogParser.Data.Events
 {
-    public class DamageEvent : CombatlogEvent
+    public class DamageEvent : CombatlogEvent, IAdvancedParamEvent
     {
         //the leading bits of data.
         public int spellId;
@@ -25,10 +25,11 @@ namespace CombatlogParser.Data.Events
         public bool crushing;
         public bool isOffHand;
 
+        public AdvancedParams AdvancedParams => advancedParams;
+
         public DamageEvent(CombatlogEventPrefix prefix, string entry, int dataIndex) 
-            : base(EventType.DAMAGE, prefix, CombatlogEventSuffix._DAMAGE)
+            : base(entry, ref dataIndex, EventType.DAMAGE, prefix, CombatlogEventSuffix._DAMAGE)
         {
-            base.ReadData(entry, ref dataIndex);
             if(prefix is CombatlogEventPrefix.SWING)
             {
                 spellId = 1;
@@ -47,7 +48,7 @@ namespace CombatlogParser.Data.Events
                 spellName = NextSubstring(entry, ref dataIndex);
                 spellSchool = (SpellSchool)HexStringToUInt(NextSubstring(entry, ref dataIndex));
             }
-            advancedParams = AdvancedParams.Get(entry, ref dataIndex);
+            advancedParams = new(entry, ref dataIndex);
 
             Amount = long.Parse(NextSubstring(entry, ref dataIndex));
             baseAmount = long.Parse(NextSubstring(entry, ref dataIndex));
