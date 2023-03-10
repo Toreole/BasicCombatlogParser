@@ -8,6 +8,13 @@ namespace CombatlogParser
     {
         private static readonly CultureInfo formatInfoProvider = CultureInfo.GetCultureInfo("en-US");
         private static readonly string timestampFormat = "MM/dd HH:mm:ss.fff";
+        private static readonly string[] acceptedTimestampFormats =
+        {
+            "MM/dd HH:mm:ss.fff",
+            "M/dd HH:mm:ss.fff",
+            "M/d HH:mm:ss.fff",
+            "MM/d HH:mm:ss.fff"
+        };
 
         private static readonly CombatlogEventPrefix[] prefixes;
         private static readonly string[] prefixNames;
@@ -17,6 +24,8 @@ namespace CombatlogParser
 
         private static readonly CombatlogMiscEvents[] miscEvents;
         private static readonly string[] miscNames;
+
+        public static readonly string timestamp_end_seperator = "  ";
 
         static ParsingUtil()
         {
@@ -37,7 +46,7 @@ namespace CombatlogParser
         /// <returns></returns>
         public static DateTime StringTimestampToDateTime(string timestamp)
         {
-            return DateTime.ParseExact(timestamp, timestampFormat, formatInfoProvider);
+            return DateTime.ParseExact(timestamp, acceptedTimestampFormats, formatInfoProvider);
         }
 
         /// <summary>

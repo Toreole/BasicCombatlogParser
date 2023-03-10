@@ -43,5 +43,31 @@ namespace CombatlogParser.Tests
                 Assert.That(resultB, Is.EqualTo(new int[] { 10 }));
             });
         }
+
+        [Test]
+        public void TestTimestampParse()
+        {
+            string[] stringTimestamps =
+            {
+                "3/6 19:05:42.251",
+                "10/5 05:45:23.256",
+                "2/23 10:02:34.568",
+                "11/15 16:26:51.831"
+            };
+            var currentYear = DateTime.Now.Year;
+            DateTime[] expectedDateTimes =
+            {
+                new(currentYear, 3, 6, 19, 5, 42, 251),
+                new(currentYear, 10, 5, 5, 45, 23, 256),
+                new(currentYear, 2, 23, 10, 2, 34, 568),
+                new(currentYear, 11, 15, 16, 26, 51, 831)
+            };
+
+            DateTime[] results = new DateTime[stringTimestamps.Length];
+            for(int i = 0; i < stringTimestamps.Length; i++)
+                results[i] = ParsingUtil.StringTimestampToDateTime(stringTimestamps[i]);
+            Assert.That(results, Is.EqualTo(expectedDateTimes));
+        }
+
     }
 }

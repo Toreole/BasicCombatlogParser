@@ -25,5 +25,35 @@ namespace CombatlogParser
                 .Take(pageSize)
                 .ToArray();
         }
+
+        public static EncounterInfoMetadata?[] GetEncounterInfoMetadata(uint lastId, int pageSize = 10)
+        {
+            using CombatlogDBContext context = new();
+            return context.Encounters
+                .OrderBy(x => x.Id)
+                .Where(c => c.Id > lastId)
+                .Take(pageSize)
+                .ToArray();
+        }
+
+        public static PerformanceMetadata?[] GetPerformanceMetadata(uint lastId, int pageSize = 10)
+        {
+            using CombatlogDBContext context = new();
+            return context.Performances
+                .OrderBy(x => x.Id)
+                .Where(c => c.Id > lastId)
+                .Take(pageSize)
+                .ToArray();
+        }
+
+        public static PlayerMetadata?[] GetPlayerMetadata(uint lastId, int pageSize = 10)
+        {
+            using CombatlogDBContext context = new();
+            return context.Players
+                .OrderBy(x => x.Id)
+                .Where(c => c.Id > lastId)
+                .Take(pageSize)
+                .ToArray();
+        }
     }
 }

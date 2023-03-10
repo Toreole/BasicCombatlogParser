@@ -28,7 +28,8 @@ namespace CombatlogParser.Data.Events
         //EventType and Suffix are provided by the inheriting type itself. One of them is a duplicate tbh.
         protected CombatlogEvent(string entry, ref int dataIndex, EventType eventType, CombatlogEventPrefix prefix, CombatlogEventSuffix suffix)
         {
-            Timestamp = StringTimestampToDateTime(entry[..18]);
+            Timestamp = StringTimestampToDateTime(entry[..entry.IndexOf(timestamp_end_seperator)]);
+            dataIndex += 2;
             SourceGUID = NextSubstring(entry, ref dataIndex);
             SourceName = NextSubstring(entry, ref dataIndex);
             SourceFlags = NextFlags(entry, ref dataIndex);
@@ -46,7 +47,7 @@ namespace CombatlogParser.Data.Events
         public static CombatlogEvent? Create(string combatlogEntry, CombatlogEventPrefix prefix, CombatlogEventSuffix suffix)
         {
             //start after the two empty spaces behind the timestamp.
-            int index = 20;
+            int index = combatlogEntry.IndexOf(timestamp_end_seperator);
             //make sure that its a valid combat event.
             if (prefix is CombatlogEventPrefix.PARTY || 
                 prefix is CombatlogEventPrefix.UNIT || 

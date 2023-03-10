@@ -47,14 +47,14 @@
                     </ListView>
                 </Grid>
             </TabItem>--> <!--The "All Events" Tab is silly and i dont like it-->
-            <TabItem Header="Damage Done">
+            <!--<TabItem Header="Damage Done">
                 <Grid Background="#FFE5E5E5">
                     <ListView x:Name="DamageEventsList" d:ItemsSource="{d:SampleData ItemCount=5}">
                         <ListView.View>
                             <GridView>
-                                <!--Unnecessary info possibly <GridViewColumn Header="Timestamp" DisplayMemberBinding="{Binding Path=Timestamp}"/>-->
+                                --><!--Unnecessary info possibly <GridViewColumn Header="Timestamp" DisplayMemberBinding="{Binding Path=Timestamp}"/>--><!--
                                 <GridViewColumn Header="Source Name" DisplayMemberBinding="{Binding Path=SourceName}"/>
-                                <!--Dont want this to show up. <GridViewColumn Header="Source Flags" DisplayMemberBinding="{Binding Path=SourceFlags}"/>-->
+                                --><!--Dont want this to show up. <GridViewColumn Header="Source Flags" DisplayMemberBinding="{Binding Path=SourceFlags}"/>--><!--
                                 <GridViewColumn Header="Target Name" DisplayMemberBinding="{Binding Path=TargetName}"/>
                                 <GridViewColumn Header="Spell" DisplayMemberBinding="{Binding Path=spellName}"/>
                                 <GridViewColumn Header="School" DisplayMemberBinding="{Binding Path=spellSchool}" />
@@ -64,8 +64,8 @@
                         </ListView.View>
                     </ListView>
                 </Grid>
-            </TabItem>
-            <TabItem Header="Damage by Source">
+            </TabItem>-->
+            <!--<TabItem Header="Damage by Source">
                 <ListView x:Name="DmgPerSourceList" d:ItemsSource="{d:SampleData ItemCount=1}">
 
                     <ListView.View>
@@ -74,6 +74,55 @@
                             <GridViewColumn Header="Total Damage"
                                             CellTemplate="{StaticResource DmgTemplate}"/>
                             <GridViewColumn Header="DPS" DisplayMemberBinding="{Binding Path=DPS, StringFormat=N1}"/>
+                        </GridView>
+                    </ListView.View>
+                </ListView>
+            </TabItem>-->
+            <TabItem Header="Combatlogs">
+                <ListView x:Name="CombatlogListView" d:ItemsSource="{d:SampleData ItemCount=2}">
+                    <ListView.View>
+                        <GridView>
+                            <GridViewColumn Header="Id" DisplayMemberBinding="{Binding Path=Id}" />
+                            <GridViewColumn Header="File" DisplayMemberBinding="{Binding Path=FileName}" />
+                            <GridViewColumn Header="WoW Part" DisplayMemberBinding="{Binding Path=ProjectID}" />
+                            <GridViewColumn Header="Build Version" DisplayMemberBinding="{Binding Path=BuildVersion}" />
+                        </GridView>
+                    </ListView.View>
+                </ListView>
+            </TabItem>
+            <TabItem Header="Encounters">
+                <ListView x:Name="EncounterInfoListView" d:ItemsSource="{d:SampleData ItemCount=4}">
+                    <ListView.View>
+                        <GridView>
+                            <GridViewColumn Header="Id" DisplayMemberBinding="{Binding Path=Id}" />
+                            <GridViewColumn Header="EncounterId" DisplayMemberBinding="{Binding Path=WowEncounterId}" />
+                            <GridViewColumn Header="Difficulty" DisplayMemberBinding="{Binding Path=DifficultyId}" />
+                            <GridViewColumn Header="Success" DisplayMemberBinding="{Binding Path=Success}" />
+                        </GridView>
+                    </ListView.View>
+                </ListView>
+            </TabItem>
+            <TabItem Header="Performances">
+                <ListView x:Name="PerformancesListView" d:ItemsSource="{d:SampleData ItemCount=4}">
+                    <ListView.View>
+                        <GridView>
+                            <GridViewColumn Header="Id" DisplayMemberBinding="{Binding Path=Id}" />
+                            <GridViewColumn Header="PlayerId" DisplayMemberBinding="{Binding Path=PlayerMetadataId}" />
+                            <GridViewColumn Header="Spec" DisplayMemberBinding="{Binding Path=SpecId}" />
+                            <GridViewColumn Header="DPS" DisplayMemberBinding="{Binding Path=Dps}" />
+                            <GridViewColumn Header="HPS" DisplayMemberBinding="{Binding Path=Hps}" />
+                        </GridView>
+                    </ListView.View>
+                </ListView>
+            </TabItem>
+            <TabItem Header="Players">
+                <ListView x:Name="PlayersListView" d:ItemsSource="{d:SampleData ItemCount=4}">
+                    <ListView.View>
+                        <GridView>
+                            <GridViewColumn Header="Id" DisplayMemberBinding="{Binding Path=Id}" />
+                            <GridViewColumn Header="Name" DisplayMemberBinding="{Binding Path=Name}" />
+                            <GridViewColumn Header="Realm" DisplayMemberBinding="{Binding Path=Realm}" />
+                            <GridViewColumn Header="Class" DisplayMemberBinding="{Binding Path=ClassId}" />
                         </GridView>
                     </ListView.View>
                 </ListView>

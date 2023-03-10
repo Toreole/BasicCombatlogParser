@@ -35,7 +35,12 @@ namespace CombatlogParser
             dbContext.SaveChanges();
         }
 
-        public static void StorePlayer(PlayerMetadata player)
+        /// <summary>
+        /// Tries to store a player. If one with the same GUID already exists, returns the existing players Id.
+        /// </summary>
+        /// <param name="player"></param>
+        /// <returns></returns>
+        public static uint StorePlayer(PlayerMetadata player)
         {
             using CombatlogDBContext dbContext = new();
             PlayerMetadata? storedPlayer = dbContext.Players.FirstOrDefault(p => p.GUID == player.GUID);
@@ -49,11 +54,13 @@ namespace CombatlogParser
                     storedPlayer.Realm = player.Realm;
                     dbContext.SaveChanges();
                 }
+                return storedPlayer.Id;
             }
             else
             {
                 dbContext.Players.Add(player);
                 dbContext.SaveChanges();
+                return player.Id;
             }
 
         }

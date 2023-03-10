@@ -15,14 +15,19 @@ namespace CombatlogParser
     public partial class MainWindow : Window
     {
         //private Combatlog currentCombatlog = new();
-        private ObservableCollection<CombatlogEvent> events = new();
-        private ObservableCollection<DamageEvent> damageEvents = new();
+        //private ObservableCollection<CombatlogEvent> events = new();
+        //private ObservableCollection<DamageEvent> damageEvents = new();
 
-        //TODO: assign pets to owners, process damage accordingly
-        private Dictionary<string, string> petToOwnerGUID = new();
+        ////TODO: assign pets to owners, process damage accordingly
+        //private Dictionary<string, string> petToOwnerGUID = new();
 
-        private Dictionary<string, DamageSummary> damageSumDict = new();
-        private ObservableCollection<DamageSummary> damageSummaries = new();
+        //private Dictionary<string, DamageSummary> damageSumDict = new();
+        //private ObservableCollection<DamageSummary> damageSummaries = new();
+
+        private ObservableCollection<CombatlogMetadata> combatlogs = new();
+        private ObservableCollection<EncounterInfoMetadata> encounters = new();
+        private ObservableCollection<PerformanceMetadata> performances = new();
+        private ObservableCollection<PlayerMetadata> players = new();
 
         public MainWindow()
         {
@@ -41,11 +46,55 @@ namespace CombatlogParser
             //}
             //EncounterSelection.SelectionChanged += OnEncounterChanged;
 
-            var dmgEventsBinding = new Binding()
+            var combatlogsBinding = new Binding()
             {
-                Source = damageEvents
+                Source = combatlogs
             };
-            DamageEventsList.SetBinding(ListView.ItemsSourceProperty, dmgEventsBinding);
+            CombatlogListView.SetBinding(ListView.ItemsSourceProperty, combatlogsBinding);
+
+            var cls = Queries.GetCombatlogMetadata(0, 10);
+            foreach (var c in cls)
+                if (c != null)
+                    combatlogs.Add(c);
+
+            var encountersBinding = new Binding()
+            {
+                Source = encounters
+            };
+            EncounterInfoListView.SetBinding(ListView.ItemsSourceProperty, encountersBinding);
+
+            var ens = Queries.GetEncounterInfoMetadata(0, 20);
+            foreach (var e in ens)
+                if (e != null)
+                    encounters.Add(e);
+
+            var performancesBinding = new Binding()
+            {
+                Source = performances
+            };
+            PerformancesListView.SetBinding(ListView.ItemsSourceProperty, performancesBinding);
+
+            var perfs = Queries.GetPerformanceMetadata(0, 10);
+            foreach (var p in perfs)
+                if (p != null)
+                    performances.Add(p);
+
+            var playersBinding = new Binding()
+            {
+                Source = players
+            };
+            PlayersListView.SetBinding(ListView.ItemsSourceProperty, playersBinding);
+
+            var pls = Queries.GetPlayerMetadata(0, 10);
+            foreach (var p in pls)
+                if (p != null)
+                    players.Add(p);
+
+            //var dmgEventsBinding = new Binding()
+            //{
+            //    Source = damageEvents
+            //};
+            //DamageEventsList.SetBinding(ListView.ItemsSourceProperty, dmgEventsBinding);
 
             //var eventsBinding = new Binding()
             //{
@@ -53,11 +102,11 @@ namespace CombatlogParser
             //};
             //CombatLogEventsList.SetBinding(ListView.ItemsSourceProperty, eventsBinding); //the "All Events" list is disabled.
 
-            var dmgBreakdownBinding = new Binding()
-            {
-                Source = damageSummaries
-            };
-            DmgPerSourceList.SetBinding(ListView.ItemsSourceProperty, dmgBreakdownBinding);
+            //var dmgBreakdownBinding = new Binding()
+            //{
+            //    Source = damageSummaries
+            //};
+            //DmgPerSourceList.SetBinding(ListView.ItemsSourceProperty, dmgBreakdownBinding);
             //This bit works for initializing the Content to "Test", but it will not receive updates, as
             //the class does not implement INotifyPropertyChanged
             //var binding = new Binding("Message")
@@ -73,15 +122,15 @@ namespace CombatlogParser
             //read the encounter back into memory. at this point the encounter metadata and the combatlog metadata should be linked.
             //EncounterInfo encounter = CombatLogParser.ParseEncounter(Encounters[index]);
 
-            damageEvents.Clear();
+            //damageEvents.Clear();
 
-            IEventFilter filter = new AllOfFilter(
-                    new TargetFlagFilter(UnitFlag.COMBATLOG_OBJECT_REACTION_HOSTILE | UnitFlag.COMBATLOG_OBJECT_TYPE_NPC), //to hostile NPCs
-                    new AnyOfFilter(
-                        new SourceFlagFilter(UnitFlag.COMBATLOG_OBJECT_REACTION_FRIENDLY), //by either friendly
-                        new SourceFlagFilter(UnitFlag.COMBATLOG_OBJECT_REACTION_NEUTRAL) //or neutral sources
-                    )
-                );
+            //IEventFilter filter = new AllOfFilter(
+            //        new TargetFlagFilter(UnitFlag.COMBATLOG_OBJECT_REACTION_HOSTILE | UnitFlag.COMBATLOG_OBJECT_TYPE_NPC), //to hostile NPCs
+            //        new AnyOfFilter(
+            //            new SourceFlagFilter(UnitFlag.COMBATLOG_OBJECT_REACTION_FRIENDLY), //by either friendly
+            //            new SourceFlagFilter(UnitFlag.COMBATLOG_OBJECT_REACTION_NEUTRAL) //or neutral sources
+            //        )
+            //    );
 
             //var allDamageEvents = encounter.CombatlogEvents.GetEvents<DamageEvent>();
             //var filteredDamageEvents = allDamageEvents.AllThatMatch(filter); //basically all damage to enemies.
@@ -89,9 +138,9 @@ namespace CombatlogParser
             //foreach (var d in allDamageEvents)
             //    damageEvents.Add(d);
 
-            damageSumDict.Clear();
-            damageSummaries.Clear();
-            petToOwnerGUID.Clear();
+            //damageSumDict.Clear();
+            //damageSummaries.Clear();
+            //petToOwnerGUID.Clear();
 
             //1. Populate the damageSumDict with all unique players.
             //foreach(var player in encounter.Players)
@@ -180,8 +229,8 @@ namespace CombatlogParser
             }*/
 
 
-            List<DamageSummary> sums = new List<DamageSummary>(damageSumDict.Values);
-            sums.Sort((x, y) => x.TotalDamage > y.TotalDamage ? -1 : 1);
+            //List<DamageSummary> sums = new List<DamageSummary>(damageSumDict.Values);
+            //sums.Sort((x, y) => x.TotalDamage > y.TotalDamage ? -1 : 1);
             //divide damage to calculate DPS across the encounter.
             //float encounterSeconds = Encounters[index].EncounterDurationMS / 1000;
             //foreach(var dmgsum in sums)

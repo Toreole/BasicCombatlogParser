@@ -1,4 +1,6 @@
-﻿namespace CombatlogParser
+﻿using Microsoft.EntityFrameworkCore.Update;
+
+namespace CombatlogParser
 {
     public class Program
     {
@@ -23,8 +25,8 @@
             };
 
             bool? result = dialog.ShowDialog();
-
-            CombatLogParser.ImportCombatlog((result?? false)? dialog.FileName : fallbackFile);
+            if(result == true)
+                CombatLogParser.ImportCombatlog(dialog.FileName);
 
             //this is where the main application runs.
             MainWindow app = new();

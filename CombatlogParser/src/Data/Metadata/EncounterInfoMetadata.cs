@@ -20,7 +20,7 @@ namespace CombatlogParser.Data.Metadata
         /// <summary>
         /// the ID of the in-game encounter.
         /// </summary>
-        public uint WowEncounterId { get; set; }
+        public EncounterId WowEncounterId { get; set; }
 
         /// <summary>
         /// whether the encounter was completed successfully
@@ -30,7 +30,7 @@ namespace CombatlogParser.Data.Metadata
         /// <summary>
         /// The difficulty this encounter was recorded on.
         /// </summary>
-        public int DifficultyId { get; set; }
+        public DifficultyId DifficultyId { get; set; }
 
         /// <summary>
         /// The amount of lines from start to end of the encounter in the combatlog file.

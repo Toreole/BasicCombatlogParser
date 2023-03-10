@@ -12,12 +12,12 @@ namespace CombatlogParser.Data
         /// <summary>
         /// the ID of the encounter, provided by ENCOUNTER_START
         /// </summary>
-        public uint EncounterID { get; set; }
+        public EncounterId EncounterID { get; set; }
 
         /// <summary>
         /// The difficulty of the encounter. see https://wowpedia.fandom.com/wiki/DifficultyID 
         /// </summary>
-        public int DifficultyID { get; set; }
+        public DifficultyId DifficultyID { get; set; }
 
         /// <summary>
         /// The size of the group involved in the encounter.

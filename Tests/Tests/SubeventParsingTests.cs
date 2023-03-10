@@ -1,4 +1,4 @@
-using CombatlogParser.Data;
+using CombatlogParser.Data.Events;
 
 namespace CombatlogParser.Tests
 {
