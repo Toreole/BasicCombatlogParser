@@ -1,5 +1,7 @@
-﻿using CombatlogParser.Data.Metadata;
+﻿using CombatlogParser.Data;
+using CombatlogParser.Data.Metadata;
 using CombatlogParser.DBInteract;
+using Microsoft.EntityFrameworkCore;
 
 namespace CombatlogParser
 {
@@ -32,7 +34,31 @@ namespace CombatlogParser
         {
             using CombatlogDBContext dbContext = new();
             dbContext.Performances.Add(data);
+            //avoid double saving the playermetadata thats referenced in here.
+            dbContext.Entry(data.PlayerMetadata).State = EntityState.Unchanged;
             dbContext.SaveChanges();
+        }
+
+        /// <summary>
+        /// Gets a PlayerMetadata by the players GUID or creates a new entity for it.
+        /// </summary>
+        public static PlayerMetadata GetOrCreatePlayerMetadata(PlayerInfo player)
+        {
+            using CombatlogDBContext dbContext = new();
+            PlayerMetadata? playerMetadata = dbContext.Players.FirstOrDefault(p => p.GUID == player.GUID);
+            if (playerMetadata != null)
+            {
+                if (playerMetadata.Name == string.Empty && player.Name != string.Empty)
+                {
+                    playerMetadata.Name = player.Name;
+                    playerMetadata.Realm = player.Realm;
+                }
+                return playerMetadata;
+            }
+            playerMetadata = PlayerMetadata.From(player);
+            dbContext.Players.Add(playerMetadata);
+            dbContext.SaveChanges();
+            return playerMetadata;
         }
 
         /// <summary>

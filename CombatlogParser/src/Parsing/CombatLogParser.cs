@@ -88,37 +88,25 @@ namespace CombatlogParser
             FetchEncounterInfoMetadata(ref position, reader, logId, ref next, encounterMetadatas);
 
 
-            var uniquePlayers = new List<PlayerMetadata>();
             //Step 2: Parse the encounters individually
             for (int i = 0; i < encounterMetadatas.Count; i++)
             {
+                var currentPlayers = new List<PlayerMetadata>();
                 var parsedEncounter = ParseEncounter(encounterMetadatas[i], advancedLogEnabled, copiedLogPath);
                 foreach(var player in parsedEncounter.Players)
                 {
-                    if (player == null || uniquePlayers.Exists(other => other.GUID == player.GUID))
+                    if (player == null)
                         continue;
-                    var newPlayer = new PlayerMetadata()
-                    {
-                        GUID = player.GUID,
-                        Name = player.Name,
-                        Realm = player.Realm,
-                        ClassId = player.Class
-                    };
-                    newPlayer.Id = DBStore.StorePlayer(newPlayer);
-                    uniquePlayers.Add(newPlayer);
+                    var newPlayer = DBStore.GetOrCreatePlayerMetadata(player);
+                    currentPlayers.Add(newPlayer);
                 }
                 //process performances inside of the current encounter immediately.
-                var performances = ProcessPerformances(parsedEncounter, uniquePlayers, encounterMetadatas[i].Id, advancedLogEnabled);
+                var performances = ProcessPerformances(parsedEncounter, currentPlayers, encounterMetadatas[i].Id, advancedLogEnabled);
                 foreach(var performance in performances)
                 {
                     DBStore.StorePerformance(performance);
                 }
             }
-
-            //MainWindow.Encounters = encounterMetadatas.Take(encounterMetadatas.Count).ToArray();
-
-            foreach (var p in uniquePlayers)
-                DBStore.StorePlayer(p);
         }
 
         private static void FetchEncounterInfoMetadata(ref long position, StreamReader reader, uint logId, ref string? next, List<EncounterInfoMetadata> encounterMetadatas)
@@ -248,9 +236,10 @@ namespace CombatlogParser
                     Stamina = int.Parse(NextSubstring(line, ref pos)),
                     Intelligence = int.Parse(NextSubstring(line, ref pos))
                 };
-                for (int skip = 5; skip < 22; skip++) MovePastNextDivisor(line, ref pos);
+                for (int skip = 5; skip < 23; skip++) MovePastNextDivisor(line, ref pos);
                 player.SpecId = (SpecId)int.Parse(NextSubstring(line, ref pos));
                 player.Class = player.SpecId.GetClassId();
+                players[i] = player; //cant believe i forgot this lmfao.
             }
 
             //read all the events during the encounter.
@@ -355,6 +344,7 @@ namespace CombatlogParser
                 result[i] = new()
                 {
                     PlayerMetadata = playerMetadatas[i],
+                    SpecId = encounterInfo.Players[i].SpecId,
                     PlayerMetadataId = playerMetadatas.Find(x => x.GUID == encounterInfo.Players[i].GUID)?.Id ?? 0,
                     EncounterInfoMetadataId = encounterMetadataId
                 };

@@ -95,5 +95,75 @@
                 _ => ClassId.UNKOWN,
             };
         }
+
+        public static SpecId[] GetSpecs(this ClassId @class)
+        {
+            return @class switch
+            {
+                ClassId.Death_Knight => new[] { SpecId.DK_Frost, SpecId.DK_Blood, SpecId.DK_Unholy },
+                ClassId.Warrior => new[] { SpecId.Warrior_Arms, SpecId.Warrior_Fury, SpecId.Warrior_Protection },
+                ClassId.Paladin => new[] { SpecId.Paladin_Holy, SpecId.Paladin_Protection, SpecId.Paladin_Retribution },
+                ClassId.Hunter => new[] { SpecId.Hunter_Marksman, SpecId.Hunter_BeastMastery, SpecId.Hunter_Survival },
+                ClassId.Rogue => new[] { SpecId.Rogue_Assassination, SpecId.Rogue_Outlaw, SpecId.Rogue_Subtlety },
+                ClassId.Priest => new[] { SpecId.Priest_Discipline, SpecId.Priest_Holy, SpecId.Priest_Shadow },
+                ClassId.Shaman => new[] { SpecId.Shaman_Enhancement, SpecId.Shaman_Elemental, SpecId.Shaman_Restoration },
+                ClassId.Mage => new[] { SpecId.DK_Frost, SpecId.DK_Blood, SpecId.DK_Unholy },
+                ClassId.Warlock => new[] { SpecId.Warlock_Affliction, SpecId.Warlock_Demonology, SpecId.Warlock_Destruction },
+                ClassId.Monk => new[] { SpecId.Monk_Brewmaster, SpecId.Monk_Windwalker, SpecId.Monk_Mistweaver },
+                ClassId.Druid => new[] { SpecId.Druid_Balance, SpecId.Druid_Feral, SpecId.Druid_Guardian, SpecId.Druid_Restoration },
+                ClassId.Demon_Hunter => new[] { SpecId.DH_Havoc, SpecId.DH_Vengeance },
+                ClassId.Evoker => new[] { SpecId.Evoker_Devastation, SpecId.Evoker_Devastation },
+                _ => new[] { SpecId.UNKNOWN },
+            };
+        }
+
+        public static RoleId GetRole(this SpecId spec)
+        {
+            return spec switch
+            {
+                SpecId.DK_Blood or
+                SpecId.DH_Vengeance or
+                SpecId.Druid_Guardian or
+                SpecId.Monk_Brewmaster or
+                SpecId.Paladin_Protection or
+                SpecId.Warrior_Protection => RoleId.Tank,
+
+                SpecId.Druid_Restoration or
+                SpecId.Evoker_Preservation or
+                SpecId.Monk_Mistweaver or
+                SpecId.Paladin_Holy or
+                SpecId.Priest_Discipline or
+                SpecId.Priest_Holy or
+                SpecId.Shaman_Restoration => RoleId.Heal,
+
+                SpecId.DK_Frost or
+                SpecId.DK_Unholy or
+                SpecId.DH_Havoc or
+                SpecId.Druid_Balance or
+                SpecId.Druid_Feral or
+                SpecId.Evoker_Devastation or
+                SpecId.Hunter_BeastMastery or
+                SpecId.Hunter_Marksman or
+                SpecId.Hunter_Survival or
+                SpecId.Mage_Arcane or
+                SpecId.Mage_Fire or
+                SpecId.Mage_Frost or
+                SpecId.Monk_Windwalker or
+                SpecId.Paladin_Retribution or
+                SpecId.Priest_Shadow or
+                SpecId.Rogue_Assassination or
+                SpecId.Rogue_Outlaw or
+                SpecId.Rogue_Subtlety or
+                SpecId.Shaman_Elemental or
+                SpecId.Shaman_Enhancement or
+                SpecId.Warlock_Affliction or
+                SpecId.Warlock_Demonology or
+                SpecId.Warlock_Destruction or
+                SpecId.Warrior_Arms or
+                SpecId.Warrior_Fury => RoleId.DPS,
+
+                _ => RoleId.UNKNOWN
+            };
+        }
     }
 }
