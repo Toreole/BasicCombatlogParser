@@ -18,7 +18,7 @@
     <Grid>
         <Label x:Name="HeaderLabel" Content="Combatlog Viewer" HorizontalAlignment="Left" VerticalAlignment="Top" FontSize="20" FontWeight="Bold" Margin="10,10,0,0"/>
 
-        <TabControl Margin="0,76,0,0">
+        <TabControl Margin="0,76,0,24">
             <!--<TabItem Header="All Events">
                 <Grid Background="#FFE5E5E5">
                     <ListView x:Name="CombatLogEventsList" d:ItemsSource="{d:SampleData ItemCount=5}">
@@ -46,15 +46,20 @@
                         </ListView.View>
                     </ListView>
                 </Grid>
-            </TabItem>--> <!--The "All Events" Tab is silly and i dont like it-->
+            </TabItem>-->
+            <!--The "All Events" Tab is silly and i dont like it-->
             <!--<TabItem Header="Damage Done">
                 <Grid Background="#FFE5E5E5">
                     <ListView x:Name="DamageEventsList" d:ItemsSource="{d:SampleData ItemCount=5}">
                         <ListView.View>
                             <GridView>
-                                --><!--Unnecessary info possibly <GridViewColumn Header="Timestamp" DisplayMemberBinding="{Binding Path=Timestamp}"/>--><!--
+                                -->
+            <!--Unnecessary info possibly <GridViewColumn Header="Timestamp" DisplayMemberBinding="{Binding Path=Timestamp}"/>-->
+            <!--
                                 <GridViewColumn Header="Source Name" DisplayMemberBinding="{Binding Path=SourceName}"/>
-                                --><!--Dont want this to show up. <GridViewColumn Header="Source Flags" DisplayMemberBinding="{Binding Path=SourceFlags}"/>--><!--
+                                -->
+            <!--Dont want this to show up. <GridViewColumn Header="Source Flags" DisplayMemberBinding="{Binding Path=SourceFlags}"/>-->
+            <!--
                                 <GridViewColumn Header="Target Name" DisplayMemberBinding="{Binding Path=TargetName}"/>
                                 <GridViewColumn Header="Spell" DisplayMemberBinding="{Binding Path=spellName}"/>
                                 <GridViewColumn Header="School" DisplayMemberBinding="{Binding Path=spellSchool}" />
@@ -95,6 +100,7 @@
                     <ListView.View>
                         <GridView>
                             <GridViewColumn Header="Id" DisplayMemberBinding="{Binding Path=Id}" />
+                            <GridViewColumn Header="Log Id" DisplayMemberBinding="{Binding Path=CombatlogMetadataId}" />
                             <GridViewColumn Header="EncounterId" DisplayMemberBinding="{Binding Path=WowEncounterId}" />
                             <GridViewColumn Header="Difficulty" DisplayMemberBinding="{Binding Path=DifficultyId}" />
                             <GridViewColumn Header="Success" DisplayMemberBinding="{Binding Path=Success}" />
@@ -107,6 +113,7 @@
                     <ListView.View>
                         <GridView>
                             <GridViewColumn Header="Id" DisplayMemberBinding="{Binding Path=Id}" />
+                            <GridViewColumn Header="EncounterId" DisplayMemberBinding="{Binding Path=EncounterInfoMetadataId}" />
                             <GridViewColumn Header="PlayerId" DisplayMemberBinding="{Binding Path=PlayerMetadataId}" />
                             <GridViewColumn Header="Spec" DisplayMemberBinding="{Binding Path=SpecId}" />
                             <GridViewColumn Header="DPS" DisplayMemberBinding="{Binding Path=Dps}" />
@@ -128,6 +135,7 @@
                 </ListView>
             </TabItem>
         </TabControl>
-        <ComboBox x:Name="EncounterSelection" HorizontalAlignment="Left" Margin="220,21,0,0" VerticalAlignment="Top" Width="330"/>
+        <!--<ComboBox x:Name="EncounterSelection" HorizontalAlignment="Left" Margin="220,21,0,0" VerticalAlignment="Top" Width="330"/>-->
+        <Button x:Name="NextPageButton" Content="Next" HorizontalAlignment="Left" Margin="597,410,0,0" VerticalAlignment="Top" Width="84" Height="23" Click="NextPageButton_Click"/>
     </Grid>
 </Window>

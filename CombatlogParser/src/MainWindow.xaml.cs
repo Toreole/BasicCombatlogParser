@@ -25,9 +25,13 @@ namespace CombatlogParser
         //private ObservableCollection<DamageSummary> damageSummaries = new();
 
         private ObservableCollection<CombatlogMetadata> combatlogs = new();
+        private uint lastLogId;
         private ObservableCollection<EncounterInfoMetadata> encounters = new();
+        private uint lastEncounterId;
         private ObservableCollection<PerformanceMetadata> performances = new();
+        private uint lastPerformanceId;
         private ObservableCollection<PlayerMetadata> players = new();
+        private uint lastPlayerId;
 
         public MainWindow()
         {
@@ -63,7 +67,7 @@ namespace CombatlogParser
             };
             EncounterInfoListView.SetBinding(ListView.ItemsSourceProperty, encountersBinding);
 
-            var ens = Queries.GetEncounterInfoMetadata(0, 20);
+            var ens = Queries.GetEncounterInfoMetadata(0, 30);
             foreach (var e in ens)
                 if (e != null)
                     encounters.Add(e);
@@ -74,7 +78,7 @@ namespace CombatlogParser
             };
             PerformancesListView.SetBinding(ListView.ItemsSourceProperty, performancesBinding);
 
-            var perfs = Queries.GetPerformanceMetadata(0, 10);
+            var perfs = Queries.GetPerformanceMetadata(0, 30);
             foreach (var p in perfs)
                 if (p != null)
                     performances.Add(p);
@@ -85,7 +89,7 @@ namespace CombatlogParser
             };
             PlayersListView.SetBinding(ListView.ItemsSourceProperty, playersBinding);
 
-            var pls = Queries.GetPlayerMetadata(0, 10);
+            var pls = Queries.GetPlayerMetadata(0, 30);
             foreach (var p in pls)
                 if (p != null)
                     players.Add(p);
@@ -118,7 +122,7 @@ namespace CombatlogParser
 
         private void OnEncounterChanged(object sender, SelectionChangedEventArgs e)
         {
-            int index = EncounterSelection.SelectedIndex;
+            //int index = EncounterSelection.SelectedIndex;
             //read the encounter back into memory. at this point the encounter metadata and the combatlog metadata should be linked.
             //EncounterInfo encounter = CombatLogParser.ParseEncounter(Encounters[index]);
 
@@ -238,6 +242,29 @@ namespace CombatlogParser
             //    dmgsum.DPS = dmgsum.TotalDamage / encounterSeconds;
             //    damageSummaries.Add(dmgsum);
             //}
+        }
+
+        private void NextPageButton_Click(object sender, RoutedEventArgs eargs)
+        {
+            //encounters.Clear();
+            //var encounterInfos = Queries.GetEncounterInfoMetadata(lastEncounterId, 30);
+            //foreach (var e in encounterInfos)
+            //    if (e != null)
+            //    {
+            //        encounters.Add(e);
+            //        lastEncounterId = e.Id;
+            //    }
+
+            performances.Clear();
+            var performanceInfos = Queries.GetPerformanceMetadata(lastPerformanceId, 30);
+            foreach (var e in performanceInfos)
+                if (e != null)
+                {
+                    performances.Add(e);
+                    lastPerformanceId = e.Id;
+                }
+
+            PerformancesListView.UpdateLayout();
         }
     }
 }

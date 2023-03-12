@@ -20,8 +20,8 @@ namespace CombatlogParser
         {
             using CombatlogDBContext context = new();
             return context.Combatlogs
-                .OrderBy(x => x.Id)
                 .Where(c => c.Id > lastId)
+                .OrderBy(x => x.Id)
                 .Take(pageSize)
                 .ToArray();
         }
@@ -30,8 +30,8 @@ namespace CombatlogParser
         {
             using CombatlogDBContext context = new();
             return context.Encounters
-                .OrderBy(x => x.Id)
                 .Where(c => c.Id > lastId)
+                .OrderBy(x => x.Id)
                 .Take(pageSize)
                 .ToArray();
         }
@@ -40,8 +40,8 @@ namespace CombatlogParser
         {
             using CombatlogDBContext context = new();
             return context.Performances
-                .OrderBy(x => x.Id)
                 .Where(c => c.Id > lastId)
+                .OrderBy(x => x.Id)
                 .Take(pageSize)
                 .ToArray();
         }
@@ -50,8 +50,8 @@ namespace CombatlogParser
         {
             using CombatlogDBContext context = new();
             return context.Players
-                .OrderBy(x => x.Id)
                 .Where(c => c.Id > lastId)
+                .OrderBy(x => x.Id)
                 .Take(pageSize)
                 .ToArray();
         }

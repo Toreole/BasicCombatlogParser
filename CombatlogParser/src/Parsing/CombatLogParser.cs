@@ -31,8 +31,14 @@ namespace CombatlogParser
             return context.Combatlogs.Any(log => log.FileName == file);
         }
 
-        private static string LocalPath(string file)
-            => Path.Combine(Config.Default.Local_Log_Directory, file);
+        private static string LocalPath(string fileName)
+        {
+            string currentDirectory = Directory.GetCurrentDirectory();
+            string logDirectory = Path.Combine(currentDirectory, Config.Default.Local_Log_Directory);
+            if (Directory.Exists(logDirectory) == false)
+                Directory.CreateDirectory(logDirectory);
+            return Path.Combine(logDirectory, fileName);
+        }
 
         public static void ImportCombatlog(string filePath)
         {
@@ -45,8 +51,6 @@ namespace CombatlogParser
             }
             //Create a copy of the file in the current local log directory.
             string copiedLogPath = LocalPath(fileName);
-            if(!Directory.Exists(Path.GetDirectoryName(copiedLogPath)))
-                Directory.CreateDirectory(Path.GetDirectoryName(copiedLogPath)!);
             File.Copy(filePath, copiedLogPath, true);
 
             //System.Windows.Controls.ProgressBar progressBar = new();
@@ -104,6 +108,8 @@ namespace CombatlogParser
                 var performances = ProcessPerformances(parsedEncounter, currentPlayers, encounterMetadatas[i].Id, advancedLogEnabled);
                 foreach(var performance in performances)
                 {
+                    if (performance == null)
+                        continue;
                     DBStore.StorePerformance(performance);
                 }
             }

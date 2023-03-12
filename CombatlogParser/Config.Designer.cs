@@ -25,7 +25,7 @@ namespace CombatlogParser {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        [global::System.Configuration.DefaultSettingValueAttribute("G:\\Blizzard\\World of Warcraft\\_retail_\\Logs")]
         public string WoW_Log_Directories {
             get {
                 return ((string)(this["WoW_Log_Directories"]));
@@ -37,7 +37,7 @@ namespace CombatlogParser {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("/Imported_Logs/")]
+        [global::System.Configuration.DefaultSettingValueAttribute("Imported_Logs/")]
         public string Local_Log_Directory {
             get {
                 return ((string)(this["Local_Log_Directory"]));

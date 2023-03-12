@@ -29,7 +29,6 @@ namespace CombatlogParser.Data.Events
         protected CombatlogEvent(string entry, ref int dataIndex, EventType eventType, CombatlogEventPrefix prefix, CombatlogEventSuffix suffix)
         {
             Timestamp = StringTimestampToDateTime(entry[..entry.IndexOf(timestamp_end_seperator)]);
-            dataIndex += 2;
             SourceGUID = NextSubstring(entry, ref dataIndex);
             SourceName = NextSubstring(entry, ref dataIndex);
             SourceFlags = NextFlags(entry, ref dataIndex);

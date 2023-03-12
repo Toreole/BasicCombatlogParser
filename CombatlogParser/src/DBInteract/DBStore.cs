@@ -50,8 +50,10 @@ namespace CombatlogParser
             {
                 if (playerMetadata.Name == string.Empty && player.Name != string.Empty)
                 {
+                    dbContext.Update(playerMetadata);
                     playerMetadata.Name = player.Name;
                     playerMetadata.Realm = player.Realm;
+                    dbContext.SaveChanges();
                 }
                 return playerMetadata;
             }
