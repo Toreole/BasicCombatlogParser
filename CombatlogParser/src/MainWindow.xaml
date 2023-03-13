@@ -18,7 +18,7 @@
     <Grid>
         <Label x:Name="HeaderLabel" Content="Combatlog Viewer" HorizontalAlignment="Left" VerticalAlignment="Top" FontSize="20" FontWeight="Bold" Margin="10,10,0,0"/>
 
-        <TabControl Margin="0,76,0,24">
+        <TabControl Margin="0,76,0,0">
             <!--<TabItem Header="All Events">
                 <Grid Background="#FFE5E5E5">
                     <ListView x:Name="CombatLogEventsList" d:ItemsSource="{d:SampleData ItemCount=5}">
@@ -109,18 +109,21 @@
                 </ListView>
             </TabItem>
             <TabItem Header="Performances">
-                <ListView x:Name="PerformancesListView" d:ItemsSource="{d:SampleData ItemCount=4}">
-                    <ListView.View>
-                        <GridView>
-                            <GridViewColumn Header="Id" DisplayMemberBinding="{Binding Path=Id}" />
-                            <GridViewColumn Header="EncounterId" DisplayMemberBinding="{Binding Path=EncounterInfoMetadataId}" />
-                            <GridViewColumn Header="PlayerId" DisplayMemberBinding="{Binding Path=PlayerMetadataId}" />
-                            <GridViewColumn Header="Spec" DisplayMemberBinding="{Binding Path=SpecId}" />
-                            <GridViewColumn Header="DPS" DisplayMemberBinding="{Binding Path=Dps}" />
-                            <GridViewColumn Header="HPS" DisplayMemberBinding="{Binding Path=Hps}" />
-                        </GridView>
-                    </ListView.View>
-                </ListView>
+                <Grid>
+                    <Button x:Name="NextPageButton" Content="Next" HorizontalAlignment="Right" VerticalAlignment="Top" Width="51" Height="23" Click="NextPageButton_Click" Margin="734,0,0,0"/>
+                    <ListView x:Name="PerformancesListView" d:ItemsSource="{d:SampleData ItemCount=4}" Margin="0,23,0,5">
+                        <ListView.View>
+                            <GridView>
+                                <GridViewColumn Header="Id" DisplayMemberBinding="{Binding Path=Id}" />
+                                <GridViewColumn Header="EncounterId" DisplayMemberBinding="{Binding Path=EncounterInfoMetadataId}" />
+                                <GridViewColumn Header="PlayerId" DisplayMemberBinding="{Binding Path=PlayerMetadataId}" />
+                                <GridViewColumn Header="Spec" DisplayMemberBinding="{Binding Path=SpecId}" />
+                                <GridViewColumn Header="DPS" DisplayMemberBinding="{Binding Path=Dps}" />
+                                <GridViewColumn Header="HPS" DisplayMemberBinding="{Binding Path=Hps}" />
+                            </GridView>
+                        </ListView.View>
+                    </ListView>
+                </Grid>
             </TabItem>
             <TabItem Header="Players">
                 <ListView x:Name="PlayersListView" d:ItemsSource="{d:SampleData ItemCount=4}">
@@ -134,8 +137,8 @@
                     </ListView.View>
                 </ListView>
             </TabItem>
+
         </TabControl>
         <!--<ComboBox x:Name="EncounterSelection" HorizontalAlignment="Left" Margin="220,21,0,0" VerticalAlignment="Top" Width="330"/>-->
-        <Button x:Name="NextPageButton" Content="Next" HorizontalAlignment="Left" Margin="597,410,0,0" VerticalAlignment="Top" Width="84" Height="23" Click="NextPageButton_Click"/>
     </Grid>
 </Window>

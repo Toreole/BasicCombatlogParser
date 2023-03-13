@@ -317,7 +317,7 @@ namespace CombatlogParser
                     {
                         sub = line[startIndex..i];
                         startIndex = i;
-                        MovePastNextDivisor(line, ref startIndex, divisor);
+                        MovePastNextDivisor(line, ref startIndex, true, divisor);
                         return sub;
                     }
                     else //start quotations. adjust startIndex
@@ -350,11 +350,16 @@ namespace CombatlogParser
         /// <summary>
         /// Advances the index beyond the next divisor (divisorIndex+1)
         /// </summary>
-        public static void MovePastNextDivisor(string line, ref int startIndex, char divisor = ',')
+        public static void MovePastNextDivisor(string line, ref int startIndex, bool inQuotations = false, char divisor = ',')
         {
             for(int i = startIndex; i < line.Length; i++)
             {
-                if (line[i]==divisor && i + 1 < line.Length || line[i] == '\n')
+                char c = line[i];
+                if(c == '"')
+                {
+                    inQuotations = !inQuotations;
+                }
+                else if ((!inQuotations && c==divisor) && i + 1 < line.Length || line[i] == '\n')
                 {
                     startIndex = i + 1;
                     return;

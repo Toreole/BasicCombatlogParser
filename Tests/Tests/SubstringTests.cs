@@ -1,10 +1,37 @@
 ﻿using CombatlogParser.Data;
+using CombatlogParser.Data.Metadata;
 
 namespace CombatlogParser.Tests
 {
     
     public class SubstringTests
     {
+        [Test]
+        public void SubstringSpecificDatheaBug()
+        {
+            string input = "3/13 16:02:04.506  ENCOUNTER_START,2635,\"Dathea, die Aufgestiegene\",14,18,2522";
+            int index = input.IndexOf("  ");
+            index += 2;
+            ParsingUtil.MovePastNextDivisor(input, ref index); //move past ENCOUNTER_START,
+            
+            var wowEncounterId = (EncounterId)uint.Parse(ParsingUtil.NextSubstring(input, ref index));
+            ParsingUtil.MovePastNextDivisor(input, ref index); //skip past the name of the encounter.
+            string diff = ParsingUtil.NextSubstring(input, ref index);
+            var difficultyId = (DifficultyId)int.Parse(diff);
+
+            //ParsingUtil.MovePastNextDivisor(input, ref index);
+            //string encounterId = ParsingUtil.NextSubstring(input, ref index);
+            //string bossName = ParsingUtil.NextSubstring(input, ref index);
+            //string difficulty = ParsingUtil.NextSubstring(input, ref index);
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(wowEncounterId, Is.EqualTo(EncounterId.Dathea_Ascended));
+                //Assert.That(bossName, Is.EqualTo("Dathea, die Aufgestiegene"));
+                Assert.That(diff, Is.EqualTo("14"));
+            });
+        }
+
         [Test]
         public void SubstringShortQuotations()
         {

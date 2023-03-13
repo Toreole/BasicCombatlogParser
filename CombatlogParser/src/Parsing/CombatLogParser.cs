@@ -135,7 +135,8 @@ namespace CombatlogParser
                     };
                     encounterMetadata.WowEncounterId = (EncounterId)uint.Parse(NextSubstring(next, ref index));
                     MovePastNextDivisor(next, ref index); //skip past the name of the encounter.
-                    encounterMetadata.DifficultyId = (DifficultyId)int.Parse(NextSubstring(next, ref index));
+                    string diff = NextSubstring(next, ref index);
+                    encounterMetadata.DifficultyId = (DifficultyId)int.Parse(diff);
                 }
                 else if (next.ContainsSubstringAt("ENCOUNTER_END", index))
                 {
