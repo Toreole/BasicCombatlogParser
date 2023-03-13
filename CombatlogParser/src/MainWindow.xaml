@@ -104,6 +104,7 @@
                             <GridViewColumn Header="EncounterId" DisplayMemberBinding="{Binding Path=WowEncounterId}" />
                             <GridViewColumn Header="Difficulty" DisplayMemberBinding="{Binding Path=DifficultyId}" />
                             <GridViewColumn Header="Success" DisplayMemberBinding="{Binding Path=Success}" />
+                            <GridViewColumn Header="Duration" DisplayMemberBinding="{Binding Path=EncounterDurationMS}" />
                         </GridView>
                     </ListView.View>
                 </ListView>

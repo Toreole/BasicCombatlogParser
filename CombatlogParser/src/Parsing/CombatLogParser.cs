@@ -368,6 +368,12 @@ namespace CombatlogParser
 
             //the dictionary to look up the actual source GUID (pet->player, player->player, guardian->player, etc)
             var sourceToOwnerGUID = new Dictionary<string, string>();
+            foreach(var summon in encounterInfo.CombatlogEvents.GetEvents<SummonEvent>())
+            {
+                //the summoned "pet" is the targetGUID of the event.
+                if (sourceToOwnerGUID.ContainsKey(summon.TargetGUID) == false)
+                    sourceToOwnerGUID.Add(summon.TargetGUID, summon.SourceGUID);
+            }
             foreach (var e in encounterInfo.CombatlogEvents.GetAdvancedParamEvents()) 
             {
                 var sourceGUID = e.SourceGUID;
@@ -396,7 +402,8 @@ namespace CombatlogParser
             {
                 //try to add the damage done directly to the player by their GUID
                 //by this point, the dictionary has ALL possible GUIDs of units in it. therefore this is OK!
-                if(result.TryGetByGUID(ev.SourceGUID, out var perf))
+                bool sourceIsCorrect = !sourceToOwnerGUID.TryGetValue(ev.SourceGUID, out string? trueSourceGUID);
+                if(result.TryGetByGUID(sourceIsCorrect? ev.SourceGUID : trueSourceGUID!, out var perf))
                 {
                     perf!.Dps += (ev.Amount + ev.Absorbed);
                 }
