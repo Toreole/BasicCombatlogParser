@@ -1,11 +1,32 @@
 ﻿using CombatlogParser.Data;
 using CombatlogParser.Data.Metadata;
+using System.Text.RegularExpressions;
 
 namespace CombatlogParser.Tests
 {
     
     public class SubstringTests
     {
+        [Test]
+        public void NpcGuidExtractNpcId()
+        {
+            string guid_a = "Creature-0-3771-2522-4780-187772-00000F2795";
+            string guid_b = "Creature-0-3771-2522-4780-187769-00000F2795";
+            string guid_c = "Player-01752-00F731";
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(ParsingUtil.TryGetNpcId(guid_a, out uint npcId), Is.True);
+                Assert.That(npcId, Is.EqualTo(187772));
+
+                Assert.That(ParsingUtil.TryGetNpcId(guid_b, out npcId), Is.True);
+                Assert.That(npcId, Is.EqualTo(187769));
+
+                Assert.That(ParsingUtil.TryGetNpcId(guid_c, out npcId), Is.False);
+            });
+
+        }
+
         [Test]
         public void SubstringSpecificDatheaBug()
         {

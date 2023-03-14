@@ -454,5 +454,20 @@ namespace CombatlogParser
                     return true;
             return false;
         }
+
+        /// <summary>
+        /// Attempts extracting the NpcId from a GUID. 
+        /// GUIDs must start with "Creature" or "Vehicle" to be accepted. Pets and Players are excluded from this.
+        /// </summary>
+        public static bool TryGetNpcId(string guid, out uint npcId)
+        {
+            npcId = 0;
+            if (!guid.StartsWithAnyOf("Creature", "Vehicle"))
+                return false;
+            int endIndex = guid.LastIndexOf('-');
+            int startIndex = guid.LastIndexOf('-', endIndex-1) + 1;
+            npcId = uint.Parse(guid[startIndex..endIndex]);
+            return true;
+        }
     }
 }
