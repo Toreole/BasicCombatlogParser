@@ -317,6 +317,28 @@ namespace CombatlogParser
                     continue;
                 player.SetNameAndRealm(fullName);
             }
+            //try to find all npcs.
+            HashSet<string> npcGuids = new();
+            List<NpcInfo> npcs = new();
+            foreach(var _event in events)
+            {
+                (string? guid, string npcName ) = _event.SourceFlags.HasFlagf(UnitFlag.COMBATLOG_OBJECT_CONTROL_NPC) ? 
+                    (_event.SourceGUID, _event.SourceName) 
+                    : _event.TargetFlags.HasFlagf(UnitFlag.COMBATLOG_OBJECT_CONTROL_NPC)? 
+                    (_event.TargetGUID, _event.TargetName) 
+                    : (null, "");
+                if (guid is null || npcGuids.Contains(guid) || !TryGetNpcId(guid, out uint npcId)) 
+                    continue;
+                npcGuids.Add(guid);
+                NpcInfo? npcInfo = npcs.FirstOrDefault(x => x.NpcId == npcId);
+                if (npcInfo == null)
+                {
+                    npcInfo = new(npcId, npcName, guid);
+                    npcs.Add(npcInfo);
+                }
+                else
+                    npcInfo.InstanceGuids.Add(guid);
+            }
 
             return new EncounterInfo()
             {
@@ -329,7 +351,8 @@ namespace CombatlogParser
                 GroupSize = grpSize,
                 EncounterDuration = encDurationMS,
                 EncounterEndTime = encEndT,
-                Players = players 
+                Players = players,
+                Npcs = npcs,
             };
         }
 

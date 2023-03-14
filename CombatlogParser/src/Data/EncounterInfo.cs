@@ -55,6 +55,11 @@ namespace CombatlogParser.Data
         public PlayerInfo[] Players { get; set; } = Array.Empty<PlayerInfo>();
 
         /// <summary>
+        /// List of NPCs found in the events.
+        /// </summary>
+        public List<NpcInfo> Npcs { get; init; } = new List<NpcInfo>();
+
+        /// <summary>
         /// All combatlog events during the encounter.
         /// </summary>
         public CombatlogEvent[] CombatlogEvents { get; set; } = Array.Empty<CombatlogEvent>();
