@@ -18,7 +18,7 @@
     <Grid>
         <Label x:Name="HeaderLabel" Content="Combatlog Viewer" HorizontalAlignment="Left" VerticalAlignment="Top" FontSize="20" FontWeight="Bold" Margin="10,10,0,0"/>
 
-        <TabControl Margin="0,76,0,0">
+        <TabControl Margin="0,76,0,0" Width="1093">
             <!--<TabItem Header="All Events">
                 <Grid Background="#FFE5E5E5">
                     <ListView x:Name="CombatLogEventsList" d:ItemsSource="{d:SampleData ItemCount=5}">
@@ -127,16 +127,19 @@
                 </Grid>
             </TabItem>
             <TabItem Header="Players">
-                <ListView x:Name="PlayersListView" d:ItemsSource="{d:SampleData ItemCount=4}">
-                    <ListView.View>
-                        <GridView>
-                            <GridViewColumn Header="Id" DisplayMemberBinding="{Binding Path=Id}" />
-                            <GridViewColumn Header="Name" DisplayMemberBinding="{Binding Path=Name}" />
-                            <GridViewColumn Header="Realm" DisplayMemberBinding="{Binding Path=Realm}" />
-                            <GridViewColumn Header="Class" DisplayMemberBinding="{Binding Path=ClassId}" />
-                        </GridView>
-                    </ListView.View>
-                </ListView>
+                <Grid>
+                    <TextBox x:Name="PlayerSearch" TextWrapping="Wrap" Text="TextBox" Width="150" Height="30" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,10,0,0" UndoLimit="0" TextChanged="PlayerSearch_TextChanged"/>
+                    <ListView x:Name="PlayersListView" d:ItemsSource="{d:SampleData ItemCount=4}" Margin="0,40,0,0">
+                        <ListView.View>
+                            <GridView>
+                                <GridViewColumn Header="Id" DisplayMemberBinding="{Binding Path=Id}" />
+                                <GridViewColumn Header="Name" DisplayMemberBinding="{Binding Path=Name}" />
+                                <GridViewColumn Header="Realm" DisplayMemberBinding="{Binding Path=Realm}" />
+                                <GridViewColumn Header="Class" DisplayMemberBinding="{Binding Path=ClassId}" />
+                            </GridView>
+                        </ListView.View>
+                    </ListView>
+                </Grid>
             </TabItem>
 
         </TabControl>

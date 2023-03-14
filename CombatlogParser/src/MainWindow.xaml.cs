@@ -266,5 +266,23 @@ namespace CombatlogParser
 
             PerformancesListView.UpdateLayout();
         }
+
+        private void PlayerSearch_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if(string.IsNullOrEmpty(PlayerSearch.Text) || string.IsNullOrWhiteSpace(PlayerSearch.Text))
+            {
+                players.Clear();
+                var pls = Queries.GetPlayerMetadata(0, 30);
+                foreach (var p in pls)
+                    if (p != null)
+                        players.Add(p);
+                return;
+            }
+            
+            PlayerMetadata[] results = Queries.FindPlayersWithNameLike(PlayerSearch.Text);
+            players.Clear();
+            foreach (var p in results)
+                players.Add(p);
+        }
     }
 }

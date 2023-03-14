@@ -1,6 +1,7 @@
 ﻿using CombatlogParser.Data.Metadata;
 using CombatlogParser.DBInteract;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 
 namespace CombatlogParser
 {
@@ -12,7 +13,8 @@ namespace CombatlogParser
         public static PlayerMetadata[] FindPlayersWithNameLike(string start)
         {
             using CombatlogDBContext dbContext = new();
-            var result = dbContext.Players.Where(p => EF.Functions.Like(p.Name, start)).Take(10).ToArray();
+            var likeExpression = start + '%';
+            var result = dbContext.Players.Where(p => EF.Functions.Like(p.Name, likeExpression)).Take(10).ToArray();
             return result;
         }
     }
