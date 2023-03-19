@@ -55,5 +55,21 @@ namespace CombatlogParser
                 .Take(pageSize)
                 .ToArray();
         }
+
+        public static PerformanceMetadata? GetHighestDpsOnEncounterForPlayer(
+            uint playerId, 
+            EncounterId encounter, 
+            DifficultyId difficulty
+            )
+        {
+            using CombatlogDBContext context = new();
+            return context.Performances
+                .Where(p => p.PlayerMetadataId == playerId 
+                && p.EncounterInfoMetadata!.WowEncounterId == encounter //p.WowEncounterId == encounter ----> WOWENCOUNTERID IS UNKNOWN FOR SOME REASON!
+                && p.EncounterInfoMetadata!.Success
+                && p.EncounterInfoMetadata!.DifficultyId == difficulty)
+                .OrderBy(p => p.Dps)
+                .FirstOrDefault();
+        }
     }
 }

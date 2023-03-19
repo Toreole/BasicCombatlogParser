@@ -3,6 +3,7 @@
     public enum EncounterId
     {
         UNKOWN = 0,
+        All_Bosses = -2,
 
         //Shadowlands:
         Hungering_Destroyer = 2383,

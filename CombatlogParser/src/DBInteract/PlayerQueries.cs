@@ -1,7 +1,6 @@
 ﻿using CombatlogParser.Data.Metadata;
 using CombatlogParser.DBInteract;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 
 namespace CombatlogParser
 {

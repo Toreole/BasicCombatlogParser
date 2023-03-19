@@ -1,6 +1,7 @@
 ﻿using CombatlogParser.Data;
 using CombatlogParser.Data.Events;
 using CombatlogParser.Data.Metadata;
+using CombatlogParser.Controls;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Windows;

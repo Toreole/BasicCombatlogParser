@@ -6,7 +6,7 @@ namespace CombatlogParser.Data.Metadata
 {
     [Table("CombatlogMetadatas")]
     [PrimaryKey("Id")]
-    public sealed class CombatlogMetadata
+    public class CombatlogMetadata
     {
         /// <summary>
         /// unique ID (incrementing int) for easier referencing from other data. <br />
@@ -43,6 +43,6 @@ namespace CombatlogParser.Data.Metadata
         public WowProjectID ProjectID { get; set; }
 
         //Inverse navigation property. is populated by EncounterInfoMetadata entities that refer to this one.
-        public List<EncounterInfoMetadata> Encounters { get; set; } = new List<EncounterInfoMetadata>();
+        public virtual List<EncounterInfoMetadata> Encounters { get; set; } = new();
     }
 }

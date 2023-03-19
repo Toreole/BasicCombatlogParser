@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:CombatlogParser"
+        xmlns:controls="clr-namespace:CombatlogParser.Controls"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="1100">
     <Window.Resources>
@@ -19,70 +20,6 @@
         <Label x:Name="HeaderLabel" Content="Combatlog Viewer" HorizontalAlignment="Left" VerticalAlignment="Top" FontSize="20" FontWeight="Bold" Margin="10,10,0,0"/>
 
         <TabControl Margin="0,76,0,0" Width="1093">
-            <!--<TabItem Header="All Events">
-                <Grid Background="#FFE5E5E5">
-                    <ListView x:Name="CombatLogEventsList" d:ItemsSource="{d:SampleData ItemCount=5}">
-                        <ListView.View>
-                            <GridView>
-                                <GridViewColumn Header="Timestamp" DisplayMemberBinding="{Binding Path=Timestamp}"/>
-                                <GridViewColumn Header="Event Type" DisplayMemberBinding="{Binding Path=SubEvent}"/>
-                                <GridViewColumn Header="Source Name" DisplayMemberBinding="{Binding Path=SourceName}"/>
-                                <GridViewColumn Header="Target Name" DisplayMemberBinding="{Binding Path=TargetName}"/>
-                                <GridViewColumn Header="Prefix0" DisplayMemberBinding="{Binding Path=PrefixParam0}"/>
-                                <GridViewColumn Header="Prefix1" DisplayMemberBinding="{Binding Path=PrefixParam1}"/>
-                                <GridViewColumn Header="Prefix2" DisplayMemberBinding="{Binding Path=PrefixParam2}"/>
-                                <GridViewColumn Header="Suffix0" DisplayMemberBinding="{Binding Path=SuffixParam0}"/>
-                                <GridViewColumn Header="Suffix1" DisplayMemberBinding="{Binding Path=SuffixParam1}"/>
-                                <GridViewColumn Header="Suffix2" DisplayMemberBinding="{Binding Path=SuffixParam2}"/>
-                                <GridViewColumn Header="Suffix3" DisplayMemberBinding="{Binding Path=SuffixParam3}"/>
-                                <GridViewColumn Header="Suffix4" DisplayMemberBinding="{Binding Path=SuffixParam4}"/>
-                                <GridViewColumn Header="Suffix5" DisplayMemberBinding="{Binding Path=SuffixParam5}"/>
-                                <GridViewColumn Header="Suffix6" DisplayMemberBinding="{Binding Path=SuffixParam6}"/>
-                                <GridViewColumn Header="Suffix7" DisplayMemberBinding="{Binding Path=SuffixParam7}"/>
-                                <GridViewColumn Header="Suffix8" DisplayMemberBinding="{Binding Path=SuffixParam8}"/>
-                                <GridViewColumn Header="Suffix9" DisplayMemberBinding="{Binding Path=SuffixParam9}"/>
-                                <GridViewColumn Header="Suffix10" DisplayMemberBinding="{Binding Path=SuffixParam10}"/>
-                            </GridView>
-                        </ListView.View>
-                    </ListView>
-                </Grid>
-            </TabItem>-->
-            <!--The "All Events" Tab is silly and i dont like it-->
-            <!--<TabItem Header="Damage Done">
-                <Grid Background="#FFE5E5E5">
-                    <ListView x:Name="DamageEventsList" d:ItemsSource="{d:SampleData ItemCount=5}">
-                        <ListView.View>
-                            <GridView>
-                                -->
-            <!--Unnecessary info possibly <GridViewColumn Header="Timestamp" DisplayMemberBinding="{Binding Path=Timestamp}"/>-->
-            <!--
-                                <GridViewColumn Header="Source Name" DisplayMemberBinding="{Binding Path=SourceName}"/>
-                                -->
-            <!--Dont want this to show up. <GridViewColumn Header="Source Flags" DisplayMemberBinding="{Binding Path=SourceFlags}"/>-->
-            <!--
-                                <GridViewColumn Header="Target Name" DisplayMemberBinding="{Binding Path=TargetName}"/>
-                                <GridViewColumn Header="Spell" DisplayMemberBinding="{Binding Path=spellName}"/>
-                                <GridViewColumn Header="School" DisplayMemberBinding="{Binding Path=spellSchool}" />
-                                <GridViewColumn Header="Damage" DisplayMemberBinding="{Binding Path=amount}"/>
-                                <GridViewColumn Header="Base Damage" DisplayMemberBinding="{Binding Path=baseAmount}"/>
-                            </GridView>
-                        </ListView.View>
-                    </ListView>
-                </Grid>
-            </TabItem>-->
-            <!--<TabItem Header="Damage by Source">
-                <ListView x:Name="DmgPerSourceList" d:ItemsSource="{d:SampleData ItemCount=1}">
-
-                    <ListView.View>
-                        <GridView>
-                            <GridViewColumn Header="Source Name" DisplayMemberBinding="{Binding Path=SourceName}"/>
-                            <GridViewColumn Header="Total Damage"
-                                            CellTemplate="{StaticResource DmgTemplate}"/>
-                            <GridViewColumn Header="DPS" DisplayMemberBinding="{Binding Path=DPS, StringFormat=N1}"/>
-                        </GridView>
-                    </ListView.View>
-                </ListView>
-            </TabItem>-->
             <TabItem Header="Combatlogs">
                 <ListView x:Name="CombatlogListView" d:ItemsSource="{d:SampleData ItemCount=2}">
                     <ListView.View>
@@ -118,6 +55,7 @@
                                 <GridViewColumn Header="Id" DisplayMemberBinding="{Binding Path=Id}" />
                                 <GridViewColumn Header="EncounterId" DisplayMemberBinding="{Binding Path=EncounterInfoMetadataId}" />
                                 <GridViewColumn Header="PlayerId" DisplayMemberBinding="{Binding Path=PlayerMetadataId}" />
+                                <GridViewColumn Header="WowId" DisplayMemberBinding="{Binding Path=WowEncounterId}" />
                                 <GridViewColumn Header="Spec" DisplayMemberBinding="{Binding Path=SpecId}" />
                                 <GridViewColumn Header="DPS" DisplayMemberBinding="{Binding Path=Dps}" />
                                 <GridViewColumn Header="HPS" DisplayMemberBinding="{Binding Path=Hps}" />
@@ -140,6 +78,11 @@
                         </ListView.View>
                     </ListView>
                 </Grid>
+            </TabItem>
+            <TabItem Header="Test">
+                <controls:PlayerMetadataView x:Name="PMView">
+
+                </controls:PlayerMetadataView>
             </TabItem>
 
         </TabControl>

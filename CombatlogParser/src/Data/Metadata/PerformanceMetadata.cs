@@ -31,7 +31,7 @@ namespace CombatlogParser.Data.Metadata
         /// <summary>
         /// the ID of the in-game encounter.
         /// </summary>
-        public uint WowEncounterId { get; set; }
+        public EncounterId WowEncounterId { get; set; }
 
         /// <summary>
         /// Id of the EncounterInfoMetadata entity.
