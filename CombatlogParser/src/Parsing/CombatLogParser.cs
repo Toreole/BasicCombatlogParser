@@ -376,7 +376,8 @@ namespace CombatlogParser
                     PlayerMetadata = playerMetadatas[i],
                     SpecId = encounterInfo.Players[i].SpecId,
                     PlayerMetadataId = playerMetadatas.Find(x => x.GUID == encounterInfo.Players[i].GUID)?.Id ?? 0,
-                    EncounterInfoMetadataId = encounterMetadataId
+                    EncounterInfoMetadataId = encounterMetadataId,
+                    WowEncounterId = encounterInfo.EncounterID //duplicate data anyway.
                 };
             }
             //1.1 fetch the names for all players.

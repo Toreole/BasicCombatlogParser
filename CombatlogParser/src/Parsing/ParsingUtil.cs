@@ -7,7 +7,6 @@ namespace CombatlogParser
     public static class ParsingUtil
     {
         private static readonly CultureInfo formatInfoProvider = CultureInfo.GetCultureInfo("en-US");
-        private static readonly string timestampFormat = "MM/dd HH:mm:ss.fff";
         private static readonly string[] acceptedTimestampFormats =
         {
             "MM/dd HH:mm:ss.fff",

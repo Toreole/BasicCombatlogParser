@@ -19,6 +19,7 @@
     <Grid>
         <Label x:Name="HeaderLabel" Content="Combatlog Viewer" HorizontalAlignment="Left" VerticalAlignment="Top" FontSize="20" FontWeight="Bold" Margin="10,10,0,0"/>
 
+        <ComboBox x:Name="PlayerSearchBox" Margin="225,10,651,387" IsEditable="True" SelectionChanged="PlayerSearchSelectionChanged" TextBoxBase.TextChanged="PlayerSearchTextChanged" Width="225" Height="30" HorizontalAlignment="Left" VerticalAlignment="Top"/>
         <TabControl Margin="0,76,0,0" Width="1093">
             <TabItem Header="Combatlogs">
                 <ListView x:Name="CombatlogListView" d:ItemsSource="{d:SampleData ItemCount=2}">

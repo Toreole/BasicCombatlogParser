@@ -77,19 +77,7 @@ namespace CombatlogParser.Controls
             {
                 if (boss == EncounterId.All_Bosses)
                     continue;
-                PerformanceMetadata? data = Queries.GetHighestDpsOnEncounterForPlayer(targetPlayer.Id, boss, difficulty);
-                data ??= new()
-                    {
-                        WowEncounterId = boss,
-                        Dps = double.NaN
-                    };
-                if(data.WowEncounterId is EncounterId.UNKOWN)
-                {
-                    using CombatlogDBContext dbContext = new();
-                    dbContext.Update(data);
-                    data.WowEncounterId = boss;
-                    dbContext.SaveChanges();
-                }
+                var data = Queries.GetPerformanceOverview(targetPlayer.Id, boss, difficulty);
                 items.Add(data);
             }
         }
@@ -100,16 +88,22 @@ namespace CombatlogParser.Controls
             columns.Clear();
             if (encounters[selectedEncounterIndex] == EncounterId.All_Bosses)
             {
+                //see PlayerEncounterPerformanceOverview.cs
                 columns.Add(
-                    new() { Header = "Boss", DisplayMemberBinding = new Binding("WowEncounterId") }
+                    new() { Header = "Boss", DisplayMemberBinding = new Binding("EncounterName") }
                     );
                 columns.Add(
-                    new() { Header = "Highest Dps", DisplayMemberBinding = new Binding("Dps") }
+                    new() { Header = "Highest Dps", DisplayMemberBinding = new Binding("HighestMetricValue") }
                     );
-                //This relies on a new datatype that encapsulate´s dbContext.Where().Count(); among other things
-                //columns.Add( 
-                //    new() { Header = "Recorded Kills", DisplayMemberBinding = new Binding("KillCount") }
-                //    );
+                columns.Add(
+                    new() { Header = "Median Dps", DisplayMemberBinding = new Binding("MedianMetricValue") }
+                    );
+                columns.Add(
+                    new() { Header = "Fastest Kill", DisplayMemberBinding = new Binding("FastestTime") }
+                    );
+                columns.Add( 
+                    new() { Header = "Recorded Kills", DisplayMemberBinding = new Binding("KillCount") }
+                    );
             }
             else
             {
@@ -127,7 +121,11 @@ namespace CombatlogParser.Controls
 
         public void SetPlayer(PlayerMetadata player)
         {
-
+            targetPlayer = player;
+            PlayerName.Content = player.Name;
+            InitializeForCurrentRaid();
+            SetupPerformanceListView();
+            UpdatePerformanceList();
         }
 
         private void OnRaidSelectionChanged(object sender, SelectionChangedEventArgs e)

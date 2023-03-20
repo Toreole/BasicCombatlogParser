@@ -34,6 +34,10 @@ namespace CombatlogParser
         private ObservableCollection<PlayerMetadata> players = new();
         private uint lastPlayerId;
 
+        private ObservableCollection<string> searchedPlayerNames = new();
+        private PlayerMetadata[] searchedPlayers;
+
+
         public MainWindow()
         {
             InitializeComponent();
@@ -94,6 +98,13 @@ namespace CombatlogParser
             foreach (var p in pls)
                 if (p != null)
                     players.Add(p);
+
+            PlayerSearchBox.SetBinding(ComboBox.ItemsSourceProperty,
+                new Binding()
+                {
+                    Source = searchedPlayerNames
+                }
+            );
 
             //var dmgEventsBinding = new Binding()
             //{
@@ -284,6 +295,26 @@ namespace CombatlogParser
             players.Clear();
             foreach (var p in results)
                 players.Add(p);
+        }
+
+        //the actual dropdown.
+        private void PlayerSearchSelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            int index = PlayerSearchBox.SelectedIndex;
+            if (index < 0 || index >= searchedPlayers.Length)
+                return;
+            PMView.SetPlayer(searchedPlayers[PlayerSearchBox.SelectedIndex]);
+        }
+
+        private void PlayerSearchTextChanged(object sender, TextChangedEventArgs e)
+        {
+            PlayerSearchBox.IsDropDownOpen = true;
+            searchedPlayerNames.Clear();
+            searchedPlayers = Queries.FindPlayersWithNameLike(PlayerSearchBox.Text);
+            foreach(var player in searchedPlayers)
+            {
+                searchedPlayerNames.Add(player!.Name);
+            }
         }
     }
 }
