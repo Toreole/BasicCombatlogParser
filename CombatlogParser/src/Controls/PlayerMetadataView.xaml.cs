@@ -28,6 +28,9 @@ namespace CombatlogParser.Controls
         private int selectedEncounterIndex = 0;
         private PlayerMetadata? targetPlayer;
 
+        private EncounterId SelectedEncounter => encounters[Math.Max(BossSelectionComboBox.SelectedIndex, 0)];
+        private DifficultyId SelectedDifficulty => Difficulties[Math.Max(DifficultySelectionComboBox.SelectedIndex, 0)];
+
         public PlayerMetadataView()
         {
             InitializeComponent();
@@ -35,6 +38,7 @@ namespace CombatlogParser.Controls
             PlayerName.Content = targetPlayer?.Name ?? "could not find player";
             InitializeRaidSelection();
             InitializeForCurrentRaid();
+            DifficultySelectionComboBox.SelectedIndex = 0;
             SetupPerformanceListView();
             UpdatePerformanceList();
         }
@@ -72,13 +76,22 @@ namespace CombatlogParser.Controls
                 return;
             var items = BestPerformanceBossList.Items;
             items.Clear();
-            var difficulty = Difficulties[DifficultySelectionComboBox.SelectedIndex];
-            foreach(var boss in encounters)
+            var difficulty = SelectedDifficulty;
+            if (SelectedEncounter == EncounterId.All_Bosses)
             {
-                if (boss == EncounterId.All_Bosses)
-                    continue;
-                var data = Queries.GetPerformanceOverview(targetPlayer.Id, boss, difficulty);
-                items.Add(data);
+                foreach (var boss in encounters)
+                {
+                    if (boss == EncounterId.All_Bosses)
+                        continue;
+                    var data = Queries.GetPerformanceOverview(targetPlayer.Id, boss, difficulty);
+                    items.Add(data);
+                }
+            }
+            else
+            {
+                var data = Queries.GetPlayerPerformances(targetPlayer.Id, SelectedEncounter, difficulty);
+                foreach (var playerPerformance in data)
+                    items.Add(playerPerformance);
             }
         }
 
@@ -86,9 +99,10 @@ namespace CombatlogParser.Controls
         {
             var columns = PerformanceGridView.Columns;
             columns.Clear();
-            if (encounters[selectedEncounterIndex] == EncounterId.All_Bosses)
+            if (SelectedEncounter == EncounterId.All_Bosses)
             {
                 //see PlayerEncounterPerformanceOverview.cs
+                BestPerformanceBossList.Items.Clear(); //clear items because they might be incompatible.
                 columns.Add(
                     new() { Header = "Boss", DisplayMemberBinding = new Binding("EncounterName") }
                     );
@@ -107,15 +121,19 @@ namespace CombatlogParser.Controls
             }
             else
             {
+                BestPerformanceBossList.Items.Clear();
                 columns.Add(
-                    new() { Header = "Dps", DisplayMemberBinding = new Binding("Dps") }
+                    new() { Header = "Date", DisplayMemberBinding = new Binding("Date") }
                     );
-                //columns.Add( 
-                //    new() { Header = "Date", DisplayMemberBinding = new Binding("Date") }
-                //    );
-                //columns.Add( 
-                //    new() { Header = "ilvl", DisplayMemberBinding = new Binding("ItemLevel") }
-                //    );
+                columns.Add(
+                    new() { Header = "Dps", DisplayMemberBinding = new Binding("MetricValue") }
+                    );
+                columns.Add(
+                    new() { Header = "Duration", DisplayMemberBinding = new Binding("Duration") }
+                    );
+                columns.Add(
+                    new() { Header = "ilvl", DisplayMemberBinding = new Binding("ItemLevel") }
+                    );
             }
         }
 
@@ -142,7 +160,8 @@ namespace CombatlogParser.Controls
 
         private void OnBossChanged(object sender, SelectionChangedEventArgs e)
         {
-
+            SetupPerformanceListView();
+            UpdatePerformanceList();
         }
     }
 }

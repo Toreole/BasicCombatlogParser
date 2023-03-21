@@ -141,5 +141,46 @@ namespace CombatlogParser
                 KillCount = count.ToString()
             };
         }
+
+        public static PerformanceMetadata[] GetPerformances(
+            uint playerId,
+            EncounterId encounter,
+            DifficultyId difficulty
+            )
+        {
+            using CombatlogDBContext context = new();
+            return context.Performances.Where(p =>
+            p.PlayerMetadataId == playerId
+            && p.EncounterInfoMetadata!.WowEncounterId == encounter
+            && p.EncounterInfoMetadata!.DifficultyId == difficulty
+            && p.EncounterInfoMetadata!.Success
+            ).OrderBy(p => p.Dps).ToArray();
+        }
+
+        public static PlayerPerformance[] GetPlayerPerformances(
+            uint playerId,
+            EncounterId encounter,
+            DifficultyId difficulty
+            )
+        {
+            var rawPerformances = GetPerformances( playerId, encounter, difficulty );
+            if (rawPerformances.Length == 0)
+                return Array.Empty<PlayerPerformance>();
+            var results = new PlayerPerformance[rawPerformances.Length];
+            for(int i = 0; i < rawPerformances.Length; i++)
+            {
+                using CombatlogDBContext context = new();
+                var encounterMetadata = context.Encounters.Where(e => e.Id == rawPerformances[i].EncounterInfoMetadataId).First();
+                var combatlogMetadata = context.Combatlogs.Where(c => c.Id == encounterMetadata.CombatlogMetadataId).First();
+                results[i] = new()
+                {
+                    MetricValue = rawPerformances[i].Dps.ToString("0.0"),
+                    Duration = ParsingUtil.MillisecondsToReadableTimeString((uint)encounterMetadata.EncounterDurationMS),
+                    Date = DateTime.UnixEpoch.AddMilliseconds(combatlogMetadata.MsTimeStamp).ToShortDateString(),
+                    ItemLevel = "Not supported"
+                };
+            }
+            return results;
+        }
     }
 }
