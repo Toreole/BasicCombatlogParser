@@ -246,6 +246,10 @@ namespace CombatlogParser
                 for (int skip = 5; skip < 23; skip++) MovePastNextDivisor(line, ref pos);
                 player.SpecId = (SpecId)int.Parse(NextSubstring(line, ref pos));
                 player.Class = player.SpecId.GetClassId();
+                _ = NextArray(line, ref pos); // talents are skipped over for now.
+                _ = NextItemGroup(line, ref pos); //PvP talents skipped
+                string rawEquipmentInfo = NextArray(line, ref pos);
+                player.ItemLevel = GetAverageItemLevel(rawEquipmentInfo);
                 players[i] = player; //cant believe i forgot this lmfao.
             }
 
@@ -357,6 +361,37 @@ namespace CombatlogParser
         }
 
         /// <summary>
+        /// Gets a rough (rounded) estimate of the equipped item level.
+        /// Always assumes optimal weapons are used (one hand + off-hand / two hand)
+        /// </summary>
+        /// <param name="equipString">the unprocessed equipment string (everything within [ ])</param>
+        public static int GetAverageItemLevel(string equipString)
+        {
+            int index = 0;
+            int totalLevel = 0;
+            for (int itemSlot = 0; itemSlot < 3; itemSlot++)
+                totalLevel += GetItemLevel(NextItemGroup(equipString, ref index));
+            for (int itemSlot = 4; itemSlot < 16; itemSlot++)
+                totalLevel += GetItemLevel(NextItemGroup(equipString, ref index));
+            int offHandLevel = GetItemLevel(NextItemGroup(equipString, ref index));
+            if(offHandLevel == 0)
+            {
+                return (int)MathF.Round(totalLevel / 15f);
+            }
+            else
+            {
+                return (int)MathF.Round((totalLevel + offHandLevel) / 16f);
+            }
+        }
+
+        private static int GetItemLevel(string itemString)
+        {
+            int index = 0;
+            MovePastNextDivisor(itemString, ref index);
+            return int.Parse(NextSubstring(itemString, ref index));
+        }
+
+        /// <summary>
         /// Process the damage and healing data for all players in a log.
         /// </summary>
         /// <param name="encounterInfo"></param>
@@ -377,7 +412,8 @@ namespace CombatlogParser
                     SpecId = encounterInfo.Players[i].SpecId,
                     PlayerMetadataId = playerMetadatas.Find(x => x.GUID == encounterInfo.Players[i].GUID)?.Id ?? 0,
                     EncounterInfoMetadataId = encounterMetadataId,
-                    WowEncounterId = encounterInfo.EncounterID //duplicate data anyway.
+                    WowEncounterId = encounterInfo.EncounterID, //duplicate data anyway.
+                    ItemLevel = encounterInfo.Players[i].ItemLevel,
                 };
             }
             //1.1 fetch the names for all players.

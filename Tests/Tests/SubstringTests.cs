@@ -149,5 +149,39 @@ namespace CombatlogParser.Tests
                 Assert.That(result4);
             });
         }
+
+        [Test]
+        public void ItemGroupTests()
+        {
+            string line = "10,(5,(12,25,3565),()),30,(),5";
+            int index = 0;
+            string firstSub = ParsingUtil.NextSubstring(line, ref index);
+            string subGroup = ParsingUtil.NextItemGroup(line, ref index);
+            string lastSub  = ParsingUtil.NextSubstring(line, ref index);
+            string emptyGroup = ParsingUtil.NextItemGroup(line, ref index);
+            string notGroup = ParsingUtil.NextItemGroup(line, ref index);
+            Assert.Multiple(() =>
+            {
+                Assert.That(firstSub, Is.EqualTo("10"));
+                Assert.That(subGroup, Is.EqualTo("5,(12,25,3565),()"));
+                Assert.That(lastSub, Is.EqualTo("30"));
+                Assert.That(emptyGroup, Is.EqualTo(string.Empty));
+                Assert.That(notGroup, Is.EqualTo("5"));
+            });
+        }
+
+        [Test]
+        public void SubstringArrayTest()
+        {
+            string line = "[(10),(200)],[10, 20]";
+            int index = 0;
+            string arrayA = ParsingUtil.NextArray(line, ref index);
+            string arrayB = ParsingUtil.NextArray(line, ref index);
+            Assert.Multiple(() =>
+            {
+                Assert.That(arrayA, Is.EqualTo("(10),(200)"));
+                Assert.That(arrayB, Is.EqualTo("10, 20"));
+            });
+        }
     }
 }
