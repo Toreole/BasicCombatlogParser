@@ -371,6 +371,7 @@ namespace CombatlogParser
             int totalLevel = 0;
             for (int itemSlot = 0; itemSlot < 3; itemSlot++)
                 totalLevel += GetItemLevel(NextItemGroup(equipString, ref index));
+            _ = NextItemGroup(equipString, ref index); //discard shirt for now.
             for (int itemSlot = 4; itemSlot < 16; itemSlot++)
                 totalLevel += GetItemLevel(NextItemGroup(equipString, ref index));
             int offHandLevel = GetItemLevel(NextItemGroup(equipString, ref index));
