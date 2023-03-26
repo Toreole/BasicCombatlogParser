@@ -8,7 +8,7 @@
              d:DesignHeight="450" d:DesignWidth="800">
     <Grid Background="White">
         <Label x:Name="PlayerName" FontWeight="Bold" Width="500" Height="32" HorizontalAlignment="Left" VerticalAlignment="Top" Content="PlayerName" />
-        <ComboBox x:Name="RaidSelectionComboBox" Width="150" Height="25" Margin="0,35,650,390" HorizontalAlignment="Left" VerticalAlignment="Top" SelectionChanged="OnRaidSelectionChanged"/>
+        <ComboBox x:Name="RaidSelectionComboBox" Width="150" Height="25" Margin="0,35,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" SelectionChanged="OnRaidSelectionChanged"/>
         <ComboBox x:Name="DifficultySelectionComboBox" HorizontalAlignment="Left" Margin="155,35,0,0" VerticalAlignment="Top" Width="100" Height="25" SelectionChanged="OnDifficultyChanged" SelectedIndex="0">
             <ComboBoxItem>LFR</ComboBoxItem>
             <ComboBoxItem>Normal</ComboBoxItem>
