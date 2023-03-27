@@ -253,6 +253,7 @@ namespace CombatlogParser
                 players[i] = player; //cant believe i forgot this lmfao.
             }
 
+            CombatlogEventDictionaryBuilder eventDictBuilder = new();
             //read all the events during the encounter.
             for (int l = 1; l < metadata.EncounterLengthInFile-(1+grpSize); l++) 
             {
@@ -266,8 +267,11 @@ namespace CombatlogParser
                 if(TryParsePrefixAffixSubeventF(subevent, out var prefix, out var suffix))
                 {
                     CombatlogEvent? clevent = CombatlogEvent.Create(line, prefix, suffix);
-                    if(clevent != null)
+                    if (clevent != null)
+                    {
                         events.Add(clevent);
+                        eventDictBuilder.Add(clevent);
+                    }
                 }
                 //TODO: Other events should also be handled.
                 else if(TryParseMiscEventF(subevent, out var ev))
@@ -347,6 +351,7 @@ namespace CombatlogParser
             return new EncounterInfo()
             {
                 CombatlogEvents = events.ToArray(),
+                CombatlogEventDictionary = eventDictBuilder.Build(),
                 EncounterStartTime = encStartT,
                 EncounterSuccess = metadata.Success,
                 DifficultyID = metadata.DifficultyId,
@@ -429,7 +434,7 @@ namespace CombatlogParser
 
             //the dictionary to look up the actual source GUID (pet->player, player->player, guardian->player, etc)
             var sourceToOwnerGUID = new Dictionary<string, string>();
-            foreach(var summon in encounterInfo.CombatlogEvents.GetEvents<SummonEvent>())
+            foreach(var summon in encounterInfo.CombatlogEventDictionary.GetEvents<SummonEvent>())
             {
                 //the summoned "pet" is the targetGUID of the event.
                 if (sourceToOwnerGUID.ContainsKey(summon.TargetGUID) == false)
@@ -452,7 +457,7 @@ namespace CombatlogParser
                     new SourceFlagFilter(UnitFlag.COMBATLOG_OBJECT_REACTION_FRIENDLY),
                     new SourceFlagFilter(UnitFlag.COMBATLOG_OBJECT_REACTION_NEUTRAL)
                 );
-            var damageEvents = encounterInfo.CombatlogEvents.GetEvents<DamageEvent>().AllThatMatch(
+            var damageEvents = encounterInfo.CombatlogEventDictionary.GetEvents<DamageEvent>().AllThatMatch(
                 new AllOfFilter(
                     allySource,                  //where the source is friendly or neutral (belongs to the raid/party)
                     new TargetFlagFilter(UnitFlag.COMBATLOG_OBJECT_REACTION_HOSTILE) //and the target is hostile.
@@ -474,7 +479,7 @@ namespace CombatlogParser
                 }
             }
             //add together all the healing events.
-            foreach(var ev in encounterInfo.CombatlogEvents.GetEvents<HealEvent>())
+            foreach(var ev in encounterInfo.CombatlogEventDictionary.GetEvents<HealEvent>())
             {
                 if (result.TryGetByGUID(ev.SourceGUID, out var perf))
                 {

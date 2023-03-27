@@ -52,7 +52,7 @@ namespace CombatlogParser.Data
         /// <summary>
         /// Size of the PlayerInfo[] is given by ENCOUNTER_START, followed by the data from COMBATANT_INFO
         /// </summary>
-        public PlayerInfo[] Players { get; set; } = Array.Empty<PlayerInfo>();
+        public PlayerInfo[] Players { get; init; } = Array.Empty<PlayerInfo>();
 
         /// <summary>
         /// List of NPCs found in the events.
@@ -62,9 +62,9 @@ namespace CombatlogParser.Data
         /// <summary>
         /// All combatlog events during the encounter.
         /// </summary>
-        public CombatlogEvent[] CombatlogEvents { get; set; } = Array.Empty<CombatlogEvent>();
+        public CombatlogEvent[] CombatlogEvents { get; init; } = Array.Empty<CombatlogEvent>();
         //TODO: - actually create this and store it, then later use it for most things instead of CombatlogEvents.
-        public CombatlogEventDictionary CombatlogEventDictionary { get; } = new();
+        public CombatlogEventDictionary CombatlogEventDictionary { get; init; } = new();
 
         /// <summary>
         /// The duration of the encounter in seconds. Used for DPS calculation.
