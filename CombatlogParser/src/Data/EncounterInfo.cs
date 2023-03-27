@@ -63,6 +63,8 @@ namespace CombatlogParser.Data
         /// All combatlog events during the encounter.
         /// </summary>
         public CombatlogEvent[] CombatlogEvents { get; set; } = Array.Empty<CombatlogEvent>();
+        //TODO: - actually create this and store it, then later use it for most things instead of CombatlogEvents.
+        public CombatlogEventDictionary CombatlogEventDictionary { get; } = new();
 
         /// <summary>
         /// The duration of the encounter in seconds. Used for DPS calculation.
