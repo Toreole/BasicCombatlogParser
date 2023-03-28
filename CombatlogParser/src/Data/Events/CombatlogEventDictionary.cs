@@ -30,12 +30,17 @@ public class CombatlogEventDictionary
             return;
         dictionary.Add(type, arr);
     }
+
+    internal CombatlogEventDictionary()
+    {
+
+    }
 }
 
 /// <summary>
 /// A helper to construct CombatlogEventDictionaries. Allows user to add one event at a time.
 /// </summary>
-internal class CombatlogEventDictionaryBuilder
+public class CombatlogEventDictionaryBuilder
 {
     private readonly Dictionary<Type, IList> dictionary = new();
 

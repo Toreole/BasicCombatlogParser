@@ -14,7 +14,7 @@ Shoutout to the fandom wowpedia for providing an abundance of info about the var
 
 An example of what it looks like during development right now (for my character Bänger-Silvermoon):
 <p align="center">
-<img src="resources/early_dev_working_2023-03-19.png" />
+<img src="resources/early_dev_2023-03-29.png" />
 </p>
 
 ## Design in Code n stuff
