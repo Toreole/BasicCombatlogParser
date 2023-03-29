@@ -2,6 +2,7 @@
 using CombatlogParser.DBInteract;
 using System.Windows.Controls;
 using System.Windows.Data;
+using System.Windows.Media;
 
 namespace CombatlogParser.Controls;
 
@@ -141,6 +142,7 @@ public partial class PlayerMetadataView : UserControl
     {
         targetPlayer = player;
         PlayerName.Content = player.Name;
+        PlayerName.Foreground = player.ClassId.GetClassBrush();
         InitializeForCurrentRaid();
         SetupPerformanceListView();
         UpdatePerformanceList();

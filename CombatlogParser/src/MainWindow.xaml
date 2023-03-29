@@ -80,7 +80,7 @@
                     </ListView>
                 </Grid>
             </TabItem>
-            <TabItem Header="Test">
+            <TabItem Header="Active View">
                 <controls:PlayerMetadataView x:Name="PMView">
 
                 </controls:PlayerMetadataView>
