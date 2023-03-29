@@ -12,7 +12,7 @@ Fancier things like graphs are not planned as of now, but would be cool tho...
 
 Shoutout to the fandom wowpedia for providing an abundance of info about the various IDs and events in combat logs.
 
-An example of what it looks like during development right now (for my character Bänger-Silvermoon):
+An example of what it looks like during development right now (for my character Crowfield-Silvermoon):
 <p align="center">
 <img src="resources/early_dev_2023-03-29.png" />
 </p>
