@@ -72,6 +72,8 @@ namespace CombatlogParser
                 var matches = regex.Matches(line);
                 //logMetadata.logVersion = int.Parse(matches[1].Value);
                 advancedLogEnabled = logMetadata.IsAdvanced = matches[3].Value == "1";
+                if (!advancedLogEnabled)
+                    throw new Exception("Combatlogs without the 'Advanced' Setting enabled are not supported.");
                 logMetadata.BuildVersion = matches[5].Value;
                 logMetadata.ProjectID = (WowProjectID)int.Parse(matches[7].Value);
                 logMetadata.FileName = fileName;
@@ -96,7 +98,7 @@ namespace CombatlogParser
             for (int i = 0; i < encounterMetadatas.Count; i++)
             {
                 var currentPlayers = new List<PlayerMetadata>();
-                var parsedEncounter = ParseEncounter(encounterMetadatas[i], advancedLogEnabled, copiedLogPath);
+                var parsedEncounter = ParseEncounter(encounterMetadatas[i], copiedLogPath);
                 foreach(var player in parsedEncounter.Players)
                 {
                     if (player == null)
@@ -105,7 +107,7 @@ namespace CombatlogParser
                     currentPlayers.Add(newPlayer);
                 }
                 //process performances inside of the current encounter immediately.
-                var performances = ProcessPerformances(parsedEncounter, currentPlayers, encounterMetadatas[i].Id, advancedLogEnabled);
+                var performances = ProcessPerformances(parsedEncounter, currentPlayers, encounterMetadatas[i].Id);
                 foreach(var performance in performances)
                 {
                     if (performance == null)
@@ -179,7 +181,7 @@ namespace CombatlogParser
         /// <param name="filePath">The full file path to the combatlog.txt</param>
         /// <param name="advanced">Whether the log is using advanced parameters.</param>
         /// <returns></returns>
-        public static EncounterInfo ParseEncounter(EncounterInfoMetadata metadata, bool advanced = true, string ? filePath = null)
+        public static EncounterInfo ParseEncounter(EncounterInfoMetadata metadata, string ? filePath = null)
         {
             if (string.IsNullOrEmpty(filePath))
                 filePath = (metadata.CombatlogMetadata != null)?
@@ -403,9 +405,9 @@ namespace CombatlogParser
         /// <param name="encounterInfo"></param>
         /// <param name="advanced"></param>
         /// <returns></returns>
-        private static PerformanceMetadata[] ProcessPerformances(EncounterInfo encounterInfo, List<PlayerMetadata> playerMetadatas, uint encounterMetadataId, bool advanced)
+        private static PerformanceMetadata[] ProcessPerformances(EncounterInfo encounterInfo, List<PlayerMetadata> playerMetadatas, uint encounterMetadataId)
         {
-            if (!advanced || playerMetadatas.Count == 0)
+            if (playerMetadatas.Count == 0)
                 //TODO: Write to log that encounter cant be processed without advanced parameters.
                 return Array.Empty<PerformanceMetadata>();
             PerformanceMetadata[] result = new PerformanceMetadata[encounterInfo.GroupSize];

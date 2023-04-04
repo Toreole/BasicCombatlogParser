@@ -31,6 +31,7 @@ public partial class PlayerMetadataView : UserControl
 
     private EncounterId SelectedEncounter => encounters[Math.Max(BossSelectionComboBox.SelectedIndex, 0)];
     private DifficultyId SelectedDifficulty => Difficulties[Math.Max(DifficultySelectionComboBox.SelectedIndex, 0)];
+    private MetricType SelectedMetric => (MetricType) MetricSelectionComboBox.SelectedIndex;
 
     public PlayerMetadataView()
     {
@@ -40,6 +41,7 @@ public partial class PlayerMetadataView : UserControl
         InitializeRaidSelection();
         InitializeForCurrentRaid();
         DifficultySelectionComboBox.SelectedIndex = 0;
+        MetricSelectionComboBox.SelectedIndex = 0;
         SetupPerformanceListView();
         UpdatePerformanceList();
     }
@@ -84,13 +86,13 @@ public partial class PlayerMetadataView : UserControl
             {
                 if (boss == EncounterId.All_Bosses)
                     continue;
-                var data = Queries.GetPerformanceOverview(targetPlayer.Id, boss, difficulty);
+                var data = Queries.GetPerformanceOverview(targetPlayer.Id, boss, difficulty, SelectedMetric);
                 items.Add(data);
             }
         }
         else
         {
-            var data = Queries.GetPlayerPerformances(targetPlayer.Id, SelectedEncounter, difficulty);
+            var data = Queries.GetPlayerPerformances(targetPlayer.Id, SelectedEncounter, difficulty, SelectedMetric);
             foreach (var playerPerformance in data)
                 items.Add(playerPerformance);
         }
@@ -100,6 +102,7 @@ public partial class PlayerMetadataView : UserControl
     {
         var columns = PerformanceGridView.Columns;
         columns.Clear();
+        var metricString = SelectedMetric.ToString();
         if (SelectedEncounter == EncounterId.All_Bosses)
         {
             //see PlayerEncounterPerformanceOverview.cs
@@ -108,10 +111,10 @@ public partial class PlayerMetadataView : UserControl
                 new() { Header = "Boss", DisplayMemberBinding = new Binding("EncounterName") }
                 );
             columns.Add(
-                new() { Header = "Highest Dps", DisplayMemberBinding = new Binding("HighestMetricValue") }
+                new() { Header = $"Highest {metricString}", DisplayMemberBinding = new Binding("HighestMetricValue") }
                 );
             columns.Add(
-                new() { Header = "Median Dps", DisplayMemberBinding = new Binding("MedianMetricValue") }
+                new() { Header = $"Median {metricString}", DisplayMemberBinding = new Binding("MedianMetricValue") }
                 );
             columns.Add(
                 new() { Header = "Fastest Kill", DisplayMemberBinding = new Binding("FastestTime") }
@@ -127,7 +130,7 @@ public partial class PlayerMetadataView : UserControl
                 new() { Header = "Date", DisplayMemberBinding = new Binding("Date") }
                 );
             columns.Add(
-                new() { Header = "Dps", DisplayMemberBinding = new Binding("MetricValue") }
+                new() { Header = metricString, DisplayMemberBinding = new Binding("MetricValue") }
                 );
             columns.Add(
                 new() { Header = "Duration", DisplayMemberBinding = new Binding("Duration") }
@@ -161,6 +164,12 @@ public partial class PlayerMetadataView : UserControl
     }
 
     private void OnBossChanged(object sender, SelectionChangedEventArgs e)
+    {
+        SetupPerformanceListView();
+        UpdatePerformanceList();
+    }
+
+    private void OnMetricChanged(object sender, SelectionChangedEventArgs e)
     {
         SetupPerformanceListView();
         UpdatePerformanceList();

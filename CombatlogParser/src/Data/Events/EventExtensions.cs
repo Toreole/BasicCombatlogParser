@@ -65,4 +65,12 @@ public static class EventExtensions
         }
         return array;
     }
+
+    public static T? FirstOrDefault<T>(this ICollection<CombatlogEvent> sourceCollection, Predicate<T> condition) where T : class
+    {
+        foreach (var ev in sourceCollection)
+            if (ev is T validEvent && condition(validEvent))
+                return validEvent;
+        return null;
+    }
 }

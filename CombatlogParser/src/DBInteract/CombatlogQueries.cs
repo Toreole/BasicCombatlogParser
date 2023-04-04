@@ -109,7 +109,8 @@ public static partial class Queries
     public static PlayerEncounterPerformanceOverview GetPerformanceOverview(
         uint playerId,
         EncounterId encounter,
-        DifficultyId difficulty
+        DifficultyId difficulty,
+        MetricType metric
         )
     {
         using CombatlogDBContext context = new();
@@ -118,7 +119,14 @@ public static partial class Queries
             && p.EncounterInfoMetadata!.WowEncounterId == encounter
             && p.EncounterInfoMetadata!.Success
             && p.EncounterInfoMetadata!.DifficultyId == difficulty
-        ).OrderBy(p => p.Dps);
+        );
+        switch(metric)
+        {
+            case MetricType.Dps: matching.OrderBy(p => p.Dps);
+                break;
+            case MetricType.Hps: matching.OrderBy(p => p.Hps);
+                break;
+        }
         int count = matching.Count();
         if(count == 0)
         {
@@ -132,17 +140,29 @@ public static partial class Queries
         var fastest = matching.OrderBy(p => p.EncounterInfoMetadata!.EncounterDurationMS).First();
         //somehow fastest.EncounterInfoMetadata is null, so instead of bothering with figuring that out, just get it by id manually.
         var fastestEncounter = context.Encounters.Where(e => e.Id == fastest.EncounterInfoMetadataId).First();
+        string highestMetric = metric switch
+        {
+            MetricType.Dps => bestEntry.Dps.ToString("0.0"),
+            MetricType.Hps => bestEntry.Hps.ToString("0.0"),
+            _ => string.Empty,
+        };
+        string medianMetric = metric switch
+        {
+            MetricType.Dps => medianEntry.Dps.ToString("0.0"),
+            MetricType.Hps => medianEntry.Hps.ToString("0.0"),
+            _ => string.Empty,
+        };
         return new()
         {
             EncounterName = encounter.ToPrettyString(),
             FastestTime = ParsingUtil.MillisecondsToReadableTimeString((uint)fastestEncounter.EncounterDurationMS),
-            HighestMetricValue = bestEntry.Dps.ToString("0.0"),
-            MedianMetricValue = medianEntry.Dps.ToString("0.0"),
+            HighestMetricValue = highestMetric,
+            MedianMetricValue = medianMetric,
             KillCount = count.ToString()
         };
     }
 
-    public static PerformanceMetadata[] GetPerformances(
+    public static PerformanceMetadata[] GetDpsPerformances(
         uint playerId,
         EncounterId encounter,
         DifficultyId difficulty
@@ -157,13 +177,34 @@ public static partial class Queries
         ).OrderBy(p => p.Dps).ToArray();
     }
 
-    public static PlayerPerformance[] GetPlayerPerformances(
+    public static PerformanceMetadata[] GetHpsPerformances(
         uint playerId,
         EncounterId encounter,
         DifficultyId difficulty
         )
     {
-        var rawPerformances = GetPerformances( playerId, encounter, difficulty );
+        using CombatlogDBContext context = new();
+        return context.Performances.Where(p =>
+        p.PlayerMetadataId == playerId
+        && p.EncounterInfoMetadata!.WowEncounterId == encounter
+        && p.EncounterInfoMetadata!.DifficultyId == difficulty
+        && p.EncounterInfoMetadata!.Success
+        ).OrderBy(p => p.Hps).ToArray();
+    }
+
+    public static PlayerPerformance[] GetPlayerPerformances(
+        uint playerId,
+        EncounterId encounter,
+        DifficultyId difficulty,
+        MetricType metric
+        )
+    {
+        var rawPerformances = metric switch
+        {
+            MetricType.Dps => GetDpsPerformances(playerId, encounter, difficulty),
+            MetricType.Hps => GetHpsPerformances(playerId, encounter, difficulty),
+            _ => Array.Empty<PerformanceMetadata>()
+        };
         if (rawPerformances.Length == 0)
             return Array.Empty<PlayerPerformance>();
         var results = new PlayerPerformance[rawPerformances.Length];
@@ -172,12 +213,22 @@ public static partial class Queries
             using CombatlogDBContext context = new();
             var encounterMetadata = context.Encounters.Where(e => e.Id == rawPerformances[i].EncounterInfoMetadataId).First();
             var combatlogMetadata = context.Combatlogs.Where(c => c.Id == encounterMetadata.CombatlogMetadataId).First();
+
+            string durationString = ParsingUtil.MillisecondsToReadableTimeString((uint)encounterMetadata.EncounterDurationMS);
+            string dateString = DateTime.UnixEpoch.AddMilliseconds(combatlogMetadata.MsTimeStamp).ToShortDateString();
+            string ilvlString = rawPerformances[i].ItemLevel.ToString();
+            string metricString = metric switch
+            {
+                MetricType.Dps => rawPerformances[i].Dps.ToString("0.0"),
+                MetricType.Hps => rawPerformances[i].Hps.ToString("0.0"),
+                _ => string.Empty
+            };
             results[i] = new()
             {
-                MetricValue = rawPerformances[i].Dps.ToString("0.0"),
-                Duration = ParsingUtil.MillisecondsToReadableTimeString((uint)encounterMetadata.EncounterDurationMS),
-                Date = DateTime.UnixEpoch.AddMilliseconds(combatlogMetadata.MsTimeStamp).ToShortDateString(),
-                ItemLevel = rawPerformances[i].ItemLevel.ToString(),
+                MetricValue = metricString,
+                Duration = durationString,
+                Date = dateString,
+                ItemLevel = ilvlString,
             };
         }
         return results;
