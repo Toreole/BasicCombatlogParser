@@ -504,4 +504,14 @@ public static class ParsingUtil
         index = endIndex + 2;
         return data[startIndex..endIndex];
     }
+
+    public static string[] SplitArgumentString(string data, int startIndex)
+    {
+        List<string> result = new(30);
+        while(startIndex < data.Length)
+        {
+            result.Add(NextSubstring(data, ref startIndex));
+        }
+        return result.ToArray();
+    }
 }

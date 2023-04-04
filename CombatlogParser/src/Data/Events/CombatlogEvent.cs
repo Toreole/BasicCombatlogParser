@@ -66,8 +66,7 @@ namespace CombatlogParser.Data.Events
                 CombatlogEventSuffix._HEAL => new HealEvent(prefix, combatlogEntry, index),
                 //case CombatlogEventSuffix._HEAL_ABSORBED:
                 //    break;
-                //case CombatlogEventSuffix._ABSORBED:
-                //    break;
+                CombatlogEventSuffix._ABSORBED => new SpellAbsorbedEvent(combatlogEntry, index),
                 //case CombatlogEventSuffix._ENERGIZE:
                 //    break;
                 //case CombatlogEventSuffix._DRAIN:

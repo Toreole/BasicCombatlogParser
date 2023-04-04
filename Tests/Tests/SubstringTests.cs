@@ -183,5 +183,14 @@ namespace CombatlogParser.Tests
                 Assert.That(arrayB, Is.EqualTo("10, 20"));
             });
         }
+
+        [Test]
+        public void ArgumentSplitTest()
+        {
+            string line = "\"hello\",1234,\"name\",0x12";
+            string[] expected = { "1234", "name", "0x12" };
+            string[] actual = ParsingUtil.SplitArgumentString(line, 8);
+            Assert.That(actual, Is.EquivalentTo(expected));
+        }
     }
 }
