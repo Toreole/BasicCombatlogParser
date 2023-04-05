@@ -480,18 +480,28 @@ namespace CombatlogParser
 
                 }
             }
+            //HEALING 
             //add together all the healing events.
             foreach(var ev in encounterInfo.CombatlogEventDictionary.GetEvents<HealEvent>())
             {
                 if (result.TryGetByGUID(ev.SourceGUID, out var perf))
                 {
-                    perf!.Hps += ev.Amount + ev.Absorbed;
+                    perf!.Hps += ev.Amount + ev.Absorbed - ev.Overheal;
                 }
                 else //source is not player, but a pet/guardian/npc summoned by a player that could not be identified to belong to a player.
                 {
 
                 }
             }
+            //add absorb
+            foreach(var absorbEvent in encounterInfo.CombatlogEventDictionary.GetEvents<SpellAbsorbedEvent>())
+            {
+                if(result.TryGetByGUID(absorbEvent.AbsorbCasterGUID, out var performance))
+                {
+                    performance!.Hps += absorbEvent.AbsorbedAmount;
+                }
+            }
+
             foreach(var performance in result)
             {
                 if (performance is null) continue;
