@@ -454,17 +454,17 @@ namespace CombatlogParser
                 if (sourceToOwnerGUID.ContainsKey(sourceGUID) == false)
                     sourceToOwnerGUID.Add(sourceGUID, owner[0] == '0' ? sourceGUID : owner);
             }
-
+            //source is friendly or neutral (belongs to the raid/party)
             var allySource = new AnyOfFilter(
                     new SourceFlagFilter(UnitFlag.COMBATLOG_OBJECT_REACTION_FRIENDLY),
                     new SourceFlagFilter(UnitFlag.COMBATLOG_OBJECT_REACTION_NEUTRAL)
                 );
-            var damageEvents = encounterInfo.CombatlogEventDictionary.GetEvents<DamageEvent>().AllThatMatch(
-                new AllOfFilter(
-                    allySource,                  //where the source is friendly or neutral (belongs to the raid/party)
+            var allySourceEnemyTargetFilter = new AllOfFilter(
+                    allySource,
                     new TargetFlagFilter(UnitFlag.COMBATLOG_OBJECT_REACTION_HOSTILE) //and the target is hostile.
-                )
                 );
+            var damageEvents = encounterInfo.CombatlogEventDictionary.GetEvents<DamageEvent>()
+                .Where(allySourceEnemyTargetFilter.Match);
             //add together all the damage events.
             foreach (var ev in damageEvents)
             {
