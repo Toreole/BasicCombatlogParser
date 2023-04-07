@@ -1,0 +1,72 @@
+﻿<UserControl x:Class="CombatlogParser.src.Controls.TestList"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:CombatlogParser.Controls"
+             xmlns:controls="clr-namespace:CombatlogParser.Controls"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <DataGrid d:ItemsSource="{d:SampleData ItemCount=2}" x:Name="DataGrid" AutoGenerateColumns="False" IsReadOnly="True" CanUserReorderColumns="False" MinColumnWidth="80" >
+        <DataGrid.RowStyle>
+            <Style TargetType="DataGridRow">
+                <Style.Triggers>
+                    <Trigger Property="ItemsControl.AlternationIndex" Value="0">
+                        <Setter Property="Background" Value="#1f1f1f"/>
+                    </Trigger>
+                    <Trigger Property="ItemsControl.AlternationIndex" Value="1">
+                        <Setter Property="Background" Value="#2f2f2f"/>
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+        </DataGrid.RowStyle>
+        <DataGrid.Style>
+            <Style TargetType="DataGrid">
+                <Setter Property="GridLinesVisibility" Value="All" />
+                <Setter Property="HorizontalGridLinesBrush" Value="DarkGray"/>
+                <Setter Property="VerticalGridLinesBrush" Value="DarkGray"/>
+                <Setter Property="AlternationCount" Value="2"/>
+            </Style>
+        </DataGrid.Style>
+        <DataGrid.CellStyle>
+            <Style TargetType="DataGridCell">
+                <Setter Property="BorderThickness" Value="0" />
+            </Style>
+        </DataGrid.CellStyle>
+        <DataGrid.Columns>
+            <DataGridTextColumn Header="PlayerName" Width="120" Binding="{Binding Path=Name}">
+                <DataGridTextColumn.ElementStyle>
+                    <Style TargetType="TextBlock">
+                        <Setter Property="Foreground" Value="{Binding Path=Color}" />
+                        <Setter Property="VerticalAlignment" Value="Center"/>
+                        <Setter Property="Padding" Value="3 0 0 0" />
+                    </Style>
+                </DataGridTextColumn.ElementStyle>
+            </DataGridTextColumn>
+            <DataGridTemplateColumn Header="Damage Done" Width="*" SortMemberPath="Value">
+                <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate>
+                        <controls:LabelledBarControl Value="{Binding Path=Value}" Maximum="{Binding Path=Maximum}" FillColor="{Binding Path=Color}" TextColor="White"/>
+                    </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+            <DataGridTextColumn Header="DPS" Width="100" Binding="{Binding Path=ValueString}" SortMemberPath="Value">
+                <DataGridTextColumn.ElementStyle>
+                    <Style TargetType="TextBlock">
+                        <Setter Property="HorizontalAlignment" Value="Right" />
+                        <Setter Property="VerticalAlignment" Value="Center" />
+                        <Setter Property="Foreground" Value="White" />
+                        <Setter Property="Padding" Value="0 0 2 0" />
+                    </Style>
+                </DataGridTextColumn.ElementStyle>
+            </DataGridTextColumn>
+            <DataGridTemplateColumn Header="Actions">
+                <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate>
+                        <Button x:Name="Inspect" Click="ButtonClicked" Tag="{Binding Path=Value}">Inspect</Button>
+                    </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+        </DataGrid.Columns>
+    </DataGrid>
+</UserControl>

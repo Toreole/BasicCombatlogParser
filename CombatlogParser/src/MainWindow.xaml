@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:CombatlogParser"
         xmlns:controls="clr-namespace:CombatlogParser.Controls"
+        xmlns:test="clr-namespace:CombatlogParser.src.Controls"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="1100">
     <Window.Resources>
@@ -85,7 +86,9 @@
 
                 </controls:PlayerMetadataView>
             </TabItem>
-
+            <TabItem Header="Test GridData">
+                <test:TestList />
+            </TabItem>
         </TabControl>
         <!--<ComboBox x:Name="EncounterSelection" HorizontalAlignment="Left" Margin="220,21,0,0" VerticalAlignment="Top" Width="330"/>-->
     </Grid>
