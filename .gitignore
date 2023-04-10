@@ -350,3 +350,5 @@ MigrationBackup/
 
 # The SQLite .db that is created by EFCore Migrations inside Visual Studio
 *.db
+*.db-shm
+*.db-wal

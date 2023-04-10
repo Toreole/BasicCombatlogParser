@@ -7,32 +7,10 @@
              xmlns:controls="clr-namespace:CombatlogParser.Controls"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
+    <UserControl.Resources>
+        <ResourceDictionary Source="Styles/DefaultStyleOverrides.xaml"/>
+    </UserControl.Resources>
     <DataGrid d:ItemsSource="{d:SampleData ItemCount=2}" x:Name="DataGrid" AutoGenerateColumns="False" IsReadOnly="True" CanUserReorderColumns="False" MinColumnWidth="80" >
-        <DataGrid.RowStyle>
-            <Style TargetType="DataGridRow">
-                <Style.Triggers>
-                    <Trigger Property="ItemsControl.AlternationIndex" Value="0">
-                        <Setter Property="Background" Value="#1f1f1f"/>
-                    </Trigger>
-                    <Trigger Property="ItemsControl.AlternationIndex" Value="1">
-                        <Setter Property="Background" Value="#2f2f2f"/>
-                    </Trigger>
-                </Style.Triggers>
-            </Style>
-        </DataGrid.RowStyle>
-        <DataGrid.Style>
-            <Style TargetType="DataGrid">
-                <Setter Property="GridLinesVisibility" Value="All" />
-                <Setter Property="HorizontalGridLinesBrush" Value="DarkGray"/>
-                <Setter Property="VerticalGridLinesBrush" Value="DarkGray"/>
-                <Setter Property="AlternationCount" Value="2"/>
-            </Style>
-        </DataGrid.Style>
-        <DataGrid.CellStyle>
-            <Style TargetType="DataGridCell">
-                <Setter Property="BorderThickness" Value="0" />
-            </Style>
-        </DataGrid.CellStyle>
         <DataGrid.Columns>
             <DataGridTextColumn Header="PlayerName" Width="120" Binding="{Binding Path=Name}">
                 <DataGridTextColumn.ElementStyle>
@@ -55,7 +33,6 @@
                     <Style TargetType="TextBlock">
                         <Setter Property="HorizontalAlignment" Value="Right" />
                         <Setter Property="VerticalAlignment" Value="Center" />
-                        <Setter Property="Foreground" Value="White" />
                         <Setter Property="Padding" Value="0 0 2 0" />
                     </Style>
                 </DataGridTextColumn.ElementStyle>
