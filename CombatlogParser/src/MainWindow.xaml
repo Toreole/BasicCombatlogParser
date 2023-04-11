@@ -9,7 +9,7 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="1100">
     <Window.Resources>
-        
+        <ResourceDictionary Source="Controls/Styles/DefaultStyleOverrides.xaml" />
     </Window.Resources>
     <Grid>
         <Label x:Name="HeaderLabel" Content="Combatlog Viewer" HorizontalAlignment="Left" VerticalAlignment="Top" FontSize="20" FontWeight="Bold" Margin="10,10,0,0"/>
@@ -17,6 +17,9 @@
         <ComboBox x:Name="PlayerSearchBox" Margin="199,10,0,0" IsEditable="True" SelectionChanged="PlayerSearchSelectionChanged" TextBoxBase.TextChanged="PlayerSearchTextChanged" Width="225" Height="30" HorizontalAlignment="Left" VerticalAlignment="Top"/>
         <TabControl Margin="0,76,0,0" Width="1093">
             <TabItem Header="Combatlogs">
+                <!--<DataGrid x:Name="CombatlogListView" AutoGenerateColumns="True" IsReadOnly="True">
+                    
+                </DataGrid>-->
                 <ListView x:Name="CombatlogListView" d:ItemsSource="{d:SampleData ItemCount=2}">
                     <ListView.View>
                         <GridView>
@@ -53,8 +56,8 @@
                                 <GridViewColumn Header="PlayerId" DisplayMemberBinding="{Binding Path=PlayerMetadataId}" />
                                 <GridViewColumn Header="WowId" DisplayMemberBinding="{Binding Path=WowEncounterId}" />
                                 <GridViewColumn Header="Spec" DisplayMemberBinding="{Binding Path=SpecId}" />
-                                <GridViewColumn Header="DPS" DisplayMemberBinding="{Binding Path=Dps}" />
-                                <GridViewColumn Header="HPS" DisplayMemberBinding="{Binding Path=Hps}" />
+                                <GridViewColumn Header="DPS" DisplayMemberBinding="{Binding Path=Dps, StringFormat=N1}" />
+                                <GridViewColumn Header="HPS" DisplayMemberBinding="{Binding Path=Hps, StringFormat=N1}" />
                             </GridView>
                         </ListView.View>
                     </ListView>
@@ -66,7 +69,7 @@
                     <ListView x:Name="PlayersListView" d:ItemsSource="{d:SampleData ItemCount=4}" Margin="0,40,0,0">
                         <ListView.View>
                             <GridView>
-                                <GridViewColumn Header="Id" DisplayMemberBinding="{Binding Path=Id}" />
+                                <GridViewColumn Header="Id" DisplayMemberBinding="{Binding Path=Id}"/>
                                 <GridViewColumn Header="Name" DisplayMemberBinding="{Binding Path=Name}" />
                                 <GridViewColumn Header="Realm" DisplayMemberBinding="{Binding Path=Realm}" />
                                 <GridViewColumn Header="Class" DisplayMemberBinding="{Binding Path=ClassId}" />

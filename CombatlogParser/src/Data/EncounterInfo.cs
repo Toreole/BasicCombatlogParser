@@ -74,32 +74,6 @@ namespace CombatlogParser.Data
             get => EncounterDuration / 1000;
         }
 
-        /// <summary>
-        /// Gets all events that match the provided filters.
-        /// </summary>
-        /// <exception cref="ArgumentException">filters must not be empty</exception>
-        public CombatlogEvent[] AllEventsThatMatch(params IEventFilter[] filters)
-        {
-            if (filters.Length == 0)
-                throw new ArgumentException("argument 'filters' must not be empty.");
-            //make the match too big at first 
-            CombatlogEvent[] matchingEvents = new CombatlogEvent[CombatlogEvents.Length];
-            int matchingCount = 0;
-            foreach(CombatlogEvent ev in CombatlogEvents)
-            {
-                foreach (var filter in filters)
-                {
-                    if (filter.Match(ev) == false)
-                        goto nextOuter; //skip to end of outer foreach. continue doesnt work here
-                }
-                matchingEvents[matchingCount] = ev;
-                matchingCount++;
-            nextOuter:
-                continue;
-            }
-            return matchingEvents[0..matchingCount];
-        }
-
         public CombatlogEvent? FirstEventForGUID(string guid)
         {
             foreach (var e in CombatlogEvents)

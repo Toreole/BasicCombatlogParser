@@ -24,7 +24,6 @@
             </Setter.Value>
         </Setter>
     </Style>
-    
     <Style TargetType="{x:Type DataGridRow}">
         <Style.Triggers>
             <Trigger Property="ItemsControl.AlternationIndex" Value="0">
@@ -34,5 +33,29 @@
                 <Setter Property="Background" Value="#2f2f2f"/>
             </Trigger>
         </Style.Triggers>
+    </Style>
+
+    <Style TargetType="{x:Type ListView}">
+        <Setter Property="AlternationCount" Value="2"/>
+        <Setter Property="Foreground" Value="White"/>
+    </Style>
+    <Style TargetType="{x:Type ListViewItem}">
+        <Setter Property="Margin" Value="0 0 0 0" />
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="UseLayoutRounding" Value="False" />
+        <Setter Property="Padding" Value="0 5 0 0" />
+        <Setter Property="MinHeight" Value="25" />
+        <Style.Triggers>
+            <Trigger Property="ItemsControl.AlternationIndex" Value="0">
+                <Setter Property="Background" Value="#1f1f1f"/>
+            </Trigger>
+            <Trigger Property="ItemsControl.AlternationIndex" Value="1">
+                <Setter Property="Background" Value="#2f2f2f"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+    <Style TargetType="{x:Type GridViewColumnHeader}">
+        <Setter Property="Foreground" Value="White"/>
+        <Setter Property="Background" Value="#111111"/>
     </Style>
 </ResourceDictionary>
