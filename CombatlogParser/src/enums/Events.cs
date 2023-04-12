@@ -8,6 +8,7 @@
         HEALING = 2,
         SUMMON = 3,
         SPELL_ABSORBED = 4,
+        CAST_SUCCESS = 5,
     }
 
     /// <summary>

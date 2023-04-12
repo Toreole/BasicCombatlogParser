@@ -6,8 +6,8 @@ namespace CombatlogParser.Data.Events
     {
         //the leading bits of data.
         public int spellId;
-        public string spellName { get; private set; } //these get/set properties are a temporary measure to display stuff on-screen.
-        public SpellSchool spellSchool { get; private set; }
+        public string spellName; //these get/set properties are a temporary measure to display stuff on-screen.
+        public SpellSchool spellSchool;
 
         //advanced params. these are optional.
         public AdvancedParams advancedParams;
@@ -44,9 +44,7 @@ namespace CombatlogParser.Data.Events
             //}
             else //is CombatlogEventPrefix.SPELL
             {
-                spellId = int.Parse(NextSubstring(entry, ref dataIndex));
-                spellName = NextSubstring(entry, ref dataIndex);
-                spellSchool = (SpellSchool)HexStringToUInt(NextSubstring(entry, ref dataIndex));
+                GetSpellPrefixData(entry, ref dataIndex, out spellId, out spellName, out spellSchool);
             }
             advancedParams = new(entry, ref dataIndex);
 

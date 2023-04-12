@@ -3,11 +3,9 @@
 /// <summary>
 /// Holds the Info about a player based on the COMBATANT_INFO log event.
 /// </summary>
-public class PlayerInfo
+public class PlayerInfo : CombatlogUnit
 {
-    public string Name { get; set; } = string.Empty;
     public string Realm { get; set; } = string.Empty;
-    public string GUID { get; set; } = string.Empty;
     public int Strength { get; set; }
     public int Agility { get; set; }
     public int Stamina { get; set; }
@@ -22,7 +20,7 @@ public class PlayerInfo
         int seperator = sourceName.IndexOf('-');
         if(seperator != -1)
         {
-            Name = sourceName[..seperator];
+            this.Name = sourceName[..seperator];
             Realm = sourceName[(seperator+1)..];
         }
         else

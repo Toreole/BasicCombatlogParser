@@ -99,7 +99,7 @@ namespace CombatlogParser.Data.Events
                 //    break;
                 //case CombatlogEventSuffix._CAST_START:
                 //    break;
-                //case CombatlogEventSuffix._CAST_SUCCESS:
+                CombatlogEventSuffix._CAST_SUCCESS => new CastSuccessEvent(combatlogEntry, index),
                 //    break;
                 //case CombatlogEventSuffix._CAST_FAILED:
                 //    break;
@@ -131,6 +131,13 @@ namespace CombatlogParser.Data.Events
                 _ or CombatlogEventSuffix.UNDEFINED => null
             };
             return ev;
+        }
+
+        protected void GetSpellPrefixData(string entry, ref int index, out int spellId, out string spellName, out SpellSchool spellSchool)
+        {
+            spellId = int.Parse(NextSubstring(entry, ref index));
+            spellName = NextSubstring(entry, ref index);
+            spellSchool = (SpellSchool)HexStringToUInt(NextSubstring(entry, ref index));
         }
     }
 
