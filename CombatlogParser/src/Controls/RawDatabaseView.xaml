@@ -3,10 +3,86 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:local="clr-namespace:CombatlogParser.Controls"
+             xmlns:controls="clr-namespace:CombatlogParser.Controls"
+             xmlns:test="clr-namespace:CombatlogParser.src.Controls"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
+    <UserControl.Resources>
+        <d:ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Styles/DefaultStyleOverrides.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </d:ResourceDictionary>
+    </UserControl.Resources>
     <Grid>
-            
+        <TabControl Margin="0,0,0,0" Width="Auto">
+            <TabItem Header="Combatlogs">
+                <ListView x:Name="CombatlogListView" d:ItemsSource="{d:SampleData ItemCount=2}" Height="Auto">
+                    <ListView.View>
+                        <GridView>
+                            <GridViewColumn Header="Id" DisplayMemberBinding="{Binding Path=Id}" />
+                            <GridViewColumn Header="File" DisplayMemberBinding="{Binding Path=FileName}" />
+                            <GridViewColumn Header="WoW Part" DisplayMemberBinding="{Binding Path=ProjectID}" />
+                            <GridViewColumn Header="Build Version" DisplayMemberBinding="{Binding Path=BuildVersion}" />
+                        </GridView>
+                    </ListView.View>
+                </ListView>
+            </TabItem>
+            <TabItem Header="Encounters">
+                <ListView x:Name="EncounterInfoListView" d:ItemsSource="{d:SampleData ItemCount=4}">
+                    <ListView.View>
+                        <GridView>
+                            <GridViewColumn Header="Id" DisplayMemberBinding="{Binding Path=Id}" />
+                            <GridViewColumn Header="Log Id" DisplayMemberBinding="{Binding Path=CombatlogMetadataId}" />
+                            <GridViewColumn Header="EncounterId" DisplayMemberBinding="{Binding Path=WowEncounterId}" />
+                            <GridViewColumn Header="Difficulty" DisplayMemberBinding="{Binding Path=DifficultyId}" />
+                            <GridViewColumn Header="Success" DisplayMemberBinding="{Binding Path=Success}" />
+                            <GridViewColumn Header="Duration" DisplayMemberBinding="{Binding Path=EncounterDurationMS}" />
+                        </GridView>
+                    </ListView.View>
+                </ListView>
+            </TabItem>
+            <TabItem Header="Performances">
+                <Grid>
+                    <Button x:Name="NextPageButton" Content="Next" HorizontalAlignment="Right" VerticalAlignment="Top" Width="51" Height="23" Click="NextPageButton_Click" Margin="734,0,0,0"/>
+                    <ListView x:Name="PerformancesListView" d:ItemsSource="{d:SampleData ItemCount=4}">
+                        <ListView.View>
+                            <GridView>
+                                <GridViewColumn Header="Id" DisplayMemberBinding="{Binding Path=Id}" />
+                                <GridViewColumn Header="EncounterId" DisplayMemberBinding="{Binding Path=EncounterInfoMetadataId}" />
+                                <GridViewColumn Header="PlayerId" DisplayMemberBinding="{Binding Path=PlayerMetadataId}" />
+                                <GridViewColumn Header="WowId" DisplayMemberBinding="{Binding Path=WowEncounterId}" />
+                                <GridViewColumn Header="Spec" DisplayMemberBinding="{Binding Path=SpecId}" />
+                                <GridViewColumn Header="DPS" DisplayMemberBinding="{Binding Path=Dps, StringFormat=N1}" />
+                                <GridViewColumn Header="HPS" DisplayMemberBinding="{Binding Path=Hps, StringFormat=N1}" />
+                            </GridView>
+                        </ListView.View>
+                    </ListView>
+                </Grid>
+            </TabItem>
+            <TabItem Header="Players">
+                <Grid>
+                    <TextBox x:Name="PlayerSearch" TextWrapping="Wrap" Text="TextBox" Width="150" Height="30" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,10,0,0" UndoLimit="0" TextChanged="PlayerSearch_TextChanged"/>
+                    <ListView x:Name="PlayersListView" d:ItemsSource="{d:SampleData ItemCount=4}" Margin="0,40,0,0">
+                        <ListView.View>
+                            <GridView>
+                                <GridViewColumn Header="Id" DisplayMemberBinding="{Binding Path=Id}"/>
+                                <GridViewColumn Header="Name" DisplayMemberBinding="{Binding Path=Name}" />
+                                <GridViewColumn Header="Realm" DisplayMemberBinding="{Binding Path=Realm}" />
+                                <GridViewColumn Header="Class" DisplayMemberBinding="{Binding Path=ClassId}" />
+                            </GridView>
+                        </ListView.View>
+                    </ListView>
+                </Grid>
+            </TabItem>
+            <!--<TabItem Header="Active View">
+                <controls:PlayerMetadataView x:Name="PMView">
+
+                </controls:PlayerMetadataView>
+            </TabItem>
+            <TabItem Header="Test GridData">
+                <test:TestList />
+            </TabItem>-->
+        </TabControl>
     </Grid>
 </UserControl>

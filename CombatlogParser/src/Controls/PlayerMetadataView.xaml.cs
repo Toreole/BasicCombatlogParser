@@ -46,6 +46,11 @@ public partial class PlayerMetadataView : UserControl
         UpdatePerformanceList();
     }
 
+    public PlayerMetadataView(PlayerMetadata playerMetadata) : this()
+    {
+        this.SetPlayer(playerMetadata);
+    }
+
     private void InitializeRaidSelection()
     {
         var items = RaidSelectionComboBox.Items;
