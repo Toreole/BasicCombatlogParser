@@ -35,7 +35,8 @@
                 </Rectangle.Fill>
             </Rectangle>
             <Label x:Name="HeaderLabel" Content="Combatlog Viewer" HorizontalAlignment="Left" VerticalAlignment="Top" FontSize="20" FontWeight="Bold" Width="194" />
-
+            <Button x:Name="ImportLogButton" Click="ImportLogButtonClicked" HorizontalAlignment="Right" VerticalAlignment="Top" Width="150" Height="30" FontSize="15" Margin="0,10,10,0">Import Combatlog</Button>
+            <Button x:Name="DBViewButton" HorizontalAlignment="Right" VerticalAlignment="Top" Content="DB View" Margin="0,16,180,0" Click="DBViewButton_Click"/>
             <ComboBox x:Name="PlayerSearchBox" Margin="199,10,0,0" IsEditable="True" SelectionChanged="PlayerSearchSelectionChanged" TextBoxBase.TextChanged="PlayerSearchTextChanged" Width="225" Height="30" HorizontalAlignment="Left" VerticalAlignment="Top"/>
 
             <ContentControl x:Name="MainContentControl" Margin="0,50,0,0">

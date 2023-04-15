@@ -151,10 +151,10 @@ namespace CombatlogParser.Data.Events
         public readonly int spellPower;
         public readonly int armor;
         public readonly int absorb;
-        public readonly PowerType powerType;
-        public readonly int currentPower;
-        public readonly int maxPower;
-        public readonly int powerCost;
+        public readonly PowerType[] powerType;
+        public readonly int[] currentPower;
+        public readonly int[] maxPower;
+        public readonly int[] powerCost;
         public readonly float positionX;
         public readonly float positionY;
         public readonly int uiMapID;
@@ -171,10 +171,11 @@ namespace CombatlogParser.Data.Events
             spellPower = int.Parse(NextSubstring(data, ref dataIndex));
             armor = int.Parse(NextSubstring(data, ref dataIndex));
             absorb = int.Parse(NextSubstring(data, ref dataIndex));
-            powerType = (PowerType)int.Parse(NextSubstring(data, ref dataIndex));
-            currentPower = int.Parse(NextSubstring(data, ref dataIndex));
-            maxPower = int.Parse(NextSubstring(data, ref dataIndex));
-            powerCost = int.Parse(NextSubstring(data, ref dataIndex));
+            
+            powerType = AllPowerTypesIn(NextSubstring(data, ref dataIndex));
+            currentPower = AllIntsIn(NextSubstring(data, ref dataIndex));
+            maxPower = AllIntsIn(NextSubstring(data, ref dataIndex));
+            powerCost = AllIntsIn(NextSubstring(data, ref dataIndex));
             positionX = float.Parse(NextSubstring(data, ref dataIndex));
             positionY = float.Parse(NextSubstring(data, ref dataIndex));
             uiMapID = int.Parse(NextSubstring(data, ref dataIndex));

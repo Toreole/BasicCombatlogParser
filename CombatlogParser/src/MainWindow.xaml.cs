@@ -71,6 +71,7 @@ public partial class MainWindow : Window
                 this.DragMove();
             }
     }
+
     private void AdjustWindowSize()
     {
         if (this.WindowState == WindowState.Maximized)
@@ -83,6 +84,27 @@ public partial class MainWindow : Window
             this.WindowState = WindowState.Maximized;
             //MaxButton.Content = "2";
         }
+    }
 
+    private void ImportLogButtonClicked(object sender, RoutedEventArgs e)
+    {
+        e.Handled = true;
+        var dialog = new Microsoft.Win32.OpenFileDialog
+        {
+            FileName = System.IO.Path.Combine(Config.Default.WoW_Log_Directories, "Combatlog"),
+            DefaultExt = ".txt",
+            Filter = "Logs (.txt)|*.txt"
+        };
+
+        bool? result = dialog.ShowDialog();
+        if (result == true)
+            CombatLogParser.ImportCombatlog(dialog.FileName);
+    }
+
+    private void DBViewButton_Click(object sender, RoutedEventArgs e)
+    {
+        e.Handled = true;
+        if (MainContentControl.Content is not RawDatabaseView)
+            MainContentControl.Content = new RawDatabaseView();
     }
 }
