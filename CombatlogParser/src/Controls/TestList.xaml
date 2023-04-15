@@ -8,7 +8,7 @@
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <UserControl.Resources>
-        <ResourceDictionary Source="Styles/DefaultStyleOverrides.xaml"/>
+        <d:ResourceDictionary Source="Styles/DefaultStyleOverrides.xaml"/>
     </UserControl.Resources>
     <DataGrid d:ItemsSource="{d:SampleData ItemCount=2}" x:Name="DataGrid" AutoGenerateColumns="False" IsReadOnly="True" CanUserReorderColumns="False" MinColumnWidth="80" >
         <DataGrid.Columns>
