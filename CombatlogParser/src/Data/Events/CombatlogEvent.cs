@@ -133,7 +133,7 @@ namespace CombatlogParser.Data.Events
             return ev;
         }
 
-        protected void GetSpellPrefixData(string entry, ref int index, out int spellId, out string spellName, out SpellSchool spellSchool)
+        protected static void GetSpellPrefixData(string entry, ref int index, out int spellId, out string spellName, out SpellSchool spellSchool)
         {
             spellId = int.Parse(NextSubstring(entry, ref index));
             spellName = NextSubstring(entry, ref index);

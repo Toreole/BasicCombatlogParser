@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿using CombatlogParser.Formatting;
+using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -76,7 +77,7 @@ namespace CombatlogParser.Controls
             set
             {
                 FillBar.Value = value;
-                AmountLabel.Content = value.ToString("0.0");
+                AmountLabel.Content = value.ToShortFormString();
             }
         }
 
