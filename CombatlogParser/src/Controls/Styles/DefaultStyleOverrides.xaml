@@ -39,6 +39,7 @@
         </Setter>
     </Style>
     <Style TargetType="{x:Type DataGrid}">
+        <Setter Property="HeadersVisibility" Value="Column" />
         <Setter Property="AlternationCount" Value="2" />
         <Setter Property="Foreground" Value="White" />
         <Setter Property="GridLinesVisibility" Value="All" />
