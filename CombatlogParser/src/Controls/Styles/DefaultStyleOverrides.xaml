@@ -3,9 +3,14 @@
     <ResourceDictionary.MergedDictionaries>
         <ResourceDictionary Source="CustomColors.xaml" />
     </ResourceDictionary.MergedDictionaries>
-    
+
     <Style TargetType="{x:Type TextBlock}">
         <Setter Property="Foreground" Value="White"/>
+    </Style>
+    <Style x:Key="text-right-center" TargetType="{x:Type TextBlock}" BasedOn="{StaticResource {x:Type TextBlock}}">
+        <Setter Property="HorizontalAlignment" Value="Right" />
+        <Setter Property="Padding" Value="0 0 2 0" />
+        <Setter Property="VerticalAlignment" Value="Center" />
     </Style>
     <Style TargetType="{x:Type Label}">
         <Setter Property="Foreground" Value="White"/>
@@ -85,6 +90,18 @@
         <Setter Property="UseLayoutRounding" Value="False" />
         <Setter Property="Padding" Value="0 5 0 0" />
         <Setter Property="MinHeight" Value="25" />
+        <Setter Property="Template"> <!--this template just removes the highlight from hover/selection-->
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type ListViewItem}">
+                    <Border
+                         BorderBrush="Transparent"
+                         BorderThickness="0"
+                         Background="{TemplateBinding Background}">
+                        <GridViewRowPresenter HorizontalAlignment="Stretch" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" Width="Auto" Margin="0" Content="{TemplateBinding Content}"/>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
         <Style.Triggers>
             <Trigger Property="ItemsControl.AlternationIndex" Value="0">
                 <Setter Property="Background" Value="#1f1f1f"/>
