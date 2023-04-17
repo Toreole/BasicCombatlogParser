@@ -1,4 +1,5 @@
 ﻿using CombatlogParser.Controls;
+using CombatlogParser.Data;
 using System;
 using System.Windows;
 using System.Windows.Controls;
@@ -6,6 +7,7 @@ using System.Windows.Media;
 using CombatlogParser.Data.DisplayReady;
 using CombatlogParser.DBInteract;
 using CombatlogParser.Data.Metadata;
+using CombatlogParser.Data.Events;
 
 namespace CombatlogParser.src.Controls
 {
@@ -14,41 +16,88 @@ namespace CombatlogParser.src.Controls
     /// </summary>
     public partial class TestList : UserControl
     {
+        private bool nameColumnActive = false;
+
         public TestList()
         {
             InitializeComponent();
-
-            GetData();
+            //GetData();
+            //DataGrid.Columns.Remove(this.NameColumn);
             //AddRandomSampleData();
         }
 
-        private void GetData()
+        public void GetData(EncounterInfoMetadata encounterInfoMetadata)
+        {
+            DataGrid.Items.Clear();
+
+            EncounterInfo encounterInfo = CombatLogParser.ParseEncounter(encounterInfoMetadata);
+
+            Dictionary<string, long> damageBySource = new();
+            var damageEvents = encounterInfo.CombatlogEventDictionary.GetEvents<DamageEvent>();
+            var filter = new TargetFlagFilter(UnitFlag.COMBATLOG_OBJECT_REACTION_HOSTILE);
+            foreach (var dmgEvent in damageEvents.Where(filter.Match))
+            {
+                string? actualSource;
+                if (!encounterInfo.SourceToOwnerGuidLookup.TryGetValue(dmgEvent.SourceGUID, out actualSource))
+                    actualSource = dmgEvent.SourceGUID;
+                if (damageBySource.ContainsKey(actualSource))
+                    damageBySource[actualSource] += dmgEvent.Amount;
+                else
+                    damageBySource[actualSource] = dmgEvent.Amount;
+            }
+            (string sourceGuid, string sourceName, long damage)[] results = new (string, string, long)[damageBySource.Count];
+            int i = 0;
+            long totalDamage = 0;
+            foreach (var pair in damageBySource.OrderByDescending(x => x.Value))
+            {
+                results[i] = (
+                    pair.Key,
+                    encounterInfo.CombatlogEvents.First(x => x.SourceGUID == pair.Key).SourceName,
+                    pair.Value
+                );
+                totalDamage += pair.Value;
+                i++;
+            }
+
+            var encounterLength = encounterInfo.LengthInSeconds;
+            NamedValueBarData[] displayData = new NamedValueBarData[results.Length];
+            long maxDamage = results[0].damage;
+            for (i = 0; i < displayData.Length; i++)
+            {
+                PlayerInfo? player = encounterInfo.FindPlayerInfoByGUID(results[i].sourceGuid);
+                if (player != null)
+                {
+                    displayData[i] = new()
+                    {
+                        Name = player.Name,
+                        Color = player.Class.GetClassBrush(),
+                        Maximum = maxDamage,
+                        Value = results[i].damage,
+                        ValueString = (results[i].damage / encounterLength).ToString("N1")
+                    };
+                }
+                else
+                {
+                    displayData[i] = new()
+                    {
+                        Name = results[i].sourceName,
+                        Color = Brushes.Red,
+                        Maximum = maxDamage,
+                        Value = results[i].damage,
+                        ValueString = (results[i].damage / encounterLength).ToString("N1")
+                    };
+                }
+            }
+            foreach (var entry in displayData)
+                DataGrid.Items.Add(entry);
+        }
+
+        public void GetData()
         {
             using CombatlogDBContext dbContext = new();
-            EncounterInfoMetadata firstKill = dbContext.Encounters
+            EncounterInfoMetadata encounterInfoMetadata = dbContext.Encounters
                 .Where(x => x.Success).First();
-            PerformanceMetadata[] performances = dbContext.Performances
-                .Where(x => x.EncounterInfoMetadataId == firstKill.Id).ToArray();
-            PlayerMetadata[] players = new PlayerMetadata[performances.Length];
-            for (int i = 0; i < players.Length; i++)
-                players[i] = dbContext.Players.Where(x => x.Id == performances[i].PlayerMetadataId).First();
-
-            var encounterLength = (firstKill.EncounterDurationMS / 1000.0);
-            var maxDamage = performances.OrderByDescending(x => x.Dps).First().Dps * encounterLength;
-            var displayedData = new NamedValueBarData[players.Length];
-            for(int i = 0; i < players.Length; i++)
-            {
-                displayedData[i] = new()
-                {
-                    Name = players[i].Name,
-                    Color = players[i].ClassId.GetClassBrush(),
-                    Maximum = maxDamage,
-                    Value = performances[i].Dps * encounterLength,
-                    ValueString = performances[i].Dps.ToString("N1")
-                };
-            }
-            foreach (var entry in displayedData.OrderByDescending(x => x.Value))
-                DataGrid.Items.Add(entry);
+            GetData(encounterInfoMetadata);
         }
 
         private void AddRandomSampleData()
@@ -80,10 +129,14 @@ namespace CombatlogParser.src.Controls
 
         void ButtonClicked(object sender, RoutedEventArgs e)
         {
-            if(sender is Button b)
+            e.Handled = true;
+            if (sender is Button)
             {
-                object arg = b.Tag;
-                e.Handled = true;
+                if (this.nameColumnActive)
+                    this.DataGrid.Columns.Remove(NameColumn);
+                else
+                    this.DataGrid.Columns.Insert(0, NameColumn);
+                this.nameColumnActive ^= true;
             }
         }
 
@@ -94,10 +147,12 @@ namespace CombatlogParser.Data.DisplayReady
 {
     public class NamedValueBarData
     {
+#pragma warning disable CS8618
         public string Name { get; set; }
         public double Value { get; set; }
         public double Maximum { get; set; }
         public string ValueString { get; set; }
         public Brush Color { get; set; }
+#pragma warning restore CS8618
     }
 }

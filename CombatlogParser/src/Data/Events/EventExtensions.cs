@@ -55,6 +55,21 @@ public static class EventExtensions
         return array;
     }
 
+    public static T[] ToArray<T, ExplicitType>(this IList list) where T : class where ExplicitType : class, T
+    {
+        int size = list.Count;
+        if (size == 0 || list[0] is T == false)
+            return Array.Empty<T>();
+
+        T[] array = new ExplicitType[size];
+
+        for (int i = 0; i < size; i++)
+        {
+            array[i] = list[i] as T;
+        }
+        return array;
+    }
+
     public static T? FirstOrDefault<T>(this ICollection<CombatlogEvent> sourceCollection, Predicate<T> condition) where T : class
     {
         foreach (var ev in sourceCollection)

@@ -8,11 +8,11 @@
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <UserControl.Resources>
-        <d:ResourceDictionary Source="Styles/DefaultStyleOverrides.xaml"/>
+        <ResourceDictionary Source="Styles/DefaultStyleOverrides.xaml"/>
     </UserControl.Resources>
     <DataGrid d:ItemsSource="{d:SampleData ItemCount=2}" x:Name="DataGrid" AutoGenerateColumns="False" IsReadOnly="True" CanUserReorderColumns="False" MinColumnWidth="80" >
         <DataGrid.Columns>
-            <DataGridTextColumn Header="PlayerName" Width="120" Binding="{Binding Path=Name}">
+            <DataGridTextColumn x:Name="NameColumn" Header="Name" Width="120" Binding="{Binding Path=Name}">
                 <DataGridTextColumn.ElementStyle>
                     <Style TargetType="TextBlock">
                         <Setter Property="Foreground" Value="{Binding Path=Color}" />
@@ -28,15 +28,7 @@
                     </DataTemplate>
                 </DataGridTemplateColumn.CellTemplate>
             </DataGridTemplateColumn>
-            <DataGridTextColumn Header="DPS" Width="100" Binding="{Binding Path=ValueString}" SortMemberPath="Value">
-                <DataGridTextColumn.ElementStyle>
-                    <Style TargetType="TextBlock">
-                        <Setter Property="HorizontalAlignment" Value="Right" />
-                        <Setter Property="VerticalAlignment" Value="Center" />
-                        <Setter Property="Padding" Value="0 0 2 0" />
-                    </Style>
-                </DataGridTextColumn.ElementStyle>
-            </DataGridTextColumn>
+            <DataGridTextColumn Header="DPS" Width="100" Binding="{Binding Path=ValueString}" SortMemberPath="Value" ElementStyle="{StaticResource text-right-center}" />
             <DataGridTemplateColumn Header="Actions">
                 <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate>

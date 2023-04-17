@@ -108,4 +108,11 @@ public partial class RawDatabaseView : UserControl
         foreach (var p in results)
             players.Add(p);
     }
+
+    private void EncounterInfoListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        var testList = new CombatlogParser.src.Controls.TestList();
+        (this.Parent as ContentControl).Content = testList;
+        testList.GetData(EncounterInfoListView.SelectedItem as EncounterInfoMetadata);
+    }
 }

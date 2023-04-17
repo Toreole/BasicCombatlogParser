@@ -29,7 +29,7 @@
                 </ListView>
             </TabItem>
             <TabItem Header="Encounters">
-                <ListView x:Name="EncounterInfoListView" d:ItemsSource="{d:SampleData ItemCount=4}">
+                <ListView x:Name="EncounterInfoListView" d:ItemsSource="{d:SampleData ItemCount=4}" SelectionChanged="EncounterInfoListView_SelectionChanged">
                     <ListView.View>
                         <GridView>
                             <GridViewColumn Header="Id" DisplayMemberBinding="{Binding Path=Id}" />

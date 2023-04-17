@@ -83,8 +83,16 @@ public class CombatlogEventDictionaryBuilder
     public CombatlogEventDictionary Build()
     {
         CombatlogEventDictionary dict = new();
+        Type AdvType = typeof(AdvancedParamEvent);
         foreach (var pair in dictionary)
         {
+            //there is one specific special case that needs be seperated
+            if (pair.Key == AdvType)
+            {
+                dict.Add(pair.Key, pair.Value.ToArray<CombatlogEvent, AdvancedParamEvent>());
+                continue;
+            }
+            
             dict.Add(pair.Key, pair.Value.ToArray<CombatlogEvent>());
         }
         dictionary.Clear();

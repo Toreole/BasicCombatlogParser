@@ -47,7 +47,7 @@
                 </Button>
             </StackPanel>
         </Grid>
-        <DataGrid Margin="0,101,0,0" d:ItemsSource="{d:SampleData}">
-        </DataGrid>
+        <!--<DataGrid Margin="0,101,0,0" d:ItemsSource="{d:SampleData}" />-->
+        <local:TestList x:Name="MyTestList" Margin="0,101,0,0" />
     </Grid>
 </UserControl>

@@ -13,5 +13,4 @@ class CastSuccessEvent : AdvancedParamEvent
         AdvancedParams = new(entry, ref dataIndex);
     }
 
-    public override AdvancedParams AdvancedParams { get; protected set; }
 }

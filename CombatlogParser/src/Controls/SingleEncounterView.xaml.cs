@@ -18,6 +18,7 @@ namespace CombatlogParser.Controls
         private void TabButtonClick(object sender, RoutedEventArgs e)
         {
             e.Handled = true;
+            MyTestList.GetData();
             highlightedButton.Style = this.Resources["selection-button-spaced"] as Style;
             highlightedButton = (Button)sender;
             object tag = highlightedButton.Tag;

@@ -188,7 +188,7 @@ namespace CombatlogParser
                 if (metadata.CombatlogMetadata == null)
                     metadata.CombatlogMetadata = Queries.GetCombatlogMetadataByID(metadata.CombatlogMetadataId);
                 filePath = (string.IsNullOrEmpty(metadata.CombatlogMetadata!.FileName)) ?
-                    LocalPath(metadata.CombatlogMetadata.FileName) : throw new FileNotFoundException("No filepath given.");
+                    throw new FileNotFoundException("No filepath given.") : LocalPath(metadata.CombatlogMetadata.FileName);
             }
             using var fileStream = File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
             using TextReader reader = new StreamReader(fileStream);
