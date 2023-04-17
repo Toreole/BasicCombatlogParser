@@ -1,6 +1,6 @@
 ﻿namespace CombatlogParser.Data.Events;
 
-class CastSuccessEvent : CombatlogEvent, IAdvancedParamEvent
+class CastSuccessEvent : AdvancedParamEvent
 {
     public int spellId;
     public string spellName;
@@ -13,5 +13,5 @@ class CastSuccessEvent : CombatlogEvent, IAdvancedParamEvent
         AdvancedParams = new(entry, ref dataIndex);
     }
 
-    public AdvancedParams AdvancedParams { get; private set; }
+    public override AdvancedParams AdvancedParams { get; protected set; }
 }

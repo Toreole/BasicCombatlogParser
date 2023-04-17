@@ -2,15 +2,12 @@
 
 namespace CombatlogParser.Data.Events
 {
-    public class DamageEvent : CombatlogEvent, IAdvancedParamEvent
+    public class DamageEvent : AdvancedParamEvent
     {
         //the leading bits of data.
         public int spellId;
         public string spellName; //these get/set properties are a temporary measure to display stuff on-screen.
         public SpellSchool spellSchool;
-
-        //advanced params. these are optional.
-        public AdvancedParams advancedParams;
 
         //what follows
         public long Amount { get; private set; }
@@ -24,8 +21,6 @@ namespace CombatlogParser.Data.Events
         public bool glancing;
         public bool crushing;
         public bool isOffHand;
-
-        public AdvancedParams AdvancedParams => advancedParams;
 
         public DamageEvent(CombatlogEventPrefix prefix, string entry, int dataIndex) 
             : base(entry, ref dataIndex, EventType.DAMAGE, prefix, CombatlogEventSuffix._DAMAGE)
@@ -46,7 +41,7 @@ namespace CombatlogParser.Data.Events
             {
                 GetSpellPrefixData(entry, ref dataIndex, out spellId, out spellName, out spellSchool);
             }
-            advancedParams = new(entry, ref dataIndex);
+            AdvancedParams = new(entry, ref dataIndex);
 
             Amount = long.Parse(NextSubstring(entry, ref dataIndex));
             baseAmount = long.Parse(NextSubstring(entry, ref dataIndex));

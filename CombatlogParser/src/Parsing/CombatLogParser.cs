@@ -184,8 +184,12 @@ namespace CombatlogParser
         public static EncounterInfo ParseEncounter(EncounterInfoMetadata metadata, string ? filePath = null)
         {
             if (string.IsNullOrEmpty(filePath))
-                filePath = (metadata.CombatlogMetadata != null)?
+            {
+                if (metadata.CombatlogMetadata == null)
+                    metadata.CombatlogMetadata = Queries.GetCombatlogMetadataByID(metadata.CombatlogMetadataId);
+                filePath = (string.IsNullOrEmpty(metadata.CombatlogMetadata!.FileName)) ?
                     LocalPath(metadata.CombatlogMetadata.FileName) : throw new FileNotFoundException("No filepath given.");
+            }
             using var fileStream = File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
             using TextReader reader = new StreamReader(fileStream);
 
@@ -273,6 +277,9 @@ namespace CombatlogParser
                     {
                         events.Add(clevent);
                         eventDictBuilder.Add(clevent);
+                        //explicit <T> not necessary but i think it makes the difference more clear.
+                        if(clevent is AdvancedParamEvent advancedEvent)
+                            eventDictBuilder.Add<AdvancedParamEvent>(advancedEvent);
                     }
                 }
                 //TODO: Other events should also be handled.
@@ -350,21 +357,20 @@ namespace CombatlogParser
                     npcInfo.InstanceGuids.Add(guid);
             }
 
-            return new EncounterInfo()
-            {
-                CombatlogEvents = events.ToArray(),
-                CombatlogEventDictionary = eventDictBuilder.Build(),
-                EncounterStartTime = encStartT,
-                EncounterSuccess = metadata.Success,
-                DifficultyID = metadata.DifficultyId,
-                EncounterID = metadata.WowEncounterId,
-                EncounterName = encName,
-                GroupSize = grpSize,
-                EncounterDuration = encDurationMS,
-                EncounterEndTime = encEndT,
-                Players = players,
-                Npcs = npcs,
-            };
+            return new EncounterInfo(
+                events.ToArray(),
+                eventDictBuilder.Build(),
+                encStartT,
+                metadata.Success,
+                metadata.DifficultyId,
+                metadata.WowEncounterId,
+                encName,
+                grpSize,
+                encDurationMS,
+                encEndT,
+                players,
+                npcs
+            );
         }
 
         /// <summary>
@@ -434,26 +440,6 @@ namespace CombatlogParser
                     player.SetNameAndRealm(ev.SourceName);
             }
 
-            //the dictionary to look up the actual source GUID (pet->player, player->player, guardian->player, etc)
-            var sourceToOwnerGUID = new Dictionary<string, string>();
-            foreach(var summon in encounterInfo.CombatlogEventDictionary.GetEvents<SummonEvent>())
-            {
-                //the summoned "pet" is the targetGUID of the event.
-                if (sourceToOwnerGUID.ContainsKey(summon.TargetGUID) == false)
-                    sourceToOwnerGUID.Add(summon.TargetGUID, summon.SourceGUID);
-            }
-            foreach (var e in encounterInfo.CombatlogEvents.GetAdvancedParamEvents()) 
-            {
-                var sourceGUID = e.SourceGUID;
-                //if the source unit is the advanced info unit
-                if (sourceGUID != e.AdvancedParams.infoGUID)
-                    continue;
-                var owner = e.AdvancedParams.ownerGUID;
-                //"000000000000" is the default GUID for "no owner".
-                //regular GUIDs start with "Player", "Creature" or "Pet".
-                if (sourceToOwnerGUID.ContainsKey(sourceGUID) == false)
-                    sourceToOwnerGUID.Add(sourceGUID, owner[0] == '0' ? sourceGUID : owner);
-            }
             //source is friendly or neutral (belongs to the raid/party)
             var allySource = new AnyOfFilter(
                     new SourceFlagFilter(UnitFlag.COMBATLOG_OBJECT_REACTION_FRIENDLY),
@@ -465,6 +451,10 @@ namespace CombatlogParser
                 );
             var damageEvents = encounterInfo.CombatlogEventDictionary.GetEvents<DamageEvent>()
                 .Where(allySourceEnemyTargetFilter.Match);
+
+            //the lookup for source=>actual (owner) is calculated on EncounterInfo, but cache it here for convencience.
+            var sourceToOwnerGUID = encounterInfo.SourceToOwnerGuidLookup;
+
             //add together all the damage events.
             foreach (var ev in damageEvents)
             {
@@ -475,10 +465,10 @@ namespace CombatlogParser
                 {
                     perf!.Dps += (ev.Amount + ev.Absorbed);
                 }
-                else //source is not player, but a pet/guardian/npc summoned by a player that could not be identified to belong to a player.
-                {
+                //else //source is not player, but a pet/guardian/npc summoned by a player that could not be identified to belong to a player.
+                //{
 
-                }
+                //}
             }
             //HEALING 
             //add together all the healing events.
@@ -488,10 +478,10 @@ namespace CombatlogParser
                 {
                     perf!.Hps += ev.Amount + ev.Absorbed - ev.Overheal;
                 }
-                else //source is not player, but a pet/guardian/npc summoned by a player that could not be identified to belong to a player.
-                {
+                //else //source is not player, but a pet/guardian/npc summoned by a player that could not be identified to belong to a player.
+                //{
 
-                }
+                //}
             }
             //add absorb
             foreach(var absorbEvent in encounterInfo.CombatlogEventDictionary.GetEvents<SpellAbsorbedEvent>())
@@ -501,14 +491,14 @@ namespace CombatlogParser
                     performance!.Hps += absorbEvent.AbsorbedAmount;
                 }
             }
-
+            double encounterDuration = encounterInfo.EncounterDuration / 1000.0;
             foreach(var performance in result)
             {
                 if (performance is null) continue;
                 if (performance.Dps != 0) 
-                    performance.Dps /= (encounterInfo.EncounterDuration / 1000);
+                    performance.Dps /= encounterDuration;
                 if(performance.Hps != 0)
-                    performance.Hps /= (encounterInfo.EncounterDuration / 1000);
+                    performance.Hps /= encounterDuration;
                 //other performance members need to be assigned toon before returned.
             }
             return result;
