@@ -71,15 +71,6 @@ public partial class RawDatabaseView : UserControl
 
     private void NextPageButton_Click(object sender, RoutedEventArgs eargs)
     {
-        //encounters.Clear();
-        //var encounterInfos = Queries.GetEncounterInfoMetadata(lastEncounterId, 30);
-        //foreach (var e in encounterInfos)
-        //    if (e != null)
-        //    {
-        //        encounters.Add(e);
-        //        lastEncounterId = e.Id;
-        //    }
-
         performances.Clear();
         var performanceInfos = Queries.GetPerformanceMetadata(lastPerformanceId, 30);
         foreach (var e in performanceInfos)
@@ -97,10 +88,13 @@ public partial class RawDatabaseView : UserControl
         if(string.IsNullOrEmpty(PlayerSearch.Text) || string.IsNullOrWhiteSpace(PlayerSearch.Text))
         {
             players.Clear();
-            var pls = Queries.GetPlayerMetadata(0, 30);
-            foreach (var p in pls)
-                if(p != null)
+            foreach (var p in Queries.GetPlayerMetadata(0, 30))
+            {
+                if (p != null)
+                {
                     players.Add(p);
+                }
+            }
             return;
         }
         var results = Queries.FindPlayersWithNameLike(PlayerSearch.Text);
@@ -111,8 +105,8 @@ public partial class RawDatabaseView : UserControl
 
     private void EncounterInfoListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        var testList = new CombatlogParser.src.Controls.TestList();
-        (this.Parent as ContentControl).Content = testList;
-        testList.GetData(EncounterInfoListView.SelectedItem as EncounterInfoMetadata);
+        var testList = new SingleEncounterView();
+        (this.Parent as ContentControl)!.Content = testList;
+        testList.GetData((EncounterInfoListView.SelectedItem as EncounterInfoMetadata)!);
     }
 }

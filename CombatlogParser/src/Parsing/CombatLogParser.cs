@@ -441,16 +441,9 @@ namespace CombatlogParser
             }
 
             //source is friendly or neutral (belongs to the raid/party)
-            var allySource = new AnyOfFilter(
-                    new SourceFlagFilter(UnitFlag.COMBATLOG_OBJECT_REACTION_FRIENDLY),
-                    new SourceFlagFilter(UnitFlag.COMBATLOG_OBJECT_REACTION_NEUTRAL)
-                );
-            var allySourceEnemyTargetFilter = new AllOfFilter(
-                    allySource,
-                    new TargetFlagFilter(UnitFlag.COMBATLOG_OBJECT_REACTION_HOSTILE) //and the target is hostile.
-                );
+            var filter = EventFilters.AllySourceEnemyTargetFilter;
             var damageEvents = encounterInfo.CombatlogEventDictionary.GetEvents<DamageEvent>()
-                .Where(allySourceEnemyTargetFilter.Match);
+                .Where(filter.Match);
 
             //the lookup for source=>actual (owner) is calculated on EncounterInfo, but cache it here for convencience.
             var sourceToOwnerGUID = encounterInfo.SourceToOwnerGuidLookup;

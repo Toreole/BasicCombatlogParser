@@ -2,129 +2,23 @@
 
 namespace CombatlogParser.Data
 {
+    public static class EventFilters
+    {
+        public static readonly AnyOfFilter AllySourceFilter = new(
+            new SourceFlagFilter(UnitFlag.COMBATLOG_OBJECT_REACTION_FRIENDLY),
+            new SourceFlagFilter(UnitFlag.COMBATLOG_OBJECT_REACTION_NEUTRAL)
+        );
+        public static readonly TargetFlagFilter EnemyTargetFilter = 
+            new(UnitFlag.COMBATLOG_OBJECT_REACTION_HOSTILE);
+        public static readonly AllOfFilter AllySourceEnemyTargetFilter = new AllOfFilter(
+            AllySourceFilter,
+            EnemyTargetFilter
+        );
+    }
+
     public interface IEventFilter
     {
         bool Match(CombatlogEvent combatlogEvent);
-    }
-
-    /// <summary>
-    /// Filters events based on their subevents.
-    /// </summary>
-    public sealed class SubeventFilter : IEventFilter
-    {
-#pragma warning disable CS8618 
-        //allowedPrefixes/Suffixes must contain non-null value is irrelevant, as theyre created inside the class
-        //and im making sure that theyre either empty arrays, or have the proper values.
-        private CombatlogEventPrefix[] allowedPrefixes;
-        private bool anyPrefix;
-
-        private CombatlogEventSuffix[] allowedSuffixes;
-        private bool anySuffix;
-        private SubeventFilter() { }
-#pragma warning restore CS8618
-
-        public bool Match(CombatlogEvent combatlogEvent)
-        {
-            bool matchPrefix = anyPrefix || allowedPrefixes.Contains(combatlogEvent.SubeventPrefix);
-            bool matchSuffix = anySuffix || allowedSuffixes.Contains(combatlogEvent.SubeventSuffix);
-            return matchPrefix && matchSuffix;
-        }
-
-        /// <summary>
-        /// Allows any subevent with a _DAMAGE(_LANDED) suffix to pass.
-        /// </summary>
-        public static readonly SubeventFilter DamageEvents = new()
-        {
-            allowedPrefixes = Array.Empty<CombatlogEventPrefix>(),
-            anyPrefix = true,
-
-            allowedSuffixes = new[] { CombatlogEventSuffix._DAMAGE }, //, CombatlogEventSuffix._DAMAGE_LANDED //exclude damage landed, because it duplicates damage in analysis
-            anySuffix = false
-        };
-
-        /// <summary>
-        /// Allows only SPELL_PERIODIC_DAMAGE subevents to pass.
-        /// </summary>
-        public static readonly SubeventFilter PeriodicDamageEvents = new()
-        {
-            allowedPrefixes = new[] { CombatlogEventPrefix.SPELL_PERIODIC },
-            anyPrefix = false,
-
-            allowedSuffixes = new[] { CombatlogEventSuffix._DAMAGE },
-            anySuffix = false
-        };
-
-        /// <summary>
-        /// Allows any subevent with a _HEAL(_ABSORBED) suffix to pass.
-        /// </summary>
-        public static readonly SubeventFilter HealingEvents = new()
-        {
-            allowedPrefixes = Array.Empty<CombatlogEventPrefix>(),
-            anyPrefix = true,
-
-            allowedSuffixes = new[] { CombatlogEventSuffix._HEAL, CombatlogEventSuffix._HEAL_ABSORBED },
-            anySuffix = false
-        };
-
-        /// <summary>
-        /// Allows all periodic healing and absorb to pass.
-        /// </summary>
-        public static readonly SubeventFilter PeriodicHealEvents = new()
-        {
-            allowedPrefixes = new[] { CombatlogEventPrefix.SPELL_PERIODIC },
-            anyPrefix = false,
-
-            allowedSuffixes = new[] { CombatlogEventSuffix._HEAL, CombatlogEventSuffix._HEAL_ABSORBED },
-            anySuffix = false
-        };
-
-        /// <summary>
-        /// SWING_MISSED events
-        /// </summary>
-        public static readonly SubeventFilter MissedSwingEvents = new()
-        {
-            allowedPrefixes = new[] { CombatlogEventPrefix.SWING },
-            anyPrefix = false,
-
-            allowedSuffixes = new[] { CombatlogEventSuffix._MISSED },
-            anySuffix = false
-        };
-
-        /// <summary>
-        /// SPELL_MISSED or SPELL_PERIODIC_MISSED
-        /// </summary>
-        public static readonly SubeventFilter MissedSpellEvents = new()
-        {
-            allowedPrefixes = new[] { CombatlogEventPrefix.SPELL, CombatlogEventPrefix.SPELL_PERIODIC },
-            anyPrefix = false,
-
-            allowedSuffixes = new[] { CombatlogEventSuffix._MISSED },
-            anySuffix = false
-        };
-
-        /// <summary>
-        /// SPELL_SUMMON
-        /// </summary>
-        public static readonly SubeventFilter SummonEvents = new()
-        {
-            allowedPrefixes = new[] { CombatlogEventPrefix.SPELL },
-            anyPrefix = false,
-
-            allowedSuffixes = new[] { CombatlogEventSuffix._SUMMON },
-            anySuffix = false
-        };
-
-        /// <summary>
-        /// SPELL_CAST_SUCCESS
-        /// </summary>
-        public static readonly SubeventFilter CastSuccessEvents = new()
-        {
-            allowedPrefixes = new[] { CombatlogEventPrefix.SPELL },
-            anyPrefix = false,
-
-            allowedSuffixes = new[] { CombatlogEventSuffix._CAST_SUCCESS },
-            anySuffix = false
-        };
     }
 
     /// <summary>
