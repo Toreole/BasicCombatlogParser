@@ -20,35 +20,50 @@
         <Grid Height="31" Margin="0,65,0,0" VerticalAlignment="Top" Background="#FF373737">
             <Border BorderBrush="DarkGray" BorderThickness="0 1 0 1"/>
             <StackPanel x:Name="ButtonMenuBand" Orientation="Horizontal">
-                <Button x:Name="DamageButton" Content="Damage" Style="{StaticResource selection-button-spaced-highlighted}" Click="TabButtonClick">
-                    <Button.Tag>
-                        <sys:Int32>0</sys:Int32>
-                    </Button.Tag>
+                <Button x:Name="DamageButton" 
+                        Content="Damage" 
+                        Style="{StaticResource selection-button-spaced-highlighted}" 
+                        Click="TabButtonClick"
+                        Tag="{x:Static controls:SingleEncounterViewMode.DamageDone}">
                 </Button>
-                <Button x:Name="HealingButton" Content="Healing" Style="{StaticResource selection-button-spaced}" Click="TabButtonClick">
-                    <Button.Tag>
-                        <sys:Int32>1</sys:Int32>
-                    </Button.Tag>
+                <Button x:Name="HealingButton" 
+                        Content="Healing" 
+                        Style="{StaticResource selection-button-spaced}" 
+                        Click="TabButtonClick"
+                        Tag="{x:Static controls:SingleEncounterViewMode.Healing}">
                 </Button>
-                <Button x:Name="DamageTakenButton" Content="Damage Taken" Style="{StaticResource selection-button-spaced}" Click="TabButtonClick">
-                    <Button.Tag>
-                        <sys:Int32>2</sys:Int32>
-                    </Button.Tag>
+                <Button x:Name="DamageTakenButton" 
+                        Content="Damage Taken" 
+                        Style="{StaticResource selection-button-spaced}" 
+                        Click="TabButtonClick"
+                        Tag="{x:Static controls:SingleEncounterViewMode.DamageTaken}">
                 </Button>
-                <Button x:Name="DeathsButton" Content="Deaths" Style="{StaticResource selection-button-spaced}" Click="TabButtonClick">
-                    <Button.Tag>
-                        <sys:Int32>3</sys:Int32>
-                    </Button.Tag>
+                <Button x:Name="DeathsButton" 
+                        Content="Deaths" 
+                        Style="{StaticResource selection-button-spaced}" 
+                        Click="TabButtonClick"
+                        Tag="{x:Static controls:SingleEncounterViewMode.Deaths}">
                 </Button>
-                <Button x:Name="CastsButton" Content="Casts" Style="{StaticResource selection-button-spaced}" Click="TabButtonClick">
-                    <Button.Tag>
-                        <sys:Int32>4</sys:Int32>
-                    </Button.Tag>
+                <Button x:Name="CastsButton" 
+                        Content="Casts" 
+                        Style="{StaticResource selection-button-spaced}" 
+                        Click="TabButtonClick"
+                        Tag="{x:Static controls:SingleEncounterViewMode.Casts}">
                 </Button>
             </StackPanel>
         </Grid>
         <!--<local:TestList x:Name="MyTestList" Margin="0,101,0,0" />-->
-        <DataGrid d:ItemsSource="{d:SampleData ItemCount=2}" x:Name="DataGrid" AutoGenerateColumns="False" IsReadOnly="True" CanUserReorderColumns="False" MinColumnWidth="80" Margin="0,101,0,0" >
+
+        <DataGrid d:ItemsSource="{d:SampleData ItemCount=2}" x:Name="DataGrid" AutoGenerateColumns="False" IsReadOnly="True" CanUserReorderColumns="False" MinColumnWidth="80" Margin="0,101,0,0" Height="Auto" >
+            <DataGrid.RowStyle>
+                <Style TargetType="DataGridRow" BasedOn="{StaticResource {x:Type DataGridRow}}">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding Path=Name}" Value="Total">
+                            <Setter Property="Background" Value="#555555" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </DataGrid.RowStyle>
             <DataGrid.Columns>
                 <DataGridTextColumn x:Name="NameColumn" Header="Name" Width="120" Binding="{Binding Path=Name}">
                     <DataGridTextColumn.ElementStyle>
@@ -62,7 +77,7 @@
                 <DataGridTemplateColumn x:Name="MetricSumColumn" Header="Damage Done" Width="*" SortMemberPath="Value">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <controls:LabelledBarControl Value="{Binding Path=Value}" Maximum="{Binding Path=Maximum}" FillColor="{Binding Path=Color}" TextColor="White"/>
+                            <controls:LabelledBarControl Value="{Binding Path=Value}" Maximum="{Binding Path=Maximum}" FillColor="{Binding Path=Color}" Label="{Binding Path=Label}" TextColor="White"/>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>

@@ -149,6 +149,7 @@ namespace CombatlogParser.Data.DisplayReady
     {
 #pragma warning disable CS8618
         public string Name { get; set; }
+        public string Label { get; set; }
         public double Value { get; set; }
         public double Maximum { get; set; }
         public string ValueString { get; set; }

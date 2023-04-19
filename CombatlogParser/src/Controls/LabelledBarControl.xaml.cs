@@ -11,6 +11,20 @@ namespace CombatlogParser.Controls
     /// </summary>
     public partial class LabelledBarControl : UserControl
     {
+        public static readonly DependencyProperty LabelProperty = DependencyProperty.Register(
+            "Label",
+            typeof(string),
+            typeof(LabelledBarControl),
+            new UIPropertyMetadata(string.Empty, new PropertyChangedCallback(OnLabelChanged)));
+
+        private static void OnLabelChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            if(d is LabelledBarControl bar)
+            {
+                bar.AmountLabel.Content = (string)e.NewValue;
+            }
+        }
+
         public static readonly DependencyProperty MaximumProperty = DependencyProperty.Register(
             nameof(Maximum), 
             typeof(double), 
@@ -36,6 +50,10 @@ namespace CombatlogParser.Controls
             if (d is LabelledBarControl bar)
             {
                 bar.Value = (double)e.NewValue;
+                if(bar.Value > bar.Maximum || bar.Value <= 0)
+                {
+                    bar.FillColor = Brushes.Transparent;
+                }
             }
         }
 
@@ -67,6 +85,12 @@ namespace CombatlogParser.Controls
             }
         }
 
+        public string Label
+        {
+            get => (string)AmountLabel.Content;
+            set => AmountLabel.Content = value;
+        }
+
         public double Maximum { 
             get => FillBar.Maximum; 
             set => FillBar.Maximum = value; 
@@ -77,7 +101,7 @@ namespace CombatlogParser.Controls
             set
             {
                 FillBar.Value = value;
-                AmountLabel.Content = value.ToShortFormString();
+                //AmountLabel.Content = value.ToShortFormString();
             }
         }
 

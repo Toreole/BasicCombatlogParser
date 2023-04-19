@@ -117,6 +117,6 @@ public partial class MainWindow : Window
     {
         e.Handled = true;
         if (MainContentControl.Content is not RawDatabaseView)
-            MainContentControl.Content = new RawDatabaseView();
+            this.ChangeContent(new RawDatabaseView());
     }
 }

@@ -44,6 +44,7 @@
         </Setter>
     </Style>
     <Style TargetType="{x:Type DataGrid}">
+        <Setter Property="BorderThickness" Value="0" />
         <Setter Property="HeadersVisibility" Value="Column" />
         <Setter Property="AlternationCount" Value="2" />
         <Setter Property="Foreground" Value="White" />

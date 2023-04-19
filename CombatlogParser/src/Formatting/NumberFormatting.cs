@@ -24,4 +24,5 @@ public static class NumberFormatting
             stringBuilder.Append(magnitudeSymbols[magnitudeIndex]);
         return stringBuilder.ToString();
     }
+    public static string ToShortFormString(this long number) => ((double)number).ToShortFormString();
 }

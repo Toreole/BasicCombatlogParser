@@ -6,7 +6,7 @@
              xmlns:local="clr-namespace:CombatlogParser.Controls"
              mc:Ignorable="d"
              d:DesignHeight="25" d:DesignWidth="800">
-    <Grid>
+    <Grid Background="Transparent">
         <ProgressBar x:Name="FillBar" Margin="5,5,55,5" Foreground="#FF00BB22" Background="Transparent" BorderBrush="Transparent"/>
         <Label x:Name="AmountLabel" HorizontalAlignment="Right" Margin="0,0,0,0" VerticalAlignment="Center" Width="50">NaN</Label>
     </Grid>
