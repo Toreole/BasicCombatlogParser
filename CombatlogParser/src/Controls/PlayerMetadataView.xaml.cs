@@ -9,7 +9,7 @@ namespace CombatlogParser.Controls;
 /// <summary>
 /// Interaction logic for PlayerMetadataView.xaml
 /// </summary>
-public partial class PlayerMetadataView : UserControl
+public partial class PlayerMetadataView : ContentView
 {
     static readonly InstanceId[] AllRaids = new[]{
         InstanceId.Vault_of_the_Incarnates,

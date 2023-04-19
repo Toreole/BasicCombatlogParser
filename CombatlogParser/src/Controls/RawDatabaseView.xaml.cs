@@ -9,7 +9,7 @@ namespace CombatlogParser.Controls;
 /// <summary>
 /// Interaction logic for RawDatabaseView.xaml
 /// </summary>
-public partial class RawDatabaseView : UserControl
+public partial class RawDatabaseView : ContentView
 {
 
     private ObservableCollection<CombatlogMetadata> combatlogs = new();
@@ -105,8 +105,8 @@ public partial class RawDatabaseView : UserControl
 
     private void EncounterInfoListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        var testList = new SingleEncounterView();
-        (this.Parent as ContentControl)!.Content = testList;
-        testList.GetData((EncounterInfoListView.SelectedItem as EncounterInfoMetadata)!);
+        var encounterView = new SingleEncounterView();
+        encounterView.GetData((EncounterInfoListView.SelectedItem as EncounterInfoMetadata)!);
+        this.ChangeActiveView(encounterView);
     }
 }

@@ -26,6 +26,18 @@ public partial class MainWindow : Window
                 Source = searchedPlayerNames
             }
         );
+
+        var defaultContent = MainContentControl.Content;
+        if(defaultContent is ContentView view)
+        {
+            view.SetWindow(this);
+        }
+    }
+
+    internal void ChangeContent(ContentView content)
+    {
+        content.SetWindow(this);
+        MainContentControl.Content = content;
     }
 
     //the actual dropdown.

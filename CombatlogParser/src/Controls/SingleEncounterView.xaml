@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="CombatlogParser.Controls.SingleEncounterView"
+﻿<controls:ContentView x:Class="CombatlogParser.Controls.SingleEncounterView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -20,7 +20,7 @@
         <Grid Height="31" Margin="0,65,0,0" VerticalAlignment="Top" Background="#FF373737">
             <Border BorderBrush="DarkGray" BorderThickness="0 1 0 1"/>
             <StackPanel x:Name="ButtonMenuBand" Orientation="Horizontal">
-                <Button x:Name="DamageButton" Content="Damage" Style="{StaticResource selection-button-spaced}" Click="TabButtonClick">
+                <Button x:Name="DamageButton" Content="Damage" Style="{StaticResource selection-button-spaced-highlighted}" Click="TabButtonClick">
                     <Button.Tag>
                         <sys:Int32>0</sys:Int32>
                     </Button.Tag>
@@ -70,4 +70,4 @@
             </DataGrid.Columns>
         </DataGrid>
     </Grid>
-</UserControl>
+</controls:ContentView>
