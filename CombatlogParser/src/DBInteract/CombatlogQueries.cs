@@ -225,6 +225,7 @@ public static partial class Queries
             };
             results[i] = new()
             {
+                EncounterMetadataId = encounterMetadata.Id,
                 MetricValue = metricString,
                 Duration = durationString,
                 Date = dateString,
@@ -232,5 +233,11 @@ public static partial class Queries
             };
         }
         return results;
+    }
+
+    public static EncounterInfoMetadata FindEncounterById(uint id)
+    {
+        using CombatlogDBContext context = new();
+        return context.Encounters.First(x => x.Id == id);
     }
 }

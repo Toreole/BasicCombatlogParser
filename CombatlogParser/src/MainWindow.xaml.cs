@@ -43,6 +43,7 @@ public partial class MainWindow : Window
     //the actual dropdown.
     private void PlayerSearchSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
+        e.Handled = true;
         int index = PlayerSearchBox.SelectedIndex;
         if (index < 0 || index >= searchedPlayers.Length)
             return;
@@ -52,17 +53,19 @@ public partial class MainWindow : Window
         {
             pmView.SetPlayer(targetPlayer);
         }
-        else MainContentControl.Content = new PlayerMetadataView(targetPlayer);
+        else this.ChangeContent(new PlayerMetadataView(targetPlayer));
     }
 
     private void PlayerSearchTextChanged(object sender, TextChangedEventArgs e)
     {
-        PlayerSearchBox.IsDropDownOpen = true;
+        //PlayerSearchBox.IsDropDownOpen = true;
+        PlayerSearchBox.SelectedIndex = -1;
         searchedPlayerNames.Clear();
         searchedPlayers = Queries.FindPlayersWithNameLike(PlayerSearchBox.Text);
         foreach(var player in searchedPlayers)
         {
-            searchedPlayerNames.Add(player!.Name);
+            if(player != null)
+                searchedPlayerNames.Add(player!.Name);
         }
     }
 

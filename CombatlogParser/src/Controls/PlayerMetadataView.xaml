@@ -29,7 +29,7 @@
             <ComboBoxItem>HPS</ComboBoxItem>
         </ComboBox>
         <ComboBox x:Name="SpecSelectionComboBox" Height="25" Margin="475,35,0,0" HorizontalAlignment="Left" VerticalAlignment="Top"/>
-        <ListView x:Name="BestPerformanceBossList" d:ItemsSource="{d:SampleData ItemCount=5}" Margin="0,60,0,0" Background="{x:Null}">
+        <ListView x:Name="BestPerformanceBossList" d:ItemsSource="{d:SampleData ItemCount=5}" Margin="0,60,0,0" Background="{x:Null}" SelectionChanged="PerformanceList_SelectionChanged">
             <ListView.View>
                 <GridView x:Name="PerformanceGridView">
                     <GridViewColumn Header="Boss"/>

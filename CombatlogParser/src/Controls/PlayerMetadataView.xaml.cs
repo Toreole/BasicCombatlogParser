@@ -1,4 +1,5 @@
-﻿using CombatlogParser.Data.Metadata;
+﻿using CombatlogParser.Data.DisplayReady;
+using CombatlogParser.Data.Metadata;
 using CombatlogParser.DBInteract;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -178,5 +179,21 @@ public partial class PlayerMetadataView : ContentView
     {
         SetupPerformanceListView();
         UpdatePerformanceList();
+    }
+
+    private void PerformanceList_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (SelectedEncounter == EncounterId.All_Bosses)
+        {
+            BossSelectionComboBox.SelectedIndex = BestPerformanceBossList.SelectedIndex + 1;
+            //BestPerformanceBossList.SelectedIndex = -1;
+            OnBossChanged(sender, e);
+        }
+        else
+        {
+            var selectedPerformance = (PlayerPerformance)BestPerformanceBossList.SelectedItem;
+            if(selectedPerformance != null)
+                ChangeActiveView(new SingleEncounterView(selectedPerformance.EncounterMetadataId));
+        }
     }
 }

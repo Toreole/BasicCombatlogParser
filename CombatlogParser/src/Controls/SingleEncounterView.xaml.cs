@@ -30,6 +30,16 @@ public partial class SingleEncounterView : ContentView
         highlightedButton.Style = this.Resources[menuBandButtonHighlighted] as Style;
     }
 
+    public SingleEncounterView(uint encounterMetadataId) : this()
+    {
+        GetData(Queries.FindEncounterById(encounterMetadataId));
+    }
+
+    public SingleEncounterView(EncounterInfoMetadata encounterInfoMetadata) : this()
+    {
+        GetData(encounterInfoMetadata);
+    }
+
     private void TabButtonClick(object sender, RoutedEventArgs e)
     {
         e.Handled = true;
