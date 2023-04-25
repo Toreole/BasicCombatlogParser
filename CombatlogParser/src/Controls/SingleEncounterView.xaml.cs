@@ -3,12 +3,10 @@ using CombatlogParser.Data.Events;
 using CombatlogParser.Data.Metadata;
 using CombatlogParser.Data;
 using CombatlogParser.Formatting;
-using CombatlogParser.DBInteract;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using Windows.ApplicationModel.Background;
-using System.Linq;
+using System.Numerics;
 
 namespace CombatlogParser.Controls;
 
@@ -42,18 +40,18 @@ public partial class SingleEncounterView : ContentView
             highlightedButton.Style = this.Resources[menuBandButtonHighlighted] as Style;
 
             var updatedViewMode = (SingleEncounterViewMode)button.Tag;
-            if(updatedViewMode != currentViewMode)
+            if (updatedViewMode == currentViewMode)
+                return;
+            
+            currentViewMode = (SingleEncounterViewMode)button.Tag;
+            switch(currentViewMode)
             {
-                currentViewMode = (SingleEncounterViewMode)button.Tag;
-                switch(currentViewMode)
-                {
-                    case SingleEncounterViewMode.DamageDone:
-                        GenerateDamageDoneBreakdown();
-                        break;
-                    case SingleEncounterViewMode.Healing:
-                        GenerateHealingBreakdown();
-                        break;
-                }
+                case SingleEncounterViewMode.DamageDone:
+                    GenerateDamageDoneBreakdown();
+                    break;
+                case SingleEncounterViewMode.Healing:
+                    GenerateHealingBreakdown();
+                    break;
             }
         }
     }
@@ -88,14 +86,14 @@ public partial class SingleEncounterView : ContentView
             else
                 damageBySource[actualSource] = dmgEvent.Amount + dmgEvent.Absorbed;
         }
-        (string sourceGuid, string sourceName, long damage)[] results = new (string, string, long)[damageBySource.Count];
+        NamedTotal<long>[] results = new NamedTotal<long>[damageBySource.Count];
         int i = 0;
         long totalDamage = 0;
         foreach (var pair in damageBySource.OrderByDescending(x => x.Value))
         {
-            results[i] = (
-                pair.Key,
+            results[i] = new(
                 currentEncounter.CombatlogEvents.First(x => x.SourceGUID == pair.Key).SourceName,
+                pair.Key,
                 pair.Value
             );
             totalDamage += pair.Value;
@@ -104,16 +102,16 @@ public partial class SingleEncounterView : ContentView
 
         var encounterLength = currentEncounter.LengthInSeconds;
         NamedValueBarData[] displayData = new NamedValueBarData[results.Length];
-        long maxDamage = results[0].damage;
+        long maxDamage = results[0].Value;
         for (i = 0; i < displayData.Length; i++)
         {
-            PlayerInfo? player = currentEncounter.FindPlayerInfoByGUID(results[i].sourceGuid);
+            PlayerInfo? player = currentEncounter.FindPlayerInfoByGUID(results[i].Guid);
             displayData[i] = new()
             {
                 Maximum = maxDamage,
-                Value = results[i].damage,
-                Label = results[i].damage.ToShortFormString(),
-                ValueString = (results[i].damage / encounterLength).ToString("N1")
+                Value = results[i].Value,
+                Label = results[i].Value.ToShortFormString(),
+                ValueString = (results[i].Value / encounterLength).ToString("N1")
             };
             if (player != null)
             {
@@ -122,7 +120,7 @@ public partial class SingleEncounterView : ContentView
             }
             else
             {
-                displayData[i].Name = results[i].sourceName;
+                displayData[i].Name = results[i].Name;
                 displayData[i].Color = Brushes.Red;
             }
         }
@@ -193,14 +191,14 @@ public partial class SingleEncounterView : ContentView
             else
                 healingBySource[actualSource] = absorbEvent.AbsorbedAmount;
         }
-        (string sourceGuid, string sourceName, long healing)[] results = new (string, string, long)[healingBySource.Count];
+        NamedTotal<long>[] results = new NamedTotal<long>[healingBySource.Count];
         int i = 0;
         long totalHealing = 0;
         foreach (var pair in healingBySource.OrderByDescending(x => x.Value))
         {
-            results[i] = (
-                pair.Key,
+            results[i] = new (
                 currentEncounter.CombatlogEvents.First(x => x.SourceGUID == pair.Key).SourceName,
+                pair.Key,
                 pair.Value
             );
             totalHealing += pair.Value;
@@ -209,16 +207,16 @@ public partial class SingleEncounterView : ContentView
 
         var encounterLength = currentEncounter.LengthInSeconds;
         NamedValueBarData[] displayData = new NamedValueBarData[results.Length];
-        long maxHealing = results[0].healing;
+        long maxHealing = results[0].Value;
         for (i = 0; i < displayData.Length; i++)
         {
-            PlayerInfo? player = currentEncounter.FindPlayerInfoByGUID(results[i].sourceGuid);
+            PlayerInfo? player = currentEncounter.FindPlayerInfoByGUID(results[i].Guid);
             displayData[i] = new()
             {
                 Maximum = maxHealing,
-                Value = results[i].healing,
-                Label = results[i].healing.ToShortFormString(),
-                ValueString = (results[i].healing / encounterLength).ToString("N1")
+                Value = results[i].Value,
+                Label = results[i].Value.ToShortFormString(),
+                ValueString = (results[i].Value / encounterLength).ToString("N1")
             };
             if (player != null)
             {
@@ -227,7 +225,7 @@ public partial class SingleEncounterView : ContentView
             }
             else
             {
-                displayData[i].Name = results[i].sourceName;
+                displayData[i].Name = results[i].Name;
                 displayData[i].Color = Brushes.Red;
             }
         }
@@ -261,4 +259,16 @@ public partial class SingleEncounterView : ContentView
         mainGridColumns.Add(MetricPerSecondColumn);
     }
 
+    public struct NamedTotal<T> where T : INumber<T>
+    {
+        public string Name;
+        public string Guid;
+        public T Value;
+
+        public NamedTotal(string name, string guid, T value) {
+            Name = name;
+            Guid = guid; 
+            Value = value;
+        }
+    }
 }
