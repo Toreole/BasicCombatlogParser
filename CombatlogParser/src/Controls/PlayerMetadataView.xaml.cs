@@ -13,6 +13,7 @@ namespace CombatlogParser.Controls;
 public partial class PlayerMetadataView : ContentView
 {
     static readonly InstanceId[] AllRaids = new[]{
+        InstanceId.Aberrus_the_Shadowed_Crucible,
         InstanceId.Vault_of_the_Incarnates,
         InstanceId.Sepulcher_of_the_First_Ones,
         InstanceId.Sanctum_of_Domination,

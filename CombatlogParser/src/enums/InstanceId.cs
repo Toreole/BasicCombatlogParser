@@ -20,6 +20,7 @@
 
         //Dragonflight
         Vault_of_the_Incarnates = 2522,
+        Aberrus_the_Shadowed_Crucible = 2569,
 
         Uldaman_Legacy_of_Tyr = 2451,
         Azure_Vault = 2515,

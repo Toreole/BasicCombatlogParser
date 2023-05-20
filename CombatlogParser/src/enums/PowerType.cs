@@ -18,11 +18,10 @@
         Maelstrom = 11,
         Chi = 12,
         Insanity = 13,
-        Obsolete = 14,
-        Obsolete2 = 15,
+
         ArcaneCharges = 16,
         Fury = 17,
         Pain = 18,
-        NumPowerTypes = 19, //this is a value in the original PowerType enum, but it should never be used in a combat log.
+        Essence = 19,
     }
 }

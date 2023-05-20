@@ -48,7 +48,17 @@
         Raszageth = 2607,
         Broodkeeper_Diurna = 2614,
         Dathea_Ascended = 2635,
-        Terros = 2639
+        Terros = 2639,
+
+        Kazzara_the_Hellforged = 2688,
+        The_Amalgamation_Chamber = 2687,
+        The_Forgotten_Experiments = 2693,
+        Assault_of_the_Zaqali = 2682,
+        Rashok = 2680,
+        Zskarn = 2689,
+        Magmorax = 2683,
+        Echo_of_Neltharion = 2684,
+        Scalecommander_Sarkareth = 2685,
 
     }
 
@@ -108,6 +118,18 @@
                     EncounterId.Broodkeeper_Diurna,
                     EncounterId.Raszageth
                 },
+                InstanceId.Aberrus_the_Shadowed_Crucible => new[]
+                {
+                    EncounterId.Kazzara_the_Hellforged,
+                    EncounterId.The_Amalgamation_Chamber,
+                    EncounterId.The_Forgotten_Experiments,
+                    EncounterId.Assault_of_the_Zaqali,
+                    EncounterId.Rashok,
+                    EncounterId.Zskarn,
+                    EncounterId.Magmorax,
+                    EncounterId.Echo_of_Neltharion,
+                    EncounterId.Scalecommander_Sarkareth
+                },
 
                 _ => Array.Empty<EncounterId>()
             };
@@ -162,6 +184,17 @@
                 EncounterId.Dathea_Ascended or
                 EncounterId.Terros
                 => InstanceId.Vault_of_the_Incarnates,
+
+                EncounterId.Kazzara_the_Hellforged or
+                EncounterId.The_Amalgamation_Chamber or
+                EncounterId.The_Forgotten_Experiments or
+                EncounterId.Assault_of_the_Zaqali or
+                EncounterId.Rashok or
+                EncounterId.Zskarn or
+                EncounterId.Magmorax or
+                EncounterId.Echo_of_Neltharion or
+                EncounterId.Scalecommander_Sarkareth 
+                => InstanceId.Aberrus_the_Shadowed_Crucible,
 
                 _ => InstanceId.UNKNOWN
             };
