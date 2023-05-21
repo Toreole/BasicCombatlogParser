@@ -132,7 +132,7 @@ public static partial class Queries
         {
             return new()
             {
-                EncounterName = encounter.ToPrettyString() //only set encounter name, everything else is default.
+                EncounterName = encounter.GetDisplayName() //only set encounter name, everything else is default.
             };
         }
         var medianEntry = matching.Skip(count >> 1).First();
@@ -154,7 +154,7 @@ public static partial class Queries
         };
         return new()
         {
-            EncounterName = encounter.ToPrettyString(),
+            EncounterName = encounter.GetDisplayName(),
             FastestTime = ParsingUtil.MillisecondsToReadableTimeString((uint)fastestEncounter.EncounterDurationMS),
             HighestMetricValue = highestMetric,
             MedianMetricValue = medianMetric,

@@ -58,7 +58,7 @@ public partial class PlayerMetadataView : ContentView
         var items = RaidSelectionComboBox.Items;
         items.Clear();
         foreach (var raid in AllRaids)
-            items.Add(raid.ToPrettyString());
+            items.Add(raid.GetDisplayName());
         RaidSelectionComboBox.SelectedIndex = 0;
     }
 
@@ -76,7 +76,7 @@ public partial class PlayerMetadataView : ContentView
 
         BossSelectionComboBox.Items.Clear();
         foreach (var i in encounters)
-            BossSelectionComboBox.Items.Add(i.ToPrettyString());
+            BossSelectionComboBox.Items.Add(i.GetDisplayName());
         BossSelectionComboBox.SelectedIndex = 0;
     }
 
