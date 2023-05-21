@@ -85,7 +85,7 @@ namespace Generators
             ParseInstanceInfo();
             StringBuilder instanceIdBuilder = new StringBuilder("    UNKNOWN = 0,\n");
             StringBuilder encounterIdBuilder = new StringBuilder("    UNKNOWN = 0,\n");
-            encounterIdBuilder.Append("    All_Bosses = 1,\n");
+            encounterIdBuilder.Append("    All_Bosses = -1,\n");
             for (int i = 0; i < instances.Count; i++)
             {
                 var inst = instances[i];
@@ -172,6 +172,7 @@ public static class InstanceEncounterUtility
         private string GetEncounterNameMapping()
         {
             StringBuilder builder = new StringBuilder();
+            builder.Append($"            {EncounterIdTypeName}.All_Bosses => \"All Bosses\",\n");
             foreach(var inst in instances)
             {
                 foreach(var encounter in inst.Encounters)
