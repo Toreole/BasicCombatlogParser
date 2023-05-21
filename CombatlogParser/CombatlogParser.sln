@@ -5,7 +5,9 @@ VisualStudioVersion = 17.3.32825.248
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CombatlogParser", "CombatlogParser.csproj", "{257CE8F8-717D-423C-B0FF-892CDCBC7450}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests", "..\Tests\Tests.csproj", "{FA8DF0E8-1B6E-4F8A-A26C-059E10C7F4E8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tests", "..\Tests\Tests.csproj", "{FA8DF0E8-1B6E-4F8A-A26C-059E10C7F4E8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Generators", "..\Generators\Generators.csproj", "{0E0D2CD4-4C78-4B26-9B6B-D11F59F980DA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{FA8DF0E8-1B6E-4F8A-A26C-059E10C7F4E8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FA8DF0E8-1B6E-4F8A-A26C-059E10C7F4E8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FA8DF0E8-1B6E-4F8A-A26C-059E10C7F4E8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0E0D2CD4-4C78-4B26-9B6B-D11F59F980DA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0E0D2CD4-4C78-4B26-9B6B-D11F59F980DA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0E0D2CD4-4C78-4B26-9B6B-D11F59F980DA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0E0D2CD4-4C78-4B26-9B6B-D11F59F980DA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
