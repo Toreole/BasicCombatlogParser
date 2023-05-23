@@ -14,7 +14,10 @@ Shoutout to the fandom wowpedia for providing an abundance of info about the var
 
 An example of what it looks like during development right now (for my character Crowfield-Silvermoon):
 <p align="center">
+Character Overview:
 <img src="resources/character_page_2023-04-16.png" />
+Encounter breakdown (damage done):
+<img src="resources/encounter_dps_breakdown_2023_05_23.png" />
 </p>
 
 ## Design in Code n stuff
@@ -39,6 +42,13 @@ Parsing is done in multiple steps:
 - Create combatlog metadata if the file has not been imported yet.
 - Fetch encounter metadata from the file (basically check for ENCOUNTER_START and ENCOUNTER_END events)
 - Read each individual encounter into memory and generate hps/dps metrics for the players involved, also create player metadata for all not yet stored in the database.
+
+### Generated Code
+
+I think source generators are pretty neat, currently trialing it for generating EncounterIds, InstanceIds, and everything directly tied to them.
+The info that the generator requires is a plaintext list of instances and their encounters.
+
+In an ideal world it would be able to grab that info via the WoW Game API, but dealing with OAuth and all that stuff is something i am not going to bother with.
 
 
 ## Other planned features
