@@ -45,6 +45,11 @@
             <ContentControl x:Name="MainContentControl" Margin="0,50,0,0">
                 <controls:RawDatabaseView />
             </ContentControl>
+            <Button x:Name="TestButton" HorizontalAlignment="Right" VerticalAlignment="Top" Content="Test Something" Margin="0,17,263,0" Click="TestButton_Click"/>
+
+            <Grid x:Name="PopupOverlay" Background="#70111111" Visibility="Hidden">
+                <controls:LabelledProgressBar />
+            </Grid>
         </Grid>
 
 

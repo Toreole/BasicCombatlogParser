@@ -5,6 +5,9 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
+using System.Windows.Media;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 
 namespace CombatlogParser;
 
@@ -121,5 +124,46 @@ public partial class MainWindow : Window
         e.Handled = true;
         if (MainContentControl.Content is not RawDatabaseView)
             this.ChangeContent(new RawDatabaseView());
+    }
+
+    private async void TestButton_Click(object sender, RoutedEventArgs e)
+    {
+        PopupOverlay.Visibility = Visibility.Visible;
+        LabelledProgressBar labelledProgress = PopupOverlay.Children.OfType<LabelledProgressBar>().First();
+        TestButton.IsEnabled = false;
+        for(int i = 0; i <= 100; i++)
+        {
+            labelledProgress.ProgressPercent = i;
+            labelledProgress.DescriptionText = $"Working... {i}%";
+
+            await Task.Delay(100);
+        }
+        await Task.Delay(200);
+        PopupOverlay.Visibility = Visibility.Hidden;
+        TestButton.IsEnabled = true;
+    }
+
+    public class NotifyChangedRef<T> : INotifyPropertyChanged where T : notnull
+    {
+        public event PropertyChangedEventHandler? PropertyChanged;
+
+        protected void OnPropertyCHanged([CallerMemberName] string name = "")
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+        }
+
+        private T? value = default;
+        public T? Value
+        {
+            get
+            {
+                return value;
+            }
+            set
+            {
+                this.value = value;
+                OnPropertyCHanged();
+            }
+        }
     }
 }

@@ -13,12 +13,4 @@ public class CombatlogDBContext : DbContext
     {
         optionsBuilder.UseSqlite("DataSource=CombatlogMetadata.db; Mode=ReadWriteCreate");
     }
-
-    void Test()
-    {
-        var entity = new CombatlogMetadata(); //create a blank entity
-        Combatlogs.Add(entity); //add it to the context
-        this.SaveChanges(); //this updates the DB, and runs some other code to update affected entities
-        var storedId = entity.Id; //the entity.Id has been generated in the step before.
-    }
 }
