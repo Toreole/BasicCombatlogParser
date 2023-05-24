@@ -47,12 +47,16 @@ public class CombatlogEventDictionaryBuilder
     public void Add<T>(T value) where T : CombatlogEvent
     {
         GetList<T>().Add(value);
+        if (value is AdvancedParamEvent advancedEvent)
+            GetList<AdvancedParamEvent>().Add(advancedEvent);
     }
 
     public void Add(CombatlogEvent value)
     {
         var targetType = value.GetType();
         GetList(targetType).Add(value);
+        if (value is AdvancedParamEvent advancedEvent)
+            GetList<AdvancedParamEvent>().Add(advancedEvent);
     }
 
     private IList GetList(Type targetType)

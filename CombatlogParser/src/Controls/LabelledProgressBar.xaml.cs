@@ -22,4 +22,10 @@ public partial class LabelledProgressBar : UserControl
         get => ProgressBar.Value;
         set => ProgressBar.Value = Math.Clamp(value, 0, 100);
     }
+
+    public void UpdateDisplay(double progressPercent, string description)
+    {
+        ProgressPercent = progressPercent;
+        DescriptionText = description;
+    }
 }

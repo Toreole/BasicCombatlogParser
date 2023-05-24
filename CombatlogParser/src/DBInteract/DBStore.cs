@@ -19,6 +19,13 @@ namespace CombatlogParser
             dbContext.Combatlogs.Add(data);
             dbContext.SaveChanges();
         }
+        //async for such small operations may not be necessary.
+        public static async Task StoreCombatlogAsync(CombatlogMetadata data)
+        {
+            using CombatlogDBContext dbContext = new();
+            await dbContext.Combatlogs.AddAsync(data);
+            await dbContext.SaveChangesAsync();
+        }
 
         /// <summary>
         /// Stores an instance of EncounterInfoMetadata in the DB and returns the auto assigned ID

@@ -8,6 +8,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using CombatlogParser.DBInteract;
 
 namespace CombatlogParser;
 
@@ -18,10 +19,12 @@ public partial class MainWindow : Window
 {
     private readonly ObservableCollection<string> searchedPlayerNames = new();
     private PlayerMetadata[] searchedPlayers = Array.Empty<PlayerMetadata>();
+    private LabelledProgressBar progressBar;
 
     public MainWindow()
     {
         InitializeComponent();
+        progressBar = new LabelledProgressBar();
 
         PlayerSearchBox.SetBinding(ComboBox.ItemsSourceProperty,
             new Binding()
@@ -77,17 +80,18 @@ public partial class MainWindow : Window
         this.Close();
     }
 
-    private void TitleBar_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    private void TitleBar_MouseDown(object sender, MouseButtonEventArgs e)
     {
-        if (e.ChangedButton == MouseButton.Left)
-            if (e.ClickCount == 2)
-            {
-                AdjustWindowSize();
-            }
-            else
-            {
-                this.DragMove();
-            }
+        if (e.ChangedButton != MouseButton.Left)
+            return;
+        if (e.ClickCount == 2)
+        {
+            AdjustWindowSize();
+        }
+        else
+        {
+            this.DragMove();
+        }
     }
 
     private void AdjustWindowSize()
@@ -104,7 +108,7 @@ public partial class MainWindow : Window
         }
     }
 
-    private void ImportLogButtonClicked(object sender, RoutedEventArgs e)
+    private async void ImportLogButtonClicked(object sender, RoutedEventArgs e)
     {
         e.Handled = true;
         var dialog = new Microsoft.Win32.OpenFileDialog
@@ -116,7 +120,12 @@ public partial class MainWindow : Window
 
         bool? result = dialog.ShowDialog();
         if (result == true)
-            CombatLogParser.ImportCombatlog(dialog.FileName);
+        {
+            //CombatLogParser.ImportCombatlog(dialog.FileName);
+            var progressBar = ShowProgressBar();
+            await CombatLogParser.ImportCombatlogAsync(dialog.FileName, progressBar);
+            HideProgressBar(progressBar);
+        }
     }
 
     private void DBViewButton_Click(object sender, RoutedEventArgs e)
@@ -128,42 +137,32 @@ public partial class MainWindow : Window
 
     private async void TestButton_Click(object sender, RoutedEventArgs e)
     {
-        PopupOverlay.Visibility = Visibility.Visible;
-        LabelledProgressBar labelledProgress = PopupOverlay.Children.OfType<LabelledProgressBar>().First();
+        //LabelledProgressBar labelledProgress = PopupOverlay.Children.OfType<LabelledProgressBar>().First();
+        var progressBar = ShowProgressBar();
         TestButton.IsEnabled = false;
         for(int i = 0; i <= 100; i++)
         {
-            labelledProgress.ProgressPercent = i;
-            labelledProgress.DescriptionText = $"Working... {i}%";
+            progressBar.ProgressPercent = i;
+            progressBar.DescriptionText = $"Working... {i}%";
 
-            await Task.Delay(100);
+            await Task.Delay(70);
         }
         await Task.Delay(200);
-        PopupOverlay.Visibility = Visibility.Hidden;
         TestButton.IsEnabled = true;
+        HideProgressBar(progressBar);
     }
 
-    public class NotifyChangedRef<T> : INotifyPropertyChanged where T : notnull
+    public LabelledProgressBar ShowProgressBar()
     {
-        public event PropertyChangedEventHandler? PropertyChanged;
+        PopupOverlay.Children.Add(progressBar);
+        PopupOverlay.Visibility = Visibility.Visible;
+        progressBar.ProgressPercent = 0;
+        return progressBar;
+    }
 
-        protected void OnPropertyCHanged([CallerMemberName] string name = "")
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
-        }
-
-        private T? value = default;
-        public T? Value
-        {
-            get
-            {
-                return value;
-            }
-            set
-            {
-                this.value = value;
-                OnPropertyCHanged();
-            }
-        }
+    public void HideProgressBar(LabelledProgressBar bar)
+    {
+        PopupOverlay.Children.Remove(bar);
+        PopupOverlay.Visibility = PopupOverlay.Children.Count == 0? Visibility.Hidden : Visibility.Visible;
     }
 }
