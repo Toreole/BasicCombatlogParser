@@ -361,7 +361,7 @@ namespace CombatlogParser
             return ParseEncounterWork(metadata, fileStream);
         }
 
-        private static async Task<EncounterInfo> ParseEncounterAsync(EncounterInfoMetadata metadata, string? filePath = null)
+        public static async Task<EncounterInfo> ParseEncounterAsync(EncounterInfoMetadata metadata, string? filePath = null)
         {
             if (string.IsNullOrEmpty(filePath))
             {

@@ -43,7 +43,7 @@ public partial class SingleEncounterView : ContentView
     private void TabButtonClick(object sender, RoutedEventArgs e)
     {
         e.Handled = true;
-        if(sender is Button button)
+        if (sender is Button button)
         {
             highlightedButton.Style = this.Resources[menuBandButtonDefault] as Style;
             highlightedButton = button;
@@ -52,9 +52,9 @@ public partial class SingleEncounterView : ContentView
             var updatedViewMode = (SingleEncounterViewMode)button.Tag;
             if (updatedViewMode == currentViewMode)
                 return;
-            
+
             currentViewMode = (SingleEncounterViewMode)button.Tag;
-            switch(currentViewMode)
+            switch (currentViewMode)
             {
                 case SingleEncounterViewMode.DamageDone:
                     GenerateDamageDoneBreakdown();
@@ -69,14 +69,27 @@ public partial class SingleEncounterView : ContentView
     public void GetData(EncounterInfoMetadata encounterInfoMetadata)
     {
         DataGrid.Items.Clear();
-
-        currentEncounter = CombatLogParser.ParseEncounter(encounterInfoMetadata);
-
+        
+        //surprised it just works like this.
+        LoadData(encounterInfoMetadata).WaitAsync(CancellationToken.None);
+    }
+    private async Task LoadData(EncounterInfoMetadata encounterInfoMetadata)
+    {
+        //this is a bit scuffed
+        while (MainWindow == null)
+        {
+            await Task.Delay(2);
+        }
+        var progress = MainWindow.ShowProgressBar();
+        progress.DescriptionText = "Reading Encounter...";
+        progress.ProgressPercent = 50; //somehow have this progress percent be set by ParseEncounterAsync
+        currentEncounter = await CombatLogParser.ParseEncounterAsync(encounterInfoMetadata);
+        MainWindow.HideProgressBar(progress);
         //Maybe not do this immediately but do a check before for the DamageButton being selected.
         GenerateDamageDoneBreakdown();
     }
 
-    private void GenerateDamageDoneBreakdown()
+private void GenerateDamageDoneBreakdown()
     {
         if (currentEncounter is null)
             return;
