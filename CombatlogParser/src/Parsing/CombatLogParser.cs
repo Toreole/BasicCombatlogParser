@@ -187,6 +187,10 @@ namespace CombatlogParser
             return playerMetadata;
         }
 
+        //TODO: needs speeding up. takes too long to read through the file.
+        //possibilities: timestamp check for date, shouldnt change length unless its before midnight on a 9th of a month, or the last day of the 9th month.
+        //that way it could avoid the next.IndexOf(timestamp_end_seperator) running every time.
+        //maybe ReadLineAsync is also a bait.
         private static async Task FetchEncounterInfoMetadataAsync(StreamReader reader, uint logId, List<EncounterInfoMetadata> encounterMetadatas)
         {
             long position = 0;
@@ -374,6 +378,7 @@ namespace CombatlogParser
         {
             fileStream.Position = metadata.EncounterStartIndex;
             using TextReader reader = new StreamReader(fileStream);
+            using ParsingContext context = new();
 
             string? line = reader.ReadLine()!;
 
@@ -441,7 +446,7 @@ namespace CombatlogParser
                 }
                 else
                 {
-                    //TODO: Write to a Log that a subevent could not be recognized. Its probably new.
+                    context.RegisterUnhandledSubevent(subevent, line);
                 }
             }
             //ENCOUNTER_EVENT should be exactly here.
@@ -548,6 +553,7 @@ namespace CombatlogParser
         {
             fileStream.Position = metadata.EncounterStartIndex;
             using TextReader reader = new StreamReader(fileStream);
+            using ParsingContext parsingContext = new();
 
             string? line = (await reader.ReadLineAsync())!;
 
@@ -616,6 +622,7 @@ namespace CombatlogParser
                 else
                 {
                     //TODO: Write to a Log that a subevent could not be recognized. Its probably new.
+                    parsingContext.RegisterUnhandledSubevent(subevent, line);
                 }
             }
             //ENCOUNTER_EVENT should be exactly here.

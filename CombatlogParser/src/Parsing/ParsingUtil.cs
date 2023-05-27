@@ -58,62 +58,6 @@ public static class ParsingUtil
     }
 
     /// <summary>
-    /// Attempts to seperate a subevent into prefix and affix.
-    /// </summary>
-    /// <param name="subevent">The full subevent string. e.g. SPELL_DAMAGE</param>
-    /// <returns>false if the prefix and suffix are UNDEFINED</returns>
-    [Obsolete("Slow method. Use TryParsePrefixAffixSubeventF instead.")]
-    public static bool TryParsePrefixAffixSubevent(string subevent, out CombatlogEventPrefix prefix, out CombatlogEventSuffix suffix)
-    {
-        int seperatorCount = 0;
-        int[] seperatorIndices = new int[4]; //there are a max of 4 _ in any possible given subevent.
-
-        //count the words in the subevent.
-        for(int i = 0; i < subevent.Length; i++)
-        {
-            if (subevent[i] == '_')
-            {
-                seperatorIndices[seperatorCount] = i;
-                seperatorCount++; //increment seperator count
-            }
-        }
-
-        string remainder;
-        //try to parse the two-word prefixes (SPELL_PERIODIC / SPELL_BUIDLING) 
-        //the number of params is the same as just SPELL, but there are fewer prefixes than suffixes
-        //so this way should be faster. (as opposed to double checking all suffix)
-        if (seperatorCount > 1)
-        {
-            string longWord = subevent[0..(seperatorIndices[1])];
-            remainder = subevent[seperatorIndices[1]..^0];
-
-            if (TryParsePrefix(longWord, out prefix))
-            {
-                if (TryParseSuffix(remainder, out suffix))
-                {
-                    return true;
-                }
-            }
-        }
-        //try to parse one-word prefixes (SPELL / SWING / RANGE / ENVIRONMENTAL)
-        
-        string shortWord = subevent[0..(seperatorIndices[0])];
-        remainder = subevent[seperatorIndices[0]..^0];
-        if (TryParsePrefix(shortWord, out prefix))
-        {
-            if (TryParseSuffix(remainder, out suffix))
-            {
-                return true;
-            }
-        }
-        
-        //default to UNDEFINED when parse fails.
-        prefix = CombatlogEventPrefix.UNDEFINED;
-        suffix = CombatlogEventSuffix.UNDEFINED;
-        return false;
-    }
-
-    /// <summary>
     /// A faster version of TryParsePrefixAffixSubevent
     /// </summary>
     /// <param name="subevent">The full subevent string. e.g. SPELL_DAMAGE</param>
@@ -166,18 +110,6 @@ public static class ParsingUtil
         return true;
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool TryParsePrefix(string sub, out CombatlogEventPrefix prefix)
-    {
-        return Enum.TryParse(sub, out prefix);
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool TryParseSuffix(string sub, out CombatlogEventSuffix suffix)
-    {
-        return Enum.TryParse(sub, out suffix);
-    }
-
     /// <summary>
     /// Gets the amount of parameters that are associated with the given prefix.
     /// </summary>
@@ -192,7 +124,6 @@ public static class ParsingUtil
             CombatlogEventPrefix.SPELL_BUILDING => 3,
             CombatlogEventPrefix.ENVIRONMENTAL => 1,
             _ => 0 //default
-
         };
     }
 
@@ -254,6 +185,7 @@ public static class ParsingUtil
         }
         return new PowerType[] { (PowerType)int.Parse(str, NumberStyles.Number) };
     }
+
     /// <summary>
     /// Gets an int array from a string where values are seperated with a '|' 
     /// </summary>
