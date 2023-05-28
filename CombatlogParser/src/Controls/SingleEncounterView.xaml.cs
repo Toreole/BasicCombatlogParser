@@ -20,24 +20,43 @@ public partial class SingleEncounterView : ContentView
 
     private Button highlightedButton;
 
+    private EncounterInfoMetadata? currentEncounterMetadata = null;
     private EncounterInfo? currentEncounter = null;
     private SingleEncounterViewMode currentViewMode = SingleEncounterViewMode.DamageDone;
+
+    public uint EncounterMetadataId
+    {
+        get => currentEncounterMetadata?.Id ?? 0;
+        set
+        {
+            if(currentEncounterMetadata == null || currentEncounterMetadata.Id != value)
+            {
+                currentEncounterMetadata = Queries.FindEncounterById(value);
+                GetData(currentEncounterMetadata);
+            }
+        }
+    }
+
+    public EncounterInfoMetadata? EncounterMetadata
+    {
+        get => currentEncounterMetadata;
+        set
+        {
+            if (value == null)
+                return;
+            if(currentEncounterMetadata == null || currentEncounterMetadata.Id != value.Id)
+            {
+                currentEncounterMetadata = value;
+                GetData(currentEncounterMetadata);
+            }
+        }
+    }
 
     public SingleEncounterView()
     {
         InitializeComponent();
         highlightedButton = DamageButton;
         highlightedButton.Style = this.Resources[menuBandButtonHighlighted] as Style;
-    }
-
-    public SingleEncounterView(uint encounterMetadataId) : this()
-    {
-        GetData(Queries.FindEncounterById(encounterMetadataId));
-    }
-
-    public SingleEncounterView(EncounterInfoMetadata encounterInfoMetadata) : this()
-    {
-        GetData(encounterInfoMetadata);
     }
 
     private void TabButtonClick(object sender, RoutedEventArgs e)
@@ -66,21 +85,17 @@ public partial class SingleEncounterView : ContentView
         }
     }
 
-    public void GetData(EncounterInfoMetadata encounterInfoMetadata)
+    private void GetData(EncounterInfoMetadata encounterInfoMetadata)
     {
         DataGrid.Items.Clear();
         
         //surprised it just works like this.
-        LoadData(encounterInfoMetadata).WaitAsync(CancellationToken.None);
+        LoadDataAsync(encounterInfoMetadata).WaitAsync(CancellationToken.None);
     }
-    private async Task LoadData(EncounterInfoMetadata encounterInfoMetadata)
+    
+    private async Task LoadDataAsync(EncounterInfoMetadata encounterInfoMetadata)
     {
-        //this is a bit scuffed
-        while (MainWindow == null)
-        {
-            await Task.Delay(2);
-        }
-        var progress = MainWindow.ShowProgressBar();
+        var progress = MainWindow!.ShowProgressBar();
         progress.DescriptionText = "Reading Encounter...";
         progress.ProgressPercent = 50; //somehow have this progress percent be set by ParseEncounterAsync
         currentEncounter = await CombatLogParser.ParseEncounterAsync(encounterInfoMetadata);

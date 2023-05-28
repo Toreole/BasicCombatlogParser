@@ -193,8 +193,11 @@ public partial class PlayerMetadataView : ContentView
         else
         {
             var selectedPerformance = (PlayerPerformance)BestPerformanceBossList.SelectedItem;
-            if(selectedPerformance != null)
-                ChangeActiveView(new SingleEncounterView(selectedPerformance.EncounterMetadataId));
+            if(selectedPerformance != null && MainWindow != null)
+            {
+                MainWindow.ChangeContent(new SingleEncounterView())
+                    .EncounterMetadataId = selectedPerformance.EncounterMetadataId;
+            }
         }
     }
 }

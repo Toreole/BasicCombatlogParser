@@ -105,8 +105,9 @@ public partial class RawDatabaseView : ContentView
 
     private void EncounterInfoListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        var encounterView = new SingleEncounterView();
-        encounterView.GetData((EncounterInfoListView.SelectedItem as EncounterInfoMetadata)!);
-        this.ChangeActiveView(encounterView);
+        if (MainWindow is null)
+            return;
+        MainWindow.ChangeContent(new SingleEncounterView())
+            .EncounterMetadata = (EncounterInfoMetadata)EncounterInfoListView.SelectedItem;
     }
 }

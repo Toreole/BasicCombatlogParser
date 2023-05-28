@@ -40,10 +40,11 @@ public partial class MainWindow : Window
         }
     }
 
-    internal void ChangeContent(ContentView content)
+    internal T ChangeContent<T>(T content) where T : ContentView
     {
         content.SetWindow(this);
         MainContentControl.Content = content;
+        return content;
     }
 
     //the actual dropdown.
