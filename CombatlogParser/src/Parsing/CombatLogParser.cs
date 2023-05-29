@@ -1,9 +1,6 @@
 ﻿using System.IO;
-using System.IO.Pipes;
 using System.Reflection;
-using System.Reflection.PortableExecutable;
 using System.Text.RegularExpressions;
-using System.Windows.Controls;
 using CombatlogParser.Controls;
 using CombatlogParser.Data;
 using CombatlogParser.Data.Events;
@@ -61,7 +58,7 @@ namespace CombatlogParser
             File.Copy(filePath, copiedLogPath, true);
 
             //System.Windows.Controls.ProgressBar progressBar = new();
-            using FileStream fileStream = File.Open(copiedLogPath, FileMode.Open, FileAccess.Read, FileShare.Read);
+            using FileStream fileStream = new(copiedLogPath, FileMode.Open, FileAccess.Read, FileShare.Read, 16384);
             
             //create a text reader for the file
             using StreamReader reader = new(fileStream);
@@ -123,7 +120,7 @@ namespace CombatlogParser
             progressDisplay.UpdateDisplay(20, "Fetching encounter metadata...");
 
             //System.Windows.Controls.ProgressBar progressBar = new();
-            using FileStream fileStream = File.Open(copiedLogPath, FileMode.Open, FileAccess.Read, FileShare.Read);
+            using FileStream fileStream = new(copiedLogPath, FileMode.Open, FileAccess.Read, FileShare.Read, 16384);
             //create a text reader for the file
             using StreamReader reader = new(fileStream);
 
@@ -352,7 +349,7 @@ namespace CombatlogParser
                 filePath = (string.IsNullOrEmpty(metadata.CombatlogMetadata!.FileName)) ?
                     throw new FileNotFoundException("No filepath given.") : LocalPath(metadata.CombatlogMetadata.FileName);
             }
-            using var fileStream = File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
+            using var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read, 16384);
             return ParseEncounterWork(metadata, fileStream);
         }
 
@@ -370,7 +367,7 @@ namespace CombatlogParser
                 filePath = (string.IsNullOrEmpty(metadata.CombatlogMetadata!.FileName)) ?
                     throw new FileNotFoundException("No filepath given.") : LocalPath(metadata.CombatlogMetadata.FileName);
             }
-            using var fileStream = File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
+            using var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read, 16384);
             return await ParseEncounterWorkAsync(metadata, fileStream);
         }
 
