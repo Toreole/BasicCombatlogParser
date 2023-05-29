@@ -60,6 +60,7 @@ namespace Generators
   2430: Painsmith Raznal
   2436: Guardian of the First Ones
   2431: Fatescribe Roh-Kalo
+  2422: Kel'Thuzad
   2435: Sylvanas Windrunner
 2296: Castle Nathria
   2398: Shriekwing
@@ -78,8 +79,6 @@ namespace Generators
         const string InstanceIdTypeName = "InstanceId";
         const string EncounterIdTypeName = "EncounterId";
 
-        //TODO: figure out a way to easily configure the IDs for encounters, instances, and their connections.
-        //maybe a json-esque file format, that is located within the project, but how would you get it reliably?
         public void Execute(GeneratorExecutionContext context)
         {
             ParseInstanceInfo();
