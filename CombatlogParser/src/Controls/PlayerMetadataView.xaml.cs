@@ -1,9 +1,7 @@
 ﻿using CombatlogParser.Data.DisplayReady;
 using CombatlogParser.Data.Metadata;
-using CombatlogParser.DBInteract;
 using System.Windows.Controls;
 using System.Windows.Data;
-using System.Windows.Media;
 
 namespace CombatlogParser.Controls;
 
@@ -38,8 +36,6 @@ public partial class PlayerMetadataView : ContentView
     public PlayerMetadataView()
     {
         InitializeComponent();
-        targetPlayer = Queries.FindPlayersWithNameLike("Bäng").FirstOrDefault(); //should find Bänger
-        PlayerName.Content = targetPlayer?.Name ?? "could not find player";
         InitializeRaidSelection();
         InitializeForCurrentRaid();
         DifficultySelectionComboBox.SelectedIndex = 0;

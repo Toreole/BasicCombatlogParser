@@ -779,7 +779,7 @@ namespace CombatlogParser
                 bool sourceIsCorrect = !sourceToOwnerGUID.TryGetValue(ev.SourceGUID, out string? trueSourceGUID);
                 if(result.TryGetByGUID(sourceIsCorrect? ev.SourceGUID : trueSourceGUID!, out var perf))
                 {
-                    perf!.Dps += (ev.Amount + ev.Absorbed);
+                    perf!.Dps += (ev.damageParams.amount + ev.damageParams.absorbed);
                 }
                 //else //source is not player, but a pet/guardian/npc summoned by a player that could not be identified to belong to a player.
                 //{

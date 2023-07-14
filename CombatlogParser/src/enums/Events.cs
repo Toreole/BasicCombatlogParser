@@ -93,12 +93,32 @@
         /// </summary>
         _DAMAGE,
 
+        /// <summary>
+        /// UNDEFINED
+        /// </summary>
+        _DAMAGE_SUPPORT,
+
+        /// <summary>
+        /// UNDEFINED
+        /// </summary>
+        _EMPOWER_START,
+
+        /// <summary>
+        /// UNDEFINED
+        /// </summary>
+        _EMPOWER_END,
+
         ///<summary>
         /// NOTE: only in advanced; InfoGUID is TargetGUID (only used for SWING_DAMAGE_LANDED) (baseAmount only for SWING_DAMAGE_LANDED)
         /// Suffix params:
         /// amount, [baseAmount], overkill, schoo, resisted, blocked, absorbed, critical, glancing, crushing, isOffHand
         /// </summary>
         _DAMAGE_LANDED,
+
+        /// <summary>
+        /// UNDEFINED
+        /// </summary>
+        _DAMAGE_LANDED_SUPPORT,
 
         /// <summary>
         /// Suffix params:
@@ -112,6 +132,11 @@
         /// amount, [baseAmount], overhealing, absorbed, critical
         /// </summary>
         _HEAL,
+
+        /// <summary>
+        /// UNDEFINED
+        /// </summary>
+        _HEAL_SUPPORT,
 
         /// <summary>
         /// Suffix params:

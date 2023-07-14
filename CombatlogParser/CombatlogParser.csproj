@@ -42,9 +42,7 @@
   </ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\Generators\Generators.csproj"
-						  OutputItemType="Analyzer"
-						  ReferenceOutputAssembly="false" />
+		<ProjectReference Include="..\Generators\Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
 	</ItemGroup>
 	
 </Project>

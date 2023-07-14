@@ -61,6 +61,7 @@ public abstract class CombatlogEvent : LogEntryBase
             //    break;
             //case CombatlogEventSuffix._DAMAGE_LANDED:
             //    break;
+            CombatlogEventSuffix._DAMAGE_SUPPORT => new DamageSupportEvent(prefix, combatlogEntry, index),
             //case CombatlogEventSuffix._MISSED:
             //    break;
             CombatlogEventSuffix._HEAL => new HealEvent(prefix, combatlogEntry, index),
@@ -138,48 +139,5 @@ public abstract class CombatlogEvent : LogEntryBase
         spellId = int.Parse(NextSubstring(entry, ref index));
         spellName = NextSubstring(entry, ref index);
         spellSchool = (SpellSchool)HexStringToUInt(NextSubstring(entry, ref index));
-    }
-}
-
-public class AdvancedParams
-{
-    public readonly string infoGUID;
-    public readonly string ownerGUID;
-    public readonly int currentHP;
-    public readonly int maxHP;
-    public readonly int attackPower;
-    public readonly int spellPower;
-    public readonly int armor;
-    public readonly int absorb;
-    public readonly PowerType[] powerType;
-    public readonly int[] currentPower;
-    public readonly int[] maxPower;
-    public readonly int[] powerCost;
-    public readonly float positionX;
-    public readonly float positionY;
-    public readonly int uiMapID;
-    public readonly float facing;
-    public readonly int level;
-
-    public AdvancedParams(string data, ref int dataIndex)
-    {
-        infoGUID = NextSubstring(data, ref dataIndex);
-        ownerGUID = NextSubstring(data, ref dataIndex);
-        currentHP = int.Parse(NextSubstring(data, ref dataIndex));
-        maxHP = int.Parse(NextSubstring(data, ref dataIndex));
-        attackPower = int.Parse(NextSubstring(data, ref dataIndex));
-        spellPower = int.Parse(NextSubstring(data, ref dataIndex));
-        armor = int.Parse(NextSubstring(data, ref dataIndex));
-        absorb = int.Parse(NextSubstring(data, ref dataIndex));
-        
-        powerType = AllPowerTypesIn(NextSubstring(data, ref dataIndex));
-        currentPower = AllIntsIn(NextSubstring(data, ref dataIndex));
-        maxPower = AllIntsIn(NextSubstring(data, ref dataIndex));
-        powerCost = AllIntsIn(NextSubstring(data, ref dataIndex));
-        positionX = float.Parse(NextSubstring(data, ref dataIndex));
-        positionY = float.Parse(NextSubstring(data, ref dataIndex));
-        uiMapID = int.Parse(NextSubstring(data, ref dataIndex));
-        facing = float.Parse(NextSubstring(data, ref dataIndex));
-        level = int.Parse(NextSubstring(data, ref dataIndex));
     }
 }

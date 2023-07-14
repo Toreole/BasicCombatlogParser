@@ -11,14 +11,13 @@ namespace CombatlogParser.Controls;
 /// </summary>
 public partial class RawDatabaseView : ContentView
 {
-
-    private ObservableCollection<CombatlogMetadata> combatlogs = new();
+    private readonly ObservableCollection<CombatlogMetadata> combatlogs = new();
     //private uint lastLogId;
-    private ObservableCollection<EncounterInfoMetadata> encounters = new();
+    private readonly ObservableCollection<EncounterInfoMetadata> encounters = new();
     //private uint lastEncounterId;
-    private ObservableCollection<PerformanceMetadata> performances = new();
+    private readonly ObservableCollection<PerformanceMetadata> performances = new();
     private uint lastPerformanceId;
-    private ObservableCollection<PlayerMetadata> players = new();
+    private readonly ObservableCollection<PlayerMetadata> players = new();
     //private uint lastPlayerId;
 
     public RawDatabaseView()

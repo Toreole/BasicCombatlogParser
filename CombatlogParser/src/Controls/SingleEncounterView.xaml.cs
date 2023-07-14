@@ -98,13 +98,20 @@ public partial class SingleEncounterView : ContentView
         var progress = MainWindow!.ShowProgressBar();
         progress.DescriptionText = "Reading Encounter...";
         progress.ProgressPercent = 50; //somehow have this progress percent be set by ParseEncounterAsync
-        currentEncounter = await CombatLogParser.ParseEncounterAsync(encounterInfoMetadata);
+        try
+        {
+            currentEncounter = await CombatLogParser.ParseEncounterAsync(encounterInfoMetadata);
+        }
+        catch (FormatException ex)
+        {
+            var x = 1;
+        }
         MainWindow.HideProgressBar(progress);
         //Maybe not do this immediately but do a check before for the DamageButton being selected.
         GenerateDamageDoneBreakdown();
     }
 
-private void GenerateDamageDoneBreakdown()
+    private void GenerateDamageDoneBreakdown()
     {
         if (currentEncounter is null)
             return;
@@ -120,10 +127,23 @@ private void GenerateDamageDoneBreakdown()
             if (!currentEncounter.SourceToOwnerGuidLookup.TryGetValue(dmgEvent.SourceGUID, out actualSource))
                 actualSource = dmgEvent.SourceGUID;
             if (damageBySource.ContainsKey(actualSource))
-                damageBySource[actualSource] += dmgEvent.Amount + dmgEvent.Absorbed;
+                damageBySource[actualSource] += dmgEvent.damageParams.amount + dmgEvent.damageParams.absorbed;
             else
-                damageBySource[actualSource] = dmgEvent.Amount + dmgEvent.Absorbed;
+                damageBySource[actualSource] = dmgEvent.damageParams.amount + dmgEvent.damageParams.absorbed;
         }
+        var damageSupportEvents = currentEncounter.CombatlogEventDictionary.GetEvents<DamageSupportEvent>();
+        foreach (var dmgEvent in damageSupportEvents)
+        {
+            if (damageBySource.ContainsKey(dmgEvent.supporterGUID))
+            {
+                damageBySource[dmgEvent.supporterGUID] += dmgEvent.damageParams.amount + dmgEvent.damageParams.absorbed;
+            }
+            else
+            {
+                damageBySource[dmgEvent.supporterGUID] = dmgEvent.damageParams.amount + dmgEvent.damageParams.absorbed;
+            }
+        }
+
         NamedTotal<long>[] results = new NamedTotal<long>[damageBySource.Count];
         int i = 0;
         long totalDamage = 0;
@@ -279,6 +299,23 @@ private void GenerateDamageDoneBreakdown()
             Label = totalHealing.ToShortFormString(),
             ValueString = (totalHealing / encounterLength).ToString("N1")
         });
+    }
+
+    private void Test()
+    {
+        CombatlogEventDictionary dict = new CombatlogEventDictionary();
+
+        GetSums(dict.GetEvents<DamageEvent>(), x => x.damageParams.amount - x.damageParams.overkill);
+        GetSums(dict.GetEvents<HealEvent>(), x => x.Amount - x.Overheal);
+    }
+
+    private void GetSums<T>(IList<T> list, Func<T, long> valueAccessor)
+    {
+        long sum = 0;
+        foreach (var item in list)
+        {
+            sum += valueAccessor(item);
+        }
     }
 
     private void SetupDataGridForHealing()

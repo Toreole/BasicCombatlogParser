@@ -1,0 +1,8 @@
+﻿Just a reminder for myself and any possible others that are looking into this code.
+
+Within EventData, there's two kinds of classes:
+______Params and ______Data
+
+Params relates to anything that is dynamic, like health, damage amounts, etc.
+
+Data is anything that is static, meaning that there *would* be duplicate objects. To avoid creating lots of duplicates, a HashSet will be used. 

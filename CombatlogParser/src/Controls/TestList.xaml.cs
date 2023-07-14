@@ -41,9 +41,9 @@ namespace CombatlogParser.src.Controls
                 if (!encounterInfo.SourceToOwnerGuidLookup.TryGetValue(dmgEvent.SourceGUID, out actualSource))
                     actualSource = dmgEvent.SourceGUID;
                 if (damageBySource.ContainsKey(actualSource))
-                    damageBySource[actualSource] += dmgEvent.Amount;
+                    damageBySource[actualSource] += dmgEvent.damageParams.amount;
                 else
-                    damageBySource[actualSource] = dmgEvent.Amount;
+                    damageBySource[actualSource] = dmgEvent.damageParams.amount;
             }
             (string sourceGuid, string sourceName, long damage)[] results = new (string, string, long)[damageBySource.Count];
             int i = 0;

@@ -19,7 +19,7 @@
         Radiant = 6,
         Stormstrike = 9,
         Holystorm = 10,
-        Firestorm = 12,
+        Volcanic = 12,
         Froststrike = 17,
         Holyfrost = 18,
         Frostfire = 20,
