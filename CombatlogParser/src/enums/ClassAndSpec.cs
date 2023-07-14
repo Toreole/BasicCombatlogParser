@@ -35,6 +35,7 @@
 
         Evoker_Devastation = 1467,
         Evoker_Preservation = 1468,
+        Evoker_Augmentation = 1473,
 
         Hunter_BeastMastery = 253,
         Hunter_Marksman = 254,
@@ -83,7 +84,7 @@
                 SpecId.DK_Blood or SpecId.DK_Frost or SpecId.DK_Unholy => ClassId.Death_Knight,
                 SpecId.DH_Havoc or SpecId.DH_Vengeance => ClassId.Demon_Hunter,
                 SpecId.Druid_Balance or SpecId.Druid_Feral or SpecId.Druid_Guardian or SpecId.Druid_Restoration => ClassId.Druid,
-                SpecId.Evoker_Devastation or SpecId.Evoker_Preservation => ClassId.Evoker,
+                SpecId.Evoker_Devastation or SpecId.Evoker_Preservation or SpecId.Evoker_Augmentation => ClassId.Evoker,
                 SpecId.Hunter_BeastMastery or SpecId.Hunter_Marksman or SpecId.Hunter_Survival => ClassId.Hunter,
                 SpecId.Monk_Brewmaster or SpecId.Monk_Mistweaver or SpecId.Monk_Windwalker => ClassId.Monk,
                 SpecId.Paladin_Protection or SpecId.Paladin_Retribution or SpecId.Paladin_Holy => ClassId.Paladin,
@@ -112,7 +113,7 @@
                 ClassId.Monk => new[] { SpecId.Monk_Brewmaster, SpecId.Monk_Windwalker, SpecId.Monk_Mistweaver },
                 ClassId.Druid => new[] { SpecId.Druid_Balance, SpecId.Druid_Feral, SpecId.Druid_Guardian, SpecId.Druid_Restoration },
                 ClassId.Demon_Hunter => new[] { SpecId.DH_Havoc, SpecId.DH_Vengeance },
-                ClassId.Evoker => new[] { SpecId.Evoker_Devastation, SpecId.Evoker_Devastation },
+                ClassId.Evoker => new[] { SpecId.Evoker_Devastation, SpecId.Evoker_Devastation, SpecId.Evoker_Augmentation },
                 _ => new[] { SpecId.UNKNOWN },
             };
         }
@@ -142,6 +143,7 @@
                 SpecId.Druid_Balance or
                 SpecId.Druid_Feral or
                 SpecId.Evoker_Devastation or
+                SpecId.Evoker_Augmentation or
                 SpecId.Hunter_BeastMastery or
                 SpecId.Hunter_Marksman or
                 SpecId.Hunter_Survival or
