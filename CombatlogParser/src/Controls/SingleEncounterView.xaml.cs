@@ -134,6 +134,10 @@ public partial class SingleEncounterView : ContentView
         var damageSupportEvents = currentEncounter.CombatlogEventDictionary.GetEvents<DamageSupportEvent>();
         foreach (var dmgEvent in damageSupportEvents)
         {
+            if (damageBySource.ContainsKey(dmgEvent.SourceGUID))
+            {
+                damageBySource[dmgEvent.SourceGUID] -= dmgEvent.damageParams.amount;
+            }
             if (damageBySource.ContainsKey(dmgEvent.supporterGUID))
             {
                 damageBySource[dmgEvent.supporterGUID] += dmgEvent.damageParams.amount + dmgEvent.damageParams.absorbed;
