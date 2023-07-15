@@ -36,4 +36,9 @@ public class SpellData
         knownSpells[spellId] = data;
         return data;
     }
+
+    internal static void ResetStoredSpells()
+    {
+        knownSpells.Clear();
+    }
 }

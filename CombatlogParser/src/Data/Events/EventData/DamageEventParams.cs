@@ -25,15 +25,9 @@ public class DamageEventParams
         damageSchool = (SpellSchool) (schoolRaw.StartsWith("0x")? Convert.ToInt32(schoolRaw, 16) : int.Parse(schoolRaw));
         resisted = long.Parse(NextSubstring(line, ref dataIndex));
         blocked = long.Parse(NextSubstring(line, ref dataIndex));
-        try {
-            absorbed = long.Parse(NextSubstring(line, ref dataIndex));
-        }
-        catch(FormatException e)
-        {
-            var x = 0;
-        }
+        absorbed = long.Parse(NextSubstring(line, ref dataIndex));
         critical = NextSubstring(line, ref dataIndex) == "1";
         glancing = NextSubstring(line, ref dataIndex) == "1";
         isOffHand = NextSubstring(line, ref dataIndex) == "1";
-        }
+    }
 }

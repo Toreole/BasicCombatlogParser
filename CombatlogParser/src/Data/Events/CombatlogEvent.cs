@@ -1,4 +1,5 @@
-﻿using static CombatlogParser.ParsingUtil;
+﻿using CombatlogParser.Data.Events.EventData;
+using static CombatlogParser.ParsingUtil;
 
 namespace CombatlogParser.Data.Events;
 
@@ -10,17 +11,20 @@ public abstract class CombatlogEvent : LogEntryBase
     public CombatlogEventPrefix SubeventPrefix { get; private set; } = CombatlogEventPrefix.UNDEFINED;
     public CombatlogEventSuffix SubeventSuffix { get; private set; } = CombatlogEventSuffix.UNDEFINED;
 
-    //these 8 parameters are guaranteed to be included in combatlog events.
-    public string SourceGUID { get; private set; } = "";
-    public string SourceName { get; private set; } = "";
-    public UnitFlag SourceFlags { get; private set; } = 0x0;
-    public RaidFlag SourceRaidFlags { get; private set; } = 0x0;
-    public string TargetGUID { get; private set; } = "";
-    public string TargetName { get; private set; } = "";
-    public UnitFlag TargetFlags { get; private set; } = 0x0;
-    public RaidFlag TargetRaidFlags { get; private set; } = 0x0;
+    private readonly UnitData sourceUnit;
+    private readonly UnitData targetUnit;
 
-    public readonly EventType eventType = EventType.UNDEFINED;
+    //these 8 parameters are guaranteed to be included in combatlog events.
+    public string SourceGUID => sourceUnit.unitGUID;
+    public string SourceName => sourceUnit.unitName;
+    public UnitFlag SourceFlags { get; private set; }
+    public RaidFlag SourceRaidFlags { get; private set; }
+    public string TargetGUID => targetUnit.unitGUID;
+    public string TargetName => targetUnit.unitName;
+    public UnitFlag TargetFlags { get; private set; }
+    public RaidFlag TargetRaidFlags { get; private set; }
+
+public readonly EventType eventType = EventType.UNDEFINED;
 
     public bool IsSourcePet => SourceFlags.HasFlagf(UnitFlag.COMBATLOG_OBJECT_TYPE_PET);
 
@@ -29,12 +33,10 @@ public abstract class CombatlogEvent : LogEntryBase
     protected CombatlogEvent(string entry, ref int dataIndex, EventType eventType, CombatlogEventPrefix prefix, CombatlogEventSuffix suffix)
     {
         Timestamp = StringTimestampToDateTime(entry[..entry.IndexOf(timestamp_end_seperator)]);
-        SourceGUID = NextSubstring(entry, ref dataIndex);
-        SourceName = NextSubstring(entry, ref dataIndex);
+        sourceUnit = UnitData.GetOrParse(entry, ref dataIndex);
         SourceFlags = NextFlags(entry, ref dataIndex);
         SourceRaidFlags = NextRaidFlags(entry, ref dataIndex);
-        TargetGUID = NextSubstring(entry, ref dataIndex);
-        TargetName = NextSubstring(entry, ref dataIndex);
+        targetUnit = UnitData.GetOrParse(entry, ref dataIndex);
         TargetFlags = NextFlags(entry, ref dataIndex);
         TargetRaidFlags = NextRaidFlags(entry, ref dataIndex);
 
@@ -61,10 +63,12 @@ public abstract class CombatlogEvent : LogEntryBase
             //    break;
             //case CombatlogEventSuffix._DAMAGE_LANDED:
             //    break;
+            //TODO: CombatlogEventSuffix._DAMAGE_LANDED_SUPPORT => new DamageSupportEvent(...)
             CombatlogEventSuffix._DAMAGE_SUPPORT => new DamageSupportEvent(prefix, combatlogEntry, index),
             //case CombatlogEventSuffix._MISSED:
             //    break;
             CombatlogEventSuffix._HEAL => new HealEvent(prefix, combatlogEntry, index),
+            CombatlogEventSuffix._HEAL_SUPPORT => new HealSupportEvent(prefix, combatlogEntry, index),
             //case CombatlogEventSuffix._HEAL_ABSORBED:
             //    break;
             CombatlogEventSuffix._ABSORBED => new SpellAbsorbedEvent(combatlogEntry, index),

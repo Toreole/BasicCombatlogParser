@@ -134,17 +134,18 @@ public partial class SingleEncounterView : ContentView
         var damageSupportEvents = currentEncounter.CombatlogEventDictionary.GetEvents<DamageSupportEvent>();
         foreach (var dmgEvent in damageSupportEvents)
         {
+            var effectiveDamage = dmgEvent.damageParams.amount + dmgEvent.damageParams.absorbed;
             if (damageBySource.ContainsKey(dmgEvent.SourceGUID))
             {
-                damageBySource[dmgEvent.SourceGUID] -= dmgEvent.damageParams.amount;
+                damageBySource[dmgEvent.SourceGUID] -= effectiveDamage;
             }
             if (damageBySource.ContainsKey(dmgEvent.supporterGUID))
             {
-                damageBySource[dmgEvent.supporterGUID] += dmgEvent.damageParams.amount + dmgEvent.damageParams.absorbed;
+                damageBySource[dmgEvent.supporterGUID] += effectiveDamage;
             }
             else
             {
-                damageBySource[dmgEvent.supporterGUID] = dmgEvent.damageParams.amount + dmgEvent.damageParams.absorbed;
+                damageBySource[dmgEvent.supporterGUID] = effectiveDamage;
             }
         }
 
@@ -253,6 +254,25 @@ public partial class SingleEncounterView : ContentView
             else
                 healingBySource[actualSource] = absorbEvent.AbsorbedAmount;
         }
+        var healSupportEvents = currentEncounter.CombatlogEventDictionary.GetEvents<HealSupportEvent>();
+        foreach(var supportEvent  in healSupportEvents)
+        {
+            var healParams = supportEvent.healParams;
+            var effectiveHealing = healParams.amount + healParams.absorbed - healParams.overheal;
+            if (healingBySource.ContainsKey(supportEvent.supporterGUID))
+            {
+                healingBySource[supportEvent.supporterGUID] += effectiveHealing;
+            }
+            else
+            {
+                healingBySource[supportEvent.supporterGUID] = effectiveHealing;
+            }
+            if(healingBySource.ContainsKey(supportEvent.SourceGUID))
+            {
+                healingBySource[supportEvent.SourceGUID] -= effectiveHealing;
+            }
+        }
+
         NamedTotal<long>[] results = new NamedTotal<long>[healingBySource.Count];
         int i = 0;
         long totalHealing = 0;
