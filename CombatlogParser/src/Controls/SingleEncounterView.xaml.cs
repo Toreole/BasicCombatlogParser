@@ -1,12 +1,12 @@
-﻿using CombatlogParser.Data.DisplayReady;
+﻿using CombatlogParser.Data;
+using CombatlogParser.Data.DisplayReady;
 using CombatlogParser.Data.Events;
 using CombatlogParser.Data.Metadata;
-using CombatlogParser.Data;
 using CombatlogParser.Formatting;
+using System.Numerics;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using System.Numerics;
 
 namespace CombatlogParser.Controls;
 
@@ -29,7 +29,7 @@ public partial class SingleEncounterView : ContentView
         get => currentEncounterMetadata?.Id ?? 0;
         set
         {
-            if(currentEncounterMetadata == null || currentEncounterMetadata.Id != value)
+            if (currentEncounterMetadata == null || currentEncounterMetadata.Id != value)
             {
                 currentEncounterMetadata = Queries.FindEncounterById(value);
                 GetData(currentEncounterMetadata);
@@ -44,7 +44,7 @@ public partial class SingleEncounterView : ContentView
         {
             if (value == null)
                 return;
-            if(currentEncounterMetadata == null || currentEncounterMetadata.Id != value.Id)
+            if (currentEncounterMetadata == null || currentEncounterMetadata.Id != value.Id)
             {
                 currentEncounterMetadata = value;
                 GetData(currentEncounterMetadata);
@@ -95,11 +95,11 @@ public partial class SingleEncounterView : ContentView
     private void GetData(EncounterInfoMetadata encounterInfoMetadata)
     {
         DataGrid.Items.Clear();
-        
+
         //surprised it just works like this.
         LoadDataAsync(encounterInfoMetadata).WaitAsync(CancellationToken.None);
     }
-    
+
     private async Task LoadDataAsync(EncounterInfoMetadata encounterInfoMetadata)
     {
         var progress = MainWindow!.ShowProgressBar();
@@ -133,10 +133,13 @@ public partial class SingleEncounterView : ContentView
             string? actualSource;
             if (!currentEncounter.SourceToOwnerGuidLookup.TryGetValue(dmgEvent.SourceGUID, out actualSource))
                 actualSource = dmgEvent.SourceGUID;
+
+            var fullAmount = dmgEvent.damageParams.amount + dmgEvent.damageParams.absorbed;
+
             if (damageBySource.ContainsKey(actualSource))
-                damageBySource[actualSource] += dmgEvent.damageParams.amount + dmgEvent.damageParams.absorbed;
+                damageBySource[actualSource] += fullAmount;
             else
-                damageBySource[actualSource] = dmgEvent.damageParams.amount + dmgEvent.damageParams.absorbed;
+                damageBySource[actualSource] = fullAmount;
         }
         var damageSupportEvents = currentEncounter.CombatlogEventDictionary.GetEvents<DamageSupportEvent>();
         foreach (var dmgEvent in damageSupportEvents)
@@ -156,56 +159,7 @@ public partial class SingleEncounterView : ContentView
             }
         }
 
-        NamedTotal<long>[] results = new NamedTotal<long>[damageBySource.Count];
-        int i = 0;
-        long totalDamage = 0;
-        foreach (var pair in damageBySource.OrderByDescending(x => x.Value))
-        {
-            results[i] = new(
-                currentEncounter.CombatlogEvents.First(x => x.SourceGUID == pair.Key).SourceName,
-                pair.Key,
-                pair.Value
-            );
-            totalDamage += pair.Value;
-            i++;
-        }
-
-        var encounterLength = currentEncounter.LengthInSeconds;
-        NamedValueBarData[] displayData = new NamedValueBarData[results.Length];
-        long maxDamage = results[0].Value;
-        for (i = 0; i < displayData.Length; i++)
-        {
-            PlayerInfo? player = currentEncounter.FindPlayerInfoByGUID(results[i].Guid);
-            displayData[i] = new()
-            {
-                Maximum = maxDamage,
-                Value = results[i].Value,
-                Label = results[i].Value.ToShortFormString(),
-                ValueString = (results[i].Value / encounterLength).ToString("N1")
-            };
-            if (player != null)
-            {
-                displayData[i].Name = player.Name;
-                displayData[i].Color = player.Class.GetClassBrush();
-            }
-            else
-            {
-                displayData[i].Name = results[i].Name;
-                displayData[i].Color = Brushes.Red;
-            }
-        }
-        foreach (var entry in displayData)
-            DataGrid.Items.Add(entry);
-        //add the special Total entry
-        DataGrid.Items.Add(new NamedValueBarData()
-        {
-            Name = "Total",
-            Color = Brushes.White,
-            Maximum = maxDamage,
-            Value = -1,
-            Label = totalDamage.ToShortFormString(),
-            ValueString = (totalDamage / encounterLength).ToString("N1")
-        });
+        CalculateFinalMetricsAndDisplay(damageBySource);
     }
 
     private void GenerateDamageTakenBreakdown()
@@ -224,56 +178,33 @@ public partial class SingleEncounterView : ContentView
                 dmgTakenByTarget[target] = dmgEvent.damageParams.amount + dmgEvent.damageParams.absorbed;
         }
 
-        NamedTotal<long>[] results = new NamedTotal<long>[dmgTakenByTarget.Count];
+        CalculateFinalMetricsAndDisplay(dmgTakenByTarget);
+    }
+
+    private string GetUnitNameOrFallback(string guid)
+    {
+        return currentEncounter?.CombatlogEvents.FirstOrDefault(x => x.TargetGUID == guid)?.TargetName
+            ?? currentEncounter?.CombatlogEvents.FirstOrDefault(x => x.SourceGUID == guid)?.SourceName
+            ?? "Unknown";
+    }
+
+    private static NamedTotal<TNumber>[] GetOrderedTotals<TNumber>(Dictionary<string, TNumber> lookup, out long total) 
+        where TNumber : INumber<TNumber>, IBinaryInteger<TNumber>, IAdditionOperators<TNumber, long, long>
+    {
+        var results = new NamedTotal<TNumber>[lookup.Count];
         int i = 0;
-        long totalDamage = 0;
-        foreach (var pair in dmgTakenByTarget.OrderByDescending(x => x.Value))
+        total = 0;
+        foreach (var pair in lookup.OrderByDescending(x => x.Value))
         {
             results[i] = new(
-                currentEncounter.CombatlogEvents.First(x => x.TargetGUID == pair.Key).TargetName,
+                string.Empty, //was currentEncounter.CombatlogEvents.First(x => x.TargetGUID == pair.Key).TargetName,
                 pair.Key,
                 pair.Value
             );
-            totalDamage += pair.Value;
+            total = pair.Value + total;
             i++;
         }
-
-        var encounterLength = currentEncounter.LengthInSeconds;
-        NamedValueBarData[] displayData = new NamedValueBarData[results.Length];
-        long maxDamage = results[0].Value;
-        for (i = 0; i < displayData.Length; i++)
-        {
-            PlayerInfo? player = currentEncounter.FindPlayerInfoByGUID(results[i].Guid);
-            displayData[i] = new()
-            {
-                Maximum = maxDamage,
-                Value = results[i].Value,
-                Label = results[i].Value.ToShortFormString(),
-                ValueString = (results[i].Value / encounterLength).ToString("N1")
-            };
-            if (player != null)
-            {
-                displayData[i].Name = player.Name;
-                displayData[i].Color = player.Class.GetClassBrush();
-            }
-            else
-            {
-                displayData[i].Name = results[i].Name;
-                displayData[i].Color = Brushes.Red;
-            }
-        }
-        foreach (var entry in displayData)
-            DataGrid.Items.Add(entry);
-        //add the special Total entry
-        DataGrid.Items.Add(new NamedValueBarData()
-        {
-            Name = "Total",
-            Color = Brushes.White,
-            Maximum = maxDamage,
-            Value = -1,
-            Label = totalDamage.ToShortFormString(),
-            ValueString = (totalDamage / encounterLength).ToString("N1")
-        });
+        return results;
     }
 
     private void SetupDataGridForDamageTaken()
@@ -301,7 +232,7 @@ public partial class SingleEncounterView : ContentView
     //oh my god this is awful code.
     private void GenerateHealingBreakdown()
     {
-        if (currentEncounter == null) 
+        if (currentEncounter == null)
             return;
 
         SetupDataGridForHealing();
@@ -314,10 +245,13 @@ public partial class SingleEncounterView : ContentView
             string? actualSource;
             if (!currentEncounter.SourceToOwnerGuidLookup.TryGetValue(healEvent.SourceGUID, out actualSource))
                 actualSource = healEvent.SourceGUID;
+
+            var fullAmount = healEvent.Amount + healEvent.Absorbed - healEvent.Overheal;
+
             if (healingBySource.ContainsKey(actualSource))
-                healingBySource[actualSource] += healEvent.Amount + healEvent.Absorbed - healEvent.Overheal;
+                healingBySource[actualSource] += fullAmount;
             else
-                healingBySource[actualSource] = healEvent.Amount + healEvent.Absorbed - healEvent.Overheal;
+                healingBySource[actualSource] = fullAmount;
         }
         var absorbEvents = currentEncounter.CombatlogEventDictionary.GetEvents<SpellAbsorbedEvent>();
         Func<SpellAbsorbedEvent, bool> absorbCasterFilter = new((x) =>
@@ -336,7 +270,7 @@ public partial class SingleEncounterView : ContentView
                 healingBySource[actualSource] = absorbEvent.AbsorbedAmount;
         }
         var healSupportEvents = currentEncounter.CombatlogEventDictionary.GetEvents<HealSupportEvent>();
-        foreach(var supportEvent  in healSupportEvents)
+        foreach (var supportEvent in healSupportEvents)
         {
             var healParams = supportEvent.healParams;
             var effectiveHealing = healParams.amount + healParams.absorbed - healParams.overheal;
@@ -348,35 +282,28 @@ public partial class SingleEncounterView : ContentView
             {
                 healingBySource[supportEvent.supporterGUID] = effectiveHealing;
             }
-            if(healingBySource.ContainsKey(supportEvent.SourceGUID))
+            if (healingBySource.ContainsKey(supportEvent.SourceGUID))
             {
                 healingBySource[supportEvent.SourceGUID] -= effectiveHealing;
             }
         }
 
-        NamedTotal<long>[] results = new NamedTotal<long>[healingBySource.Count];
-        int i = 0;
-        long totalHealing = 0;
-        foreach (var pair in healingBySource.OrderByDescending(x => x.Value))
-        {
-            results[i] = new (
-                currentEncounter.CombatlogEvents.First(x => x.SourceGUID == pair.Key).SourceName,
-                pair.Key,
-                pair.Value
-            );
-            totalHealing += pair.Value;
-            i++;
-        }
+        CalculateFinalMetricsAndDisplay(healingBySource);
+    }
 
-        var encounterLength = currentEncounter.LengthInSeconds;
+    private void CalculateFinalMetricsAndDisplay(Dictionary<string, long> healingBySource)
+    {
+        var results = GetOrderedTotals(healingBySource, out long total);
+
+        var encounterLength = currentEncounter!.LengthInSeconds;
         NamedValueBarData[] displayData = new NamedValueBarData[results.Length];
-        long maxHealing = results[0].Value;
-        for (i = 0; i < displayData.Length; i++)
+        long maximum = results[0].Value;
+        for (int i = 0; i < displayData.Length; i++)
         {
             PlayerInfo? player = currentEncounter.FindPlayerInfoByGUID(results[i].Guid);
             displayData[i] = new()
             {
-                Maximum = maxHealing,
+                Maximum = maximum,
                 Value = results[i].Value,
                 Label = results[i].Value.ToShortFormString(),
                 ValueString = (results[i].Value / encounterLength).ToString("N1")
@@ -388,7 +315,7 @@ public partial class SingleEncounterView : ContentView
             }
             else
             {
-                displayData[i].Name = results[i].Name;
+                displayData[i].Name = GetUnitNameOrFallback(results[i].Guid);
                 displayData[i].Color = Brushes.Red;
             }
         }
@@ -399,10 +326,10 @@ public partial class SingleEncounterView : ContentView
         {
             Name = "Total",
             Color = Brushes.White,
-            Maximum = maxHealing,
+            Maximum = maximum,
             Value = -1,
-            Label = totalHealing.ToShortFormString(),
-            ValueString = (totalHealing / encounterLength).ToString("N1")
+            Label = total.ToShortFormString(),
+            ValueString = (total / encounterLength).ToString("N1")
         });
     }
 
@@ -445,9 +372,10 @@ public partial class SingleEncounterView : ContentView
         public string Guid;
         public T Value;
 
-        public NamedTotal(string name, string guid, T value) {
+        public NamedTotal(string name, string guid, T value)
+        {
             Name = name;
-            Guid = guid; 
+            Guid = guid;
             Value = value;
         }
     }
