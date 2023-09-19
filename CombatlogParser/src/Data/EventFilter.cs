@@ -14,6 +14,15 @@ namespace CombatlogParser.Data
             AllySourceFilter,
             EnemyTargetFilter
         );
+        public static readonly TargetFlagFilter AllyTargetFilter
+            = new(UnitFlag.COMBATLOG_OBJECT_REACTION_FRIENDLY);
+        public static readonly AllOfFilter GroupMemberTargetFilter
+            = new(AllyTargetFilter,
+                new TargetAnyFlagFilter(
+                    UnitFlag.COMBATLOG_OBJECT_AFFILIATION_RAID |
+                    UnitFlag.COMBATLOG_OBJECT_AFFILIATION_PARTY |
+                    UnitFlag.COMBATLOG_OBJECT_AFFILIATION_MINE)
+                );
     }
 
     public interface IEventFilter
@@ -67,6 +76,17 @@ namespace CombatlogParser.Data
         {
             return ev.TargetFlags.HasFlagf(flags);
         }
+    }
+
+    public sealed class TargetAnyFlagFilter : IEventFilter
+    {
+        private readonly UnitFlag searchedFlags;
+        public TargetAnyFlagFilter(UnitFlag searchFlags)
+        {
+            this.searchedFlags = searchFlags;
+        }
+        public bool Match(CombatlogEvent ev)
+            => (ev.TargetFlags & searchedFlags) != UnitFlag.NONE;
     }
 
     /// <summary>

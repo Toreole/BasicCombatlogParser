@@ -73,6 +73,10 @@ public partial class SingleEncounterView : ContentView
                 return;
 
             currentViewMode = (SingleEncounterViewMode)button.Tag;
+
+            if (currentEncounter is null)
+                return;
+
             switch (currentViewMode)
             {
                 case SingleEncounterViewMode.DamageDone:
@@ -80,6 +84,9 @@ public partial class SingleEncounterView : ContentView
                     break;
                 case SingleEncounterViewMode.Healing:
                     GenerateHealingBreakdown();
+                    break;
+                case SingleEncounterViewMode.DamageTaken:
+                    GenerateDamageTakenBreakdown();
                     break;
             }
         }
@@ -116,7 +123,7 @@ public partial class SingleEncounterView : ContentView
         if (currentEncounter is null)
             return;
 
-        SetupDataGridForDamage();
+        SetupDataGridForDamageDone();
 
         Dictionary<string, long> damageBySource = new();
         var damageEvents = currentEncounter.CombatlogEventDictionary.GetEvents<DamageEvent>();
@@ -201,7 +208,81 @@ public partial class SingleEncounterView : ContentView
         });
     }
 
-    private void SetupDataGridForDamage()
+    private void GenerateDamageTakenBreakdown()
+    {
+        SetupDataGridForDamageTaken();
+
+        Dictionary<string, long> dmgTakenByTarget = new();
+        var damageEvents = currentEncounter!.CombatlogEventDictionary.GetEvents<DamageEvent>();
+        var filter = EventFilters.GroupMemberTargetFilter;
+        foreach (var dmgEvent in damageEvents.Where(filter.Match))
+        {
+            var target = dmgEvent.TargetGUID;
+            if (dmgTakenByTarget.ContainsKey(target))
+                dmgTakenByTarget[target] += dmgEvent.damageParams.amount + dmgEvent.damageParams.absorbed;
+            else
+                dmgTakenByTarget[target] = dmgEvent.damageParams.amount + dmgEvent.damageParams.absorbed;
+        }
+
+        NamedTotal<long>[] results = new NamedTotal<long>[dmgTakenByTarget.Count];
+        int i = 0;
+        long totalDamage = 0;
+        foreach (var pair in dmgTakenByTarget.OrderByDescending(x => x.Value))
+        {
+            results[i] = new(
+                currentEncounter.CombatlogEvents.First(x => x.TargetGUID == pair.Key).TargetName,
+                pair.Key,
+                pair.Value
+            );
+            totalDamage += pair.Value;
+            i++;
+        }
+
+        var encounterLength = currentEncounter.LengthInSeconds;
+        NamedValueBarData[] displayData = new NamedValueBarData[results.Length];
+        long maxDamage = results[0].Value;
+        for (i = 0; i < displayData.Length; i++)
+        {
+            PlayerInfo? player = currentEncounter.FindPlayerInfoByGUID(results[i].Guid);
+            displayData[i] = new()
+            {
+                Maximum = maxDamage,
+                Value = results[i].Value,
+                Label = results[i].Value.ToShortFormString(),
+                ValueString = (results[i].Value / encounterLength).ToString("N1")
+            };
+            if (player != null)
+            {
+                displayData[i].Name = player.Name;
+                displayData[i].Color = player.Class.GetClassBrush();
+            }
+            else
+            {
+                displayData[i].Name = results[i].Name;
+                displayData[i].Color = Brushes.Red;
+            }
+        }
+        foreach (var entry in displayData)
+            DataGrid.Items.Add(entry);
+        //add the special Total entry
+        DataGrid.Items.Add(new NamedValueBarData()
+        {
+            Name = "Total",
+            Color = Brushes.White,
+            Maximum = maxDamage,
+            Value = -1,
+            Label = totalDamage.ToShortFormString(),
+            ValueString = (totalDamage / encounterLength).ToString("N1")
+        });
+    }
+
+    private void SetupDataGridForDamageTaken()
+    {
+        //for now, just use the same columns as damage done.
+        SetupDataGridForDamageDone();
+    }
+
+    private void SetupDataGridForDamageDone()
     {
         DataGrid.Items.Clear();
 
