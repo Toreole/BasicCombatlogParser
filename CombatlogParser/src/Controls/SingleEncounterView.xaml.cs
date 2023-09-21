@@ -109,9 +109,9 @@ public partial class SingleEncounterView : ContentView
         {
             currentEncounter = await CombatLogParser.ParseEncounterAsync(encounterInfoMetadata);
         }
-        catch (FormatException ex)
+        catch (FormatException)
         {
-            var x = 1;
+
         }
         MainWindow.HideProgressBar(progress);
         //Maybe not do this immediately but do a check before for the DamageButton being selected.
@@ -128,12 +128,10 @@ public partial class SingleEncounterView : ContentView
         Dictionary<string, long> damageBySource = new();
         var damageEvents = currentEncounter.CombatlogEventDictionary.GetEvents<DamageEvent>();
         var filter = EventFilters.AllySourceEnemyTargetFilter;
-        foreach (var dmgEvent in damageEvents.Where(filter.Match))
-        {
-            string actualSource = GetActualSource(dmgEvent.SourceGUID);
-            var fullAmount = dmgEvent.damageParams.amount + dmgEvent.damageParams.absorbed;
-            AddSum(damageBySource, actualSource, fullAmount);
-        }
+        SumAmountsForSources(
+            damageEvents.Where(filter.Match),
+            dmgEvent => dmgEvent.damageParams.amount + dmgEvent.damageParams.absorbed,
+            damageBySource);
         var damageSupportEvents = currentEncounter.CombatlogEventDictionary.GetEvents<DamageSupportEvent>();
         foreach (var dmgEvent in damageSupportEvents)
         {
@@ -235,12 +233,10 @@ public partial class SingleEncounterView : ContentView
         Dictionary<string, long> healingBySource = new();
         IEventFilter filter = EventFilters.AllySourceFilter;
         var healEvents = currentEncounter.CombatlogEventDictionary.GetEvents<HealEvent>();
-        foreach (var healEvent in healEvents.Where(filter.Match))
-        {
-            string sourceGuid = GetActualSource(healEvent.SourceGUID);
-            var fullAmount = healEvent.Amount + healEvent.Absorbed - healEvent.Overheal;
-            AddSum(healingBySource, sourceGuid, fullAmount);
-        }
+        SumAmountsForSources(
+            healEvents.Where(filter.Match),
+            healEvent => healEvent.Amount + healEvent.Absorbed - healEvent.Overheal,
+            healingBySource);
         var absorbEvents = currentEncounter.CombatlogEventDictionary.GetEvents<SpellAbsorbedEvent>();
         Func<SpellAbsorbedEvent, bool> absorbCasterFilter = new((x) =>
         {
@@ -265,6 +261,20 @@ public partial class SingleEncounterView : ContentView
         }
 
         CalculateFinalMetricsAndDisplay(healingBySource);
+    }
+
+    private void SumAmountsForSources<T>(
+        IEnumerable<T> events, 
+        Func<T, long> amountGetter, 
+        Dictionary<string, long> sumDictionary)
+        where T : CombatlogEvent
+    {
+        foreach(var ev in events)
+        {
+            string sourceGuid = GetActualSource(ev.SourceGUID);
+            long amount = amountGetter(ev);
+            AddSum(sumDictionary, sourceGuid, amount);
+        }
     }
 
     private void CalculateFinalMetricsAndDisplay(Dictionary<string, long> amountBySource)
@@ -309,7 +319,7 @@ public partial class SingleEncounterView : ContentView
         });
     }
 
-    private void AddSum(Dictionary<string, long> sums, string guid, long amount)
+    private static void AddSum(Dictionary<string, long> sums, string guid, long amount)
     {
         if (sums.ContainsKey(guid))
         {
@@ -318,23 +328,6 @@ public partial class SingleEncounterView : ContentView
         else
         {
             sums[guid] = amount;
-        }
-    }
-
-    private void Test()
-    {
-        CombatlogEventDictionary dict = new CombatlogEventDictionary();
-
-        GetSums(dict.GetEvents<DamageEvent>(), x => x.damageParams.amount - x.damageParams.overkill);
-        GetSums(dict.GetEvents<HealEvent>(), x => x.Amount - x.Overheal);
-    }
-
-    private void GetSums<T>(IList<T> list, Func<T, long> valueAccessor)
-    {
-        long sum = 0;
-        foreach (var item in list)
-        {
-            sum += valueAccessor(item);
         }
     }
 

@@ -10,7 +10,7 @@ namespace CombatlogParser.Data
         );
         public static readonly TargetFlagFilter EnemyTargetFilter = 
             new(UnitFlag.COMBATLOG_OBJECT_REACTION_HOSTILE);
-        public static readonly AllOfFilter AllySourceEnemyTargetFilter = new AllOfFilter(
+        public static readonly AllOfFilter AllySourceEnemyTargetFilter = new(
             AllySourceFilter,
             EnemyTargetFilter
         );
