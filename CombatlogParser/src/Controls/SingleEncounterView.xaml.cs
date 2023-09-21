@@ -130,33 +130,19 @@ public partial class SingleEncounterView : ContentView
         var filter = EventFilters.AllySourceEnemyTargetFilter;
         foreach (var dmgEvent in damageEvents.Where(filter.Match))
         {
-            string? actualSource;
-            if (!currentEncounter.SourceToOwnerGuidLookup.TryGetValue(dmgEvent.SourceGUID, out actualSource))
-                actualSource = dmgEvent.SourceGUID;
-
+            string actualSource = GetActualSource(dmgEvent.SourceGUID);
             var fullAmount = dmgEvent.damageParams.amount + dmgEvent.damageParams.absorbed;
-
-            if (damageBySource.ContainsKey(actualSource))
-                damageBySource[actualSource] += fullAmount;
-            else
-                damageBySource[actualSource] = fullAmount;
+            AddSum(damageBySource, actualSource, fullAmount);
         }
         var damageSupportEvents = currentEncounter.CombatlogEventDictionary.GetEvents<DamageSupportEvent>();
         foreach (var dmgEvent in damageSupportEvents)
         {
-            var effectiveDamage = dmgEvent.damageParams.amount + dmgEvent.damageParams.absorbed;
+            var damageSupported = dmgEvent.damageParams.amount + dmgEvent.damageParams.absorbed;
             if (damageBySource.ContainsKey(dmgEvent.SourceGUID))
             {
-                damageBySource[dmgEvent.SourceGUID] -= effectiveDamage;
+                damageBySource[dmgEvent.SourceGUID] -= damageSupported;
             }
-            if (damageBySource.ContainsKey(dmgEvent.supporterGUID))
-            {
-                damageBySource[dmgEvent.supporterGUID] += effectiveDamage;
-            }
-            else
-            {
-                damageBySource[dmgEvent.supporterGUID] = effectiveDamage;
-            }
+            AddSum(damageBySource, dmgEvent.supporterGUID, damageSupported);
         }
 
         CalculateFinalMetricsAndDisplay(damageBySource);
@@ -172,10 +158,8 @@ public partial class SingleEncounterView : ContentView
         foreach (var dmgEvent in damageEvents.Where(filter.Match))
         {
             var target = dmgEvent.TargetGUID;
-            if (dmgTakenByTarget.ContainsKey(target))
-                dmgTakenByTarget[target] += dmgEvent.damageParams.amount + dmgEvent.damageParams.absorbed;
-            else
-                dmgTakenByTarget[target] = dmgEvent.damageParams.amount + dmgEvent.damageParams.absorbed;
+            var amount = dmgEvent.damageParams.amount + dmgEvent.damageParams.absorbed;
+            AddSum(dmgTakenByTarget, target, amount);
         }
 
         CalculateFinalMetricsAndDisplay(dmgTakenByTarget);
@@ -229,6 +213,17 @@ public partial class SingleEncounterView : ContentView
         mainGridColumns.Add(MetricPerSecondColumn);
     }
 
+    private string GetActualSource(string possibleSource)
+    {
+        //watch out that this is only used in methods that already ensure that
+        //currentEncounter is not null.
+        if (currentEncounter!.SourceToOwnerGuidLookup.ContainsKey(possibleSource))
+        {
+            return currentEncounter.SourceToOwnerGuidLookup[possibleSource];
+        }
+        return possibleSource;
+    }
+
     //oh my god this is awful code.
     private void GenerateHealingBreakdown()
     {
@@ -242,16 +237,9 @@ public partial class SingleEncounterView : ContentView
         var healEvents = currentEncounter.CombatlogEventDictionary.GetEvents<HealEvent>();
         foreach (var healEvent in healEvents.Where(filter.Match))
         {
-            string? actualSource;
-            if (!currentEncounter.SourceToOwnerGuidLookup.TryGetValue(healEvent.SourceGUID, out actualSource))
-                actualSource = healEvent.SourceGUID;
-
+            string sourceGuid = GetActualSource(healEvent.SourceGUID);
             var fullAmount = healEvent.Amount + healEvent.Absorbed - healEvent.Overheal;
-
-            if (healingBySource.ContainsKey(actualSource))
-                healingBySource[actualSource] += fullAmount;
-            else
-                healingBySource[actualSource] = fullAmount;
+            AddSum(healingBySource, sourceGuid, fullAmount);
         }
         var absorbEvents = currentEncounter.CombatlogEventDictionary.GetEvents<SpellAbsorbedEvent>();
         Func<SpellAbsorbedEvent, bool> absorbCasterFilter = new((x) =>
@@ -261,27 +249,15 @@ public partial class SingleEncounterView : ContentView
         });
         foreach (var absorbEvent in absorbEvents.Where(absorbCasterFilter))
         {
-            string? actualSource;
-            if (!currentEncounter.SourceToOwnerGuidLookup.TryGetValue(absorbEvent.AbsorbCasterGUID, out actualSource))
-                actualSource = absorbEvent.AbsorbCasterGUID;
-            if (healingBySource.ContainsKey(actualSource))
-                healingBySource[actualSource] += absorbEvent.AbsorbedAmount;
-            else
-                healingBySource[actualSource] = absorbEvent.AbsorbedAmount;
+            string actualSource = GetActualSource(absorbEvent.AbsorbCasterGUID);
+            AddSum(healingBySource, actualSource, absorbEvent.AbsorbedAmount);
         }
         var healSupportEvents = currentEncounter.CombatlogEventDictionary.GetEvents<HealSupportEvent>();
         foreach (var supportEvent in healSupportEvents)
         {
             var healParams = supportEvent.healParams;
             var effectiveHealing = healParams.amount + healParams.absorbed - healParams.overheal;
-            if (healingBySource.ContainsKey(supportEvent.supporterGUID))
-            {
-                healingBySource[supportEvent.supporterGUID] += effectiveHealing;
-            }
-            else
-            {
-                healingBySource[supportEvent.supporterGUID] = effectiveHealing;
-            }
+            AddSum(healingBySource, supportEvent.supporterGUID, effectiveHealing);
             if (healingBySource.ContainsKey(supportEvent.SourceGUID))
             {
                 healingBySource[supportEvent.SourceGUID] -= effectiveHealing;
@@ -291,9 +267,9 @@ public partial class SingleEncounterView : ContentView
         CalculateFinalMetricsAndDisplay(healingBySource);
     }
 
-    private void CalculateFinalMetricsAndDisplay(Dictionary<string, long> healingBySource)
+    private void CalculateFinalMetricsAndDisplay(Dictionary<string, long> amountBySource)
     {
-        var results = GetOrderedTotals(healingBySource, out long total);
+        var results = GetOrderedTotals(amountBySource, out long total);
 
         var encounterLength = currentEncounter!.LengthInSeconds;
         NamedValueBarData[] displayData = new NamedValueBarData[results.Length];
@@ -331,6 +307,18 @@ public partial class SingleEncounterView : ContentView
             Label = total.ToShortFormString(),
             ValueString = (total / encounterLength).ToString("N1")
         });
+    }
+
+    private void AddSum(Dictionary<string, long> sums, string guid, long amount)
+    {
+        if (sums.ContainsKey(guid))
+        {
+            sums[guid] += amount;
+        }
+        else
+        {
+            sums[guid] = amount;
+        }
     }
 
     private void Test()
