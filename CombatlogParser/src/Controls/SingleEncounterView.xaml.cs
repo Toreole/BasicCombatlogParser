@@ -37,6 +37,10 @@ public partial class SingleEncounterView : ContentView
         }
     }
 
+    /// <summary>
+    /// The metadata for the encounter to be viewed.
+    /// Set to a different value to update the view.
+    /// </summary>
     public EncounterInfoMetadata? EncounterMetadata
     {
         get => currentEncounterMetadata;
@@ -59,6 +63,12 @@ public partial class SingleEncounterView : ContentView
         highlightedButton.Style = this.Resources[menuBandButtonHighlighted] as Style;
     }
 
+    /// <summary>
+    /// Triggered when a menu band button was clicked to switch the active view tab
+    /// between the different modes.
+    /// </summary>
+    /// <param name="sender">Should be a Button</param>
+    /// <param name="e"></param>
     private void TabButtonClick(object sender, RoutedEventArgs e)
     {
         e.Handled = true;
@@ -92,6 +102,10 @@ public partial class SingleEncounterView : ContentView
         }
     }
 
+    /// <summary>
+    /// Clears the DataGrid and starts LoadDataAsync
+    /// </summary>
+    /// <param name="encounterInfoMetadata"></param>
     private void GetData(EncounterInfoMetadata encounterInfoMetadata)
     {
         DataGrid.Items.Clear();
@@ -100,6 +114,12 @@ public partial class SingleEncounterView : ContentView
         LoadDataAsync(encounterInfoMetadata).WaitAsync(CancellationToken.None);
     }
 
+    /// <summary>
+    /// Gets Encounter data via CombatLogParser.ParseEncounter(Async) and shows 
+    /// the progress bar while waiting for it to be done
+    /// </summary>
+    /// <param name="encounterInfoMetadata"></param>
+    /// <returns></returns>
     private async Task LoadDataAsync(EncounterInfoMetadata encounterInfoMetadata)
     {
         var progress = MainWindow!.ShowProgressBar();
@@ -118,6 +138,9 @@ public partial class SingleEncounterView : ContentView
         GenerateDamageDoneBreakdown();
     }
 
+    /// <summary>
+    /// Calculates and shows the sums of each players damage done to enemies
+    /// </summary>
     private void GenerateDamageDoneBreakdown()
     {
         if (currentEncounter is null)
@@ -132,6 +155,8 @@ public partial class SingleEncounterView : ContentView
             damageEvents.Where(filter.Match),
             dmgEvent => dmgEvent.damageParams.amount + dmgEvent.damageParams.absorbed,
             damageBySource);
+        //damage done via support events (augmentation evoker) needs to be attributed to the evoker
+        //and subtracted from the buffed players damage.
         var damageSupportEvents = currentEncounter.CombatlogEventDictionary.GetEvents<DamageSupportEvent>();
         foreach (var dmgEvent in damageSupportEvents)
         {
@@ -146,6 +171,9 @@ public partial class SingleEncounterView : ContentView
         CalculateFinalMetricsAndDisplay(damageBySource);
     }
 
+    /// <summary>
+    /// Calculate and show the totals of each players damage taken.
+    /// </summary>
     private void GenerateDamageTakenBreakdown()
     {
         SetupDataGridForDamageTaken();
@@ -163,6 +191,11 @@ public partial class SingleEncounterView : ContentView
         CalculateFinalMetricsAndDisplay(dmgTakenByTarget);
     }
 
+    /// <summary>
+    /// Attempt to get the name of a unit through combatlog events.
+    /// </summary>
+    /// <param name="guid"></param>
+    /// <returns></returns>
     private string GetUnitNameOrFallback(string guid)
     {
         return currentEncounter?.CombatlogEvents.FirstOrDefault(x => x.TargetGUID == guid)?.TargetName
@@ -170,6 +203,13 @@ public partial class SingleEncounterView : ContentView
             ?? "Unknown";
     }
 
+    /// <summary>
+    /// Sorts the totals in the dictionary in a descending order and outputs them alongside the units GUID in an array.
+    /// </summary>
+    /// <typeparam name="TNumber"></typeparam>
+    /// <param name="lookup"></param>
+    /// <param name="total">The total of all values</param>
+    /// <returns></returns>
     private static NamedTotal<TNumber>[] GetOrderedTotals<TNumber>(Dictionary<string, TNumber> lookup, out long total) 
         where TNumber : INumber<TNumber>, IBinaryInteger<TNumber>, IAdditionOperators<TNumber, long, long>
     {
@@ -179,7 +219,6 @@ public partial class SingleEncounterView : ContentView
         foreach (var pair in lookup.OrderByDescending(x => x.Value))
         {
             results[i] = new(
-                string.Empty, //was currentEncounter.CombatlogEvents.First(x => x.TargetGUID == pair.Key).TargetName,
                 pair.Key,
                 pair.Value
             );
@@ -211,6 +250,11 @@ public partial class SingleEncounterView : ContentView
         mainGridColumns.Add(MetricPerSecondColumn);
     }
 
+    /// <summary>
+    /// Looks up the given GUID in the encounters SourceToOwnerGuidLookup Dictionary.
+    /// </summary>
+    /// <param name="possibleSource"></param>
+    /// <returns>The Value in the Lookup if the key exists</returns>
     private string GetActualSource(string possibleSource)
     {
         //watch out that this is only used in methods that already ensure that
@@ -222,7 +266,9 @@ public partial class SingleEncounterView : ContentView
         return possibleSource;
     }
 
-    //oh my god this is awful code.
+    /// <summary>
+    /// Calculates and shows the total healing done by each player
+    /// </summary>
     private void GenerateHealingBreakdown()
     {
         if (currentEncounter == null)
@@ -231,14 +277,15 @@ public partial class SingleEncounterView : ContentView
         SetupDataGridForHealing();
 
         Dictionary<string, long> healingBySource = new();
-        IEventFilter filter = EventFilters.AllySourceFilter;
+        IEventFilter filter = EventFilters.AllySourceFilter; //only the source matters. you cant heal enemies after all
         var healEvents = currentEncounter.CombatlogEventDictionary.GetEvents<HealEvent>();
         SumAmountsForSources(
             healEvents.Where(filter.Match),
             healEvent => healEvent.Amount + healEvent.Absorbed - healEvent.Overheal,
             healingBySource);
         var absorbEvents = currentEncounter.CombatlogEventDictionary.GetEvents<SpellAbsorbedEvent>();
-        Func<SpellAbsorbedEvent, bool> absorbCasterFilter = new((x) =>
+        //this func should not be in here, but its a specific usecase so it is.
+        Func<SpellAbsorbedEvent, bool> absorbCasterFilter = new((x) => 
         {
             return x.AbsorbCasterFlags.HasFlagf(UnitFlag.COMBATLOG_OBJECT_REACTION_FRIENDLY)
                 || x.AbsorbCasterFlags.HasFlagf(UnitFlag.COMBATLOG_OBJECT_REACTION_NEUTRAL);
@@ -248,6 +295,7 @@ public partial class SingleEncounterView : ContentView
             string actualSource = GetActualSource(absorbEvent.AbsorbCasterGUID);
             AddSum(healingBySource, actualSource, absorbEvent.AbsorbedAmount);
         }
+        //healing done via support needs to be attributed to the evoker, not the buffed player.
         var healSupportEvents = currentEncounter.CombatlogEventDictionary.GetEvents<HealSupportEvent>();
         foreach (var supportEvent in healSupportEvents)
         {
@@ -263,6 +311,13 @@ public partial class SingleEncounterView : ContentView
         CalculateFinalMetricsAndDisplay(healingBySource);
     }
 
+    /// <summary>
+    /// Sums up the amounts in the given events by their Source
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="events"></param>
+    /// <param name="amountGetter">Determines the amount. Different events have different ways of calculating it.</param>
+    /// <param name="sumDictionary">The dictionary it outputs into.</param>
     private void SumAmountsForSources<T>(
         IEnumerable<T> events, 
         Func<T, long> amountGetter, 
@@ -277,6 +332,10 @@ public partial class SingleEncounterView : ContentView
         }
     }
 
+    /// <summary>
+    /// Calculate X-per-second, the overall total across all entries, make it display ready, and fill the DataGrid.Items collection.
+    /// </summary>
+    /// <param name="amountBySource"></param>
     private void CalculateFinalMetricsAndDisplay(Dictionary<string, long> amountBySource)
     {
         var results = GetOrderedTotals(amountBySource, out long total);
@@ -319,6 +378,12 @@ public partial class SingleEncounterView : ContentView
         });
     }
 
+    /// <summary>
+    /// Add an amount to a guid's sum in the dictionary. Small helper to avoid duplicate code.
+    /// </summary>
+    /// <param name="sums"></param>
+    /// <param name="guid"></param>
+    /// <param name="amount"></param>
     private static void AddSum(Dictionary<string, long> sums, string guid, long amount)
     {
         if (sums.ContainsKey(guid))
@@ -347,15 +412,17 @@ public partial class SingleEncounterView : ContentView
         mainGridColumns.Add(MetricPerSecondColumn);
     }
 
+    /// <summary>
+    /// Really nothing more than a glorified KeyValuePair
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     public struct NamedTotal<T> where T : INumber<T>
     {
-        public string Name;
         public string Guid;
         public T Value;
 
-        public NamedTotal(string name, string guid, T value)
+        public NamedTotal(string guid, T value)
         {
-            Name = name;
             Guid = guid;
             Value = value;
         }
