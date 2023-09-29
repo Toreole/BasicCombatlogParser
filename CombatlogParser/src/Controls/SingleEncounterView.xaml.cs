@@ -98,6 +98,9 @@ public partial class SingleEncounterView : ContentView
                 case SingleEncounterViewMode.DamageTaken:
                     GenerateDamageTakenBreakdown();
                     break;
+                case SingleEncounterViewMode.Deaths:
+                    GenerateDeathsBreakdown();
+                    break;
             }
         }
     }
@@ -226,6 +229,50 @@ public partial class SingleEncounterView : ContentView
             i++;
         }
         return results;
+    }
+
+    private void SetupDataGridForDeaths()
+    {
+        DataGrid.Items.Clear();
+        //Update headers where needed.
+        AbilityNameColumn.Header = "Killing Blow";
+
+        //add columns in order
+        var columns = DataGrid.Columns;
+        columns.Clear();
+        columns.Add(NameColumn);
+        columns.Add(AbilityNameColumn);
+        columns.Add(TimestampColumn);
+    }
+
+    private void GenerateDeathsBreakdown()
+    {
+        if (currentEncounter == null) return;
+        SetupDataGridForDeaths();
+        //PlayerDeathDataRow[] rows
+        List<PlayerDeathDataRow> deathData = new();
+        var unitDiedEvents = currentEncounter.CombatlogEventDictionary.GetEvents<UnitDiedEvent>();
+        var startTime = currentEncounter.EncounterStartTime;
+        foreach(var deathEvent in unitDiedEvents.Where(x => x.TargetFlags.HasFlagf(UnitFlag.COMBATLOG_OBJECT_TYPE_PLAYER)))
+        {
+            PlayerInfo? player = currentEncounter.FindPlayerInfoByGUID(deathEvent.TargetGUID);
+            var offsetTime = (deathEvent.Timestamp - startTime);
+            var formattedTimestamp = offsetTime.ToString(@"m\:ss\.fff");
+            if (player is not null)
+            {
+                deathData.Add(
+                    new(player.Name,
+                    player.Class.GetClassBrush(),
+                    formattedTimestamp,
+                    "not supported"
+                    )
+                );
+            }
+        }
+
+        //now add the data to the grid
+        foreach (var entry in deathData)
+            DataGrid.Items.Add(entry);
     }
 
     private void SetupDataGridForDamageTaken()

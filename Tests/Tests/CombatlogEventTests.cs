@@ -31,5 +31,17 @@ namespace CombatlogParser.Tests
             DamageEvent[] damageEvents = dictionary.GetEvents<DamageEvent>();
             Assert.That(damageEvents, Is.EquivalentTo(new DamageEvent[] { (DamageEvent)dmgEvent }));
         }
+
+        [Test]
+        public void TestUnitDiedEventParse()
+        {
+            CombatlogEvent? diedEvent = CombatlogEvent.Create("5/24 20:22:47.199  UNIT_DIED,0000000000000000,nil,0x80000000,0x80000000,Player-3391-068AB778,\"Neferu-Silvermoon\",0x514,0x0,1", CombatlogEventPrefix.UNIT, CombatlogEventSuffix._DIED);
+            Assert.Multiple(() =>
+            {
+                Assert.That(diedEvent, Is.Not.Null);
+                Assert.That(diedEvent, Is.InstanceOf<UnitDiedEvent>());
+                Assert.That(diedEvent?.TargetName, Is.EqualTo("Neferu-Silvermoon"));
+            });
+        }
     }
 }

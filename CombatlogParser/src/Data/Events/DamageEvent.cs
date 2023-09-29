@@ -1,8 +1,9 @@
 ﻿using CombatlogParser.Data.Events.EventData;
+using System.Text.RegularExpressions;
 
 namespace CombatlogParser.Data.Events
 {
-    public class DamageEvent : AdvancedParamEvent
+    public partial class DamageEvent : AdvancedParamEvent
     {
         //the leading bits of data.
         public SpellData spellData;
@@ -15,7 +16,24 @@ namespace CombatlogParser.Data.Events
         {
             spellData = SpellData.ParseOrGet(prefix, entry, ref dataIndex);
             AdvancedParams = new(entry, ref dataIndex);
+            if(prefix is CombatlogEventPrefix.ENVIRONMENTAL)
+            {
+                int x_index = dataIndex;
+                var nextString = ParsingUtil.NextSubstring(entry, ref x_index);
+                if(NumericInteger().Match(nextString).Success is false)
+                {
+                    //if this isnt a number for damage, this is the "spell name"
+                    //for example: "Falling"
+                    //because for some reason, ENVIRONMENTAL_DAMAGE puts a name *after*
+                    //the advancedParams, but before the _DAMAGE payload.
+                    dataIndex = x_index;
+                    spellData.name = nextString;
+                }
+            }
             damageParams = new(entry, ref dataIndex);
         }
+
+        [GeneratedRegex("([0-9])")]
+        private static partial Regex NumericInteger();
     }
 }

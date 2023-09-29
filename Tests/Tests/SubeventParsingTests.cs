@@ -86,5 +86,17 @@ namespace CombatlogParser.Tests
             bool failed = !ParsingUtil.TryParsePrefixAffixSubeventF("ZONE_CHANGED", out _, out _);
             Assert.That(failed);
         }
+
+        [Test]
+        public void UnitDiedSubeventRecognized()
+        {
+            bool success = ParsingUtil.TryParsePrefixAffixSubeventF("UNIT_DIED", out var prefix, out var suffix);
+            Assert.Multiple(() =>
+            {
+                Assert.That(success);
+                Assert.That(prefix, Is.EqualTo(CombatlogEventPrefix.UNIT));
+                Assert.That(suffix, Is.EqualTo(CombatlogEventSuffix._DIED));
+            });
+        }
     }
 }

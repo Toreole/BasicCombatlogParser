@@ -50,10 +50,10 @@ public readonly EventType eventType = EventType.UNDEFINED;
         //start after the two empty spaces behind the timestamp.
         int index = combatlogEntry.IndexOf(timestamp_end_seperator);
         //make sure that its a valid combat event.
-        if (prefix is CombatlogEventPrefix.PARTY || 
-            prefix is CombatlogEventPrefix.UNIT || 
-            prefix is CombatlogEventPrefix.ENVIRONMENTAL)
-            return null;
+        //if (prefix is CombatlogEventPrefix.PARTY || 
+        //    prefix is CombatlogEventPrefix.UNIT || 
+        //    prefix is CombatlogEventPrefix.ENVIRONMENTAL)
+        //    return null;
         MovePastNextDivisor(combatlogEntry, ref index); //subevent skipped
         //divide into basic 
         CombatlogEvent? ev = suffix switch
@@ -127,7 +127,7 @@ public readonly EventType eventType = EventType.UNDEFINED;
             //    break;
             //case CombatlogEventSuffix._KILL:
             //    break;
-            //case CombatlogEventSuffix._DIED:
+            CombatlogEventSuffix._DIED => new UnitDiedEvent(prefix, combatlogEntry, index),
             //    break;
             //case CombatlogEventSuffix._DESTROYED:
             //    break;

@@ -19,7 +19,7 @@ public class SpellData
 
     public static SpellData ParseOrGet(CombatlogEventPrefix prefix, string line, ref int index)
     {
-        if(prefix is CombatlogEventPrefix.SWING or CombatlogEventPrefix.ENVIRONMENTAL)
+        if (prefix is CombatlogEventPrefix.SWING or CombatlogEventPrefix.ENVIRONMENTAL)
         {
             return new(1, "Melee", SpellSchool.Physical);
         }
