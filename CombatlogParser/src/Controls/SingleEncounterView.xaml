@@ -62,6 +62,7 @@
                             <Setter Property="Background" Value="#555555" />
                         </DataTrigger>
                     </Style.Triggers>
+                    <Setter Property="MinHeight" Value="25" />
                 </Style>
             </DataGrid.RowStyle>
             <DataGrid.Columns>
