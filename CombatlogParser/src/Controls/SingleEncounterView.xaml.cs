@@ -252,6 +252,7 @@ public partial class SingleEncounterView : ContentView
         //PlayerDeathDataRow[] rows
         List<PlayerDeathDataRow> deathData = new();
         var unitDiedEvents = currentEncounter.CombatlogEventDictionary.GetEvents<UnitDiedEvent>();
+        var damageEvents = currentEncounter.CombatlogEventDictionary.GetEvents<DamageEvent>();
         var startTime = currentEncounter.EncounterStartTime;
         foreach(var deathEvent in unitDiedEvents.Where(x => x.TargetFlags.HasFlagf(UnitFlag.COMBATLOG_OBJECT_TYPE_PLAYER)))
         {
@@ -264,9 +265,11 @@ public partial class SingleEncounterView : ContentView
                     new(player.Name,
                     player.Class.GetClassBrush(),
                     formattedTimestamp,
-                    "not supported"
+                    damageEvents.Reverse().Where(x => x.TargetGUID == deathEvent.TargetGUID)
+                        .Where(EventFilters.Before(deathEvent.Timestamp).Match)
+                        .FirstOrDefault()?.spellData.name ?? "unknown"
                     )
-                );
+                ); 
             }
         }
 

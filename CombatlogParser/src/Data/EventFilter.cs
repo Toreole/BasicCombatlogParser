@@ -23,11 +23,39 @@ namespace CombatlogParser.Data
                     UnitFlag.COMBATLOG_OBJECT_AFFILIATION_PARTY |
                     UnitFlag.COMBATLOG_OBJECT_AFFILIATION_MINE)
                 );
+
+        public static IEventFilter Before(DateTime dateTime) => new BeforeTimeFilter(dateTime);
+        public static IEventFilter After(DateTime dateTime) => new BeforeTimeFilter(dateTime);
     }
 
     public interface IEventFilter
     {
         bool Match(CombatlogEvent combatlogEvent);
+    }
+
+    public sealed class BeforeTimeFilter : IEventFilter
+    {
+        private readonly DateTime timestamp;
+        public bool Match(CombatlogEvent ev)
+        {
+            return ev.Timestamp <= timestamp;
+        }
+        public BeforeTimeFilter(DateTime timestamp)
+        {
+            this.timestamp = timestamp;
+        }
+    }
+    public sealed class AfterTimeFilter : IEventFilter
+    {
+        private readonly DateTime timestamp;
+        public bool Match(CombatlogEvent ev)
+        {
+            return ev.Timestamp >= timestamp;
+        }
+        public AfterTimeFilter(DateTime timestamp)
+        {
+            this.timestamp = timestamp;
+        }
     }
 
     /// <summary>
