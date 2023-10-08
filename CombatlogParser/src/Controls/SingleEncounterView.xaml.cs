@@ -249,7 +249,6 @@ public partial class SingleEncounterView : ContentView
     {
         if (currentEncounter == null) return;
         SetupDataGridForDeaths();
-        //PlayerDeathDataRow[] rows
         List<PlayerDeathDataRow> deathData = new();
         var unitDiedEvents = currentEncounter.CombatlogEventDictionary.GetEvents<UnitDiedEvent>();
         var damageEvents = currentEncounter.CombatlogEventDictionary.GetEvents<DamageEvent>();
@@ -261,13 +260,14 @@ public partial class SingleEncounterView : ContentView
             var formattedTimestamp = offsetTime.ToString(@"m\:ss\.fff");
             if (player is not null)
             {
+                var last3hits = damageEvents.Reverse().Where(x => x.TargetGUID == deathEvent.TargetGUID)
+                        .Where(EventFilters.Before(deathEvent.Timestamp).Match)
+                        .Take(3).ToArray();
                 deathData.Add(
                     new(player.Name,
                     player.Class.GetClassBrush(),
                     formattedTimestamp,
-                    damageEvents.Reverse().Where(x => x.TargetGUID == deathEvent.TargetGUID)
-                        .Where(EventFilters.Before(deathEvent.Timestamp).Match)
-                        .FirstOrDefault()?.spellData.name ?? "unknown"
+                    abilityName: string.Join(", ", last3hits.Select(x => x?.spellData.name)) // last3hits.LastOrDefault()?.spellData.name ?? "unknown"
                     )
                 ); 
             }

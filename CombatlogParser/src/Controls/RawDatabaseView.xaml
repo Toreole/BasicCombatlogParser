@@ -14,7 +14,7 @@
         </d:ResourceDictionary>
     </UserControl.Resources>
     <Grid>
-        <TabControl Margin="0,0,0,25" Width="Auto">
+        <TabControl Margin="0,0,0,25" Width="Auto" SelectionChanged="TabSelectionChanged">
             <TabItem Header="Combatlogs">
                 <ListView x:Name="CombatlogListView" d:ItemsSource="{d:SampleData ItemCount=2}" Height="Auto">
                     <ListView.View>
@@ -74,8 +74,8 @@
                 </Grid>
             </TabItem>
         </TabControl>
-        <Button x:Name="NextPageButton" HorizontalAlignment="Right" VerticalAlignment="Bottom" Width="60" Height="25" Margin="0,0,5,0" >Next</Button>
-        <Button x:Name="PreviousPageButton" HorizontalAlignment="Left" VerticalAlignment="Bottom" Width="60" Height="25" Margin="5,0,0,0" >Previous</Button>
+        <Button x:Name="NextPageButton" HorizontalAlignment="Right" VerticalAlignment="Bottom" Width="60" Height="25" Margin="0,0,5,0" Click="NextPageButton_Click" >Next</Button>
+        <Button x:Name="PreviousPageButton" HorizontalAlignment="Left" VerticalAlignment="Bottom" Width="60" Height="25" Margin="5,0,0,0" Click="PreviousPageButton_Click" >Previous</Button>
         <TextBlock x:Name="PaginationTextBlock" VerticalAlignment="Bottom" HorizontalAlignment="Center" Width="300" Height="25" TextAlignment="Center" FontSize="16">Viewing 1-5 of 5 total</TextBlock>
     </Grid>
 </controls:ContentView>

@@ -3,11 +3,11 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace CombatlogParser.Data.Metadata
 {
-    public sealed class PlayerMetadata
+    public sealed class PlayerMetadata : EntityBase
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public uint Id { get; set; }
+        public override uint Id { get; set; }
         public string GUID { get; set; } = "";
         public string Name { get; set; } = "";
         public string Realm { get; set; } = "";

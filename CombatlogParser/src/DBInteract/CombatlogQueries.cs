@@ -240,4 +240,25 @@ public static partial class Queries
         using CombatlogDBContext context = new();
         return context.Encounters.First(x => x.Id == id);
     }
+
+    public static int CountCombatlogMetadata()
+    {
+        using CombatlogDBContext context = new();
+        return context.Combatlogs.Count();
+    }
+    public static int CountEncounterMetadata()
+    {
+        using CombatlogDBContext context = new();
+        return context.Encounters.Count();
+    }
+    public static int CountPerformanceMetadata()
+    {
+        using CombatlogDBContext context = new();
+        return context.Performances.Count();
+    }
+    public static int CountPlayerMetadata()
+    {
+        using CombatlogDBContext context = new();
+        return context.Players.Count();
+    }
 }

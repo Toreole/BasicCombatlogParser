@@ -3,14 +3,14 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace CombatlogParser.Data.Metadata
 {
-    public sealed class EncounterInfoMetadata
+    public sealed class EncounterInfoMetadata : EntityBase
     {
         /// <summary>
         /// unique ID of this encounter info. incrementing uint
         /// </summary>
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public uint Id { get; set; }
+        public override uint Id { get; set; }
 
         /// <summary>
         /// the start index of the first event in the filestream.

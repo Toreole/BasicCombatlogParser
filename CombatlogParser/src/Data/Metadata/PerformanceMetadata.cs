@@ -3,14 +3,14 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace CombatlogParser.Data.Metadata;
 
-public class PerformanceMetadata
+public class PerformanceMetadata : EntityBase
 {
     /// <summary>
     /// unique ID of the performance. autoincrement
     /// </summary>
     [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-    public uint Id { get; set; }
+    public override uint Id { get; set; }
 
     /// <summary>
     /// damage per second

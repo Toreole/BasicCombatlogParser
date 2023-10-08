@@ -2,11 +2,11 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace CombatlogParser.Data.Metadata
+namespace CombatlogParser.Data.Metadata 
 {
     [Table("CombatlogMetadatas")]
     [PrimaryKey("Id")]
-    public class CombatlogMetadata
+    public class CombatlogMetadata : EntityBase
     {
         /// <summary>
         /// unique ID (incrementing int) for easier referencing from other data. <br />
@@ -14,7 +14,7 @@ namespace CombatlogParser.Data.Metadata
         /// </summary>
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public uint Id { get; set; }
+        public override uint Id { get; set; }
 
         /// <summary>
         /// The name of the file of the combatlog. Must be UNIQUE and can be used as the PRIMARY KEY

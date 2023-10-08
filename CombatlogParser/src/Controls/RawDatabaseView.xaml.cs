@@ -12,74 +12,55 @@ namespace CombatlogParser.Controls;
 public partial class RawDatabaseView : ContentView
 {
     private readonly ObservableCollection<CombatlogMetadata> combatlogs = new();
-    //private uint lastLogId;
     private readonly ObservableCollection<EncounterInfoMetadata> encounters = new();
-    //private uint lastEncounterId;
     private readonly ObservableCollection<PerformanceMetadata> performances = new();
-    private uint lastPerformanceId;
     private readonly ObservableCollection<PlayerMetadata> players = new();
-    //private uint lastPlayerId;
+    private uint lastId;
+    private DBViewMode viewMode = DBViewMode.Combatlogs;
+    private List<EntityBase?[]> bufferedPages = new();
+    private int pageIndex = 0;
+    private int totalEntriesForMode = 0;
 
     public RawDatabaseView()
     {
         InitializeComponent();
 
-        var combatlogsBinding = new Binding()
-        {
-            Source = combatlogs
-        };
-        CombatlogListView.SetBinding(ListView.ItemsSourceProperty, combatlogsBinding);
+        CreateBinding(CombatlogListView, combatlogs);
+        //var cls = Queries.GetCombatlogMetadata(0, 30);
+        //ReplaceEntries(combatlogs, cls);
 
-        var cls = Queries.GetCombatlogMetadata(0, 10);
-        foreach (var c in cls)
-            if (c != null)
-                combatlogs.Add(c);
+        CreateBinding(EncounterInfoListView, encounters);
+        //var ens = Queries.GetEncounterInfoMetadata(0, 30);
+        //ReplaceEntries(encounters, ens);
 
-        var encountersBinding = new Binding()
-        {
-            Source = encounters
-        };
-        EncounterInfoListView.SetBinding(ListView.ItemsSourceProperty, encountersBinding);
+        CreateBinding(PerformancesListView, performances);
+        //var perfs = Queries.GetPerformanceMetadata(0, 30);
+        //ReplaceEntries(performances, perfs);
 
-        var ens = Queries.GetEncounterInfoMetadata(0, 30);
-        foreach (var e in ens)
-            if (e != null)
-                encounters.Add(e);
-
-        var performancesBinding = new Binding()
-        {
-            Source = performances
-        };
-        PerformancesListView.SetBinding(ListView.ItemsSourceProperty, performancesBinding);
-
-        var perfs = Queries.GetPerformanceMetadata(0, 30);
-        foreach (var p in perfs)
-            if (p != null)
-                performances.Add(p);
-
-        var playersBinding = new Binding()
-        {
-            Source = players
-        };
-        PlayersListView.SetBinding(ListView.ItemsSourceProperty, playersBinding);
-        var pls = Queries.GetPlayerMetadata(0, 30);
-        foreach (var p in pls)
-            if (p != null)
-                players.Add(p);
+        CreateBinding(PlayersListView, players);
+        //var pls = Queries.GetPlayerMetadata(0, 30);
+        //ReplaceEntries(players, pls);
     }
 
-    private void NextPageButton_Click(object sender, RoutedEventArgs eargs)
+    private static void CreateBinding(ListView listView, object dataSource)
     {
-        performances.Clear();
-        var performanceInfos = Queries.GetPerformanceMetadata(lastPerformanceId, 30);
-        foreach (var e in performanceInfos)
-            if (e != null)
-            {
-                performances.Add(e);
-                lastPerformanceId = e.Id;
-            }
+        var binding = new Binding
+        {
+            Source = dataSource
+        };
+        listView.SetBinding(ListView.ItemsSourceProperty, binding);
+    }
 
-        PerformancesListView.UpdateLayout();
+    private static void ReplaceEntries(System.Collections.IList list, EntityBase?[] items)
+    {
+        list.Clear();
+        foreach(var item in items)
+        {
+            if(item != null)
+            {
+                list.Add(item);
+            }
+        }
     }
 
     private void PlayerSearch_TextChanged(object sender, TextChangedEventArgs e)
@@ -108,5 +89,100 @@ public partial class RawDatabaseView : ContentView
             return;
         MainWindow.ChangeContent(new SingleEncounterView())
             .EncounterMetadata = (EncounterInfoMetadata)EncounterInfoListView.SelectedItem;
+    }
+
+    private void NextPageButton_Click(object sender, RoutedEventArgs eargs)
+    {
+        if(pageIndex == bufferedPages.Count - 1)
+        {
+            FetchData();
+        }
+        else
+        {
+            pageIndex++;
+            ShowBufferedPage();
+        }
+    }
+
+    private void PreviousPageButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (pageIndex == 0)
+            return;
+        pageIndex--;
+        ShowBufferedPage();
+    }
+
+    private void ShowBufferedPage()
+    {
+        var list = RelevantList;
+        list.Clear();
+        ReplaceEntries(list, bufferedPages[pageIndex]);
+    }
+
+    private void TabSelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        lastId = 0;
+        pageIndex = -1;
+        bufferedPages.Clear();
+        var header = ((sender as TabControl)?.SelectedItem as TabItem)?.Header ?? string.Empty;
+        
+        switch (header)
+        {
+            case "Combatlogs":
+                viewMode = DBViewMode.Combatlogs;
+                totalEntriesForMode = Queries.CountCombatlogMetadata();
+                break;
+            case "Encounters":
+                viewMode = DBViewMode.Encounters;
+                totalEntriesForMode = Queries.CountEncounterMetadata();
+                break;
+            case "Performances":
+                viewMode = DBViewMode.Performances;
+                totalEntriesForMode = Queries.CountPerformanceMetadata();
+                break;
+            case "Players":
+                viewMode = DBViewMode.Players;
+                totalEntriesForMode = Queries.CountPlayerMetadata();
+                break;
+        }
+        FetchData();
+    }
+
+    private void FetchData()
+    {
+        System.Collections.IList list = RelevantList;
+        var items = GetData();
+        bufferedPages.Add(items);
+        pageIndex++;
+        ReplaceEntries(list, items);
+        lastId = items.LastOrDefault()?.Id ?? lastId;
+        PaginationTextBlock.Text = $"{items.FirstOrDefault()?.Id} - {items.LastOrDefault()?.Id} of {totalEntriesForMode}";
+    }
+
+    private System.Collections.IList RelevantList
+        => viewMode switch
+        {
+            DBViewMode.Combatlogs => combatlogs,
+            DBViewMode.Encounters => encounters,
+            DBViewMode.Players => players,
+            DBViewMode.Performances => performances,
+            _ => throw new NotImplementedException()
+        };
+
+    private EntityBase?[] GetData()
+    {
+        return viewMode switch
+        {
+            DBViewMode.Combatlogs => Queries.GetCombatlogMetadata(lastId, 30),
+            DBViewMode.Encounters => Queries.GetEncounterInfoMetadata(lastId, 30),
+            DBViewMode.Performances => Queries.GetPerformanceMetadata(lastId, 30),
+            DBViewMode.Players => Queries.GetPlayerMetadata(lastId, 30),
+            _ => Array.Empty<EntityBase?>()
+        };
+    }
+
+    private enum DBViewMode
+    {
+        Combatlogs, Encounters, Performances, Players
     }
 }
