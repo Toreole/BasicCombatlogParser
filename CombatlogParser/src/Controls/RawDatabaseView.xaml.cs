@@ -116,7 +116,9 @@ public partial class RawDatabaseView : ContentView
     {
         var list = RelevantList;
         list.Clear();
-        ReplaceEntries(list, bufferedPages[pageIndex]);
+        var items = bufferedPages[pageIndex];
+        ReplaceEntries(list, items);
+        PaginationTextBlock.Text = $"{items.FirstOrDefault()?.Id} - {items.LastOrDefault()?.Id} of {totalEntriesForMode}";
     }
 
     private void TabSelectionChanged(object sender, SelectionChangedEventArgs e)
