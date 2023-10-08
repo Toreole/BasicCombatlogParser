@@ -85,6 +85,7 @@ public partial class RawDatabaseView : ContentView
 
     private void EncounterInfoListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
+        e.Handled = true;
         if (MainWindow is null)
             return;
         MainWindow.ChangeContent(new SingleEncounterView())
@@ -120,9 +121,11 @@ public partial class RawDatabaseView : ContentView
         ReplaceEntries(list, items);
         PaginationTextBlock.Text = $"{items.FirstOrDefault()?.Id} - {items.LastOrDefault()?.Id} of {totalEntriesForMode}";
     }
-
+    int counter = 0;
     private void TabSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
+        counter++;
+        e.Handled = true;
         lastId = 0;
         pageIndex = -1;
         bufferedPages.Clear();
@@ -158,7 +161,7 @@ public partial class RawDatabaseView : ContentView
         pageIndex++;
         ReplaceEntries(list, items);
         lastId = items.LastOrDefault()?.Id ?? lastId;
-        PaginationTextBlock.Text = $"{items.FirstOrDefault()?.Id} - {items.LastOrDefault()?.Id} of {totalEntriesForMode}";
+        PaginationTextBlock.Text = $"{items.FirstOrDefault()?.Id} - {items.LastOrDefault()?.Id} of {totalEntriesForMode} .. {counter}";
     }
 
     private System.Collections.IList RelevantList
