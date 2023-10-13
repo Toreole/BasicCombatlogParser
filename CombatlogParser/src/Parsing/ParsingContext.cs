@@ -1,6 +1,4 @@
-﻿using System;
-using System.IO;
-using System.Text;
+﻿using System.IO;
 
 namespace CombatlogParser.Parsing;
 
@@ -27,10 +25,10 @@ internal class ParsingContext : IDisposable
         FileMode openMode = File.Exists(fileName) ? FileMode.Open : FileMode.Create;
         using FileStream stream = File.Open(fileName, openMode);
         using StreamWriter writer = new StreamWriter(stream);
-        
-        if(uniqueUnhandledSubevents.Count > 0)
+
+        if (uniqueUnhandledSubevents.Count > 0)
         {
-            foreach(var pair in uniqueUnhandledSubevents)
+            foreach (var pair in uniqueUnhandledSubevents)
             {
                 writer.WriteLine($"Unhandled subevent: {pair.Key} | Example: {pair.Value}");
             }

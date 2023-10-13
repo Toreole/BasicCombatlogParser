@@ -1,5 +1,5 @@
-﻿using CombatlogParser.Data.Metadata;
-using CombatlogParser.Controls;
+﻿using CombatlogParser.Controls;
+using CombatlogParser.Data.Metadata;
 using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Controls;
@@ -30,7 +30,7 @@ public partial class MainWindow : Window
         );
 
         var defaultContent = MainContentControl.Content;
-        if(defaultContent is ContentView view)
+        if (defaultContent is ContentView view)
         {
             view.SetWindow(this);
         }
@@ -52,7 +52,7 @@ public partial class MainWindow : Window
             return;
         var targetPlayer = searchedPlayers[index];
         var activeContent = MainContentControl.Content;
-        if(activeContent != null && activeContent is PlayerMetadataView pmView)
+        if (activeContent != null && activeContent is PlayerMetadataView pmView)
         {
             pmView.SetPlayer(targetPlayer);
         }
@@ -65,9 +65,9 @@ public partial class MainWindow : Window
         PlayerSearchBox.SelectedIndex = -1;
         searchedPlayerNames.Clear();
         searchedPlayers = Queries.FindPlayersWithNameLike(PlayerSearchBox.Text);
-        foreach(var player in searchedPlayers)
+        foreach (var player in searchedPlayers)
         {
-            if(player != null)
+            if (player != null)
                 searchedPlayerNames.Add(player!.Name);
         }
     }
@@ -137,7 +137,7 @@ public partial class MainWindow : Window
         //LabelledProgressBar labelledProgress = PopupOverlay.Children.OfType<LabelledProgressBar>().First();
         var progressBar = ShowProgressBar();
         TestButton.IsEnabled = false;
-        for(int i = 0; i <= 100; i++)
+        for (int i = 0; i <= 100; i++)
         {
             progressBar.ProgressPercent = i;
             progressBar.DescriptionText = $"Working... {i}%";
@@ -160,6 +160,6 @@ public partial class MainWindow : Window
     public void HideProgressBar(LabelledProgressBar bar)
     {
         PopupOverlay.Children.Remove(bar);
-        PopupOverlay.Visibility = PopupOverlay.Children.Count == 0? Visibility.Hidden : Visibility.Visible;
+        PopupOverlay.Visibility = PopupOverlay.Children.Count == 0 ? Visibility.Hidden : Visibility.Visible;
     }
 }

@@ -26,7 +26,7 @@ class SpellAbsorbedEvent : CombatlogEvent
     {
         string[] eventData = SplitArgumentString(entry, dataIndex);
         int index = 0;
-        if(eventData.Length < 13)
+        if (eventData.Length < 13)
         {
             AbsorbedSpellID = 1;
             AbsorbedSpellName = "Melee";

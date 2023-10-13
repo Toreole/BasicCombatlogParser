@@ -1,8 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
-using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -89,10 +87,10 @@ namespace Generators
             {
                 var inst = instances[i];
                 instanceIdBuilder.Append($"    {inst.enumFriendlyName} = {inst.id}");
-                instanceIdBuilder.Append(i == instances.Count -1 ? "" : ",\n");
+                instanceIdBuilder.Append(i == instances.Count - 1 ? "" : ",\n");
 
                 encounterIdBuilder.Append($"    // {inst.name}\n");
-                foreach(var encounter in inst.Encounters)
+                foreach (var encounter in inst.Encounters)
                 {
                     encounterIdBuilder.Append($"    {encounter.enumFriendlyName} = {encounter.id},\n");
                 }
@@ -172,9 +170,9 @@ public static class InstanceEncounterUtility
         {
             StringBuilder builder = new StringBuilder();
             builder.Append($"            {EncounterIdTypeName}.All_Bosses => \"All Bosses\",\n");
-            foreach(var inst in instances)
+            foreach (var inst in instances)
             {
-                foreach(var encounter in inst.Encounters)
+                foreach (var encounter in inst.Encounters)
                 {
                     builder.Append($"            {EncounterIdTypeName}.{encounter.enumFriendlyName} => \"{encounter.name}\",\n");
                 }
@@ -200,7 +198,7 @@ public static class InstanceEncounterUtility
                 for (int i = 0; i < inst.Encounters.Count; i++)
                 {
                     var encounter = inst.Encounters[i];
-                    builder.Append($"            {EncounterIdTypeName}.{encounter.enumFriendlyName}{(i == inst.Encounters.Count-1 ? "\n" : " or\n")}");
+                    builder.Append($"            {EncounterIdTypeName}.{encounter.enumFriendlyName}{(i == inst.Encounters.Count - 1 ? "\n" : " or\n")}");
                 }
                 builder.Append($"            => {InstanceIdTypeName}.{inst.enumFriendlyName},\n");
             }
@@ -273,7 +271,7 @@ $"                {EncounterIdTypeName}.{encounter.enumFriendlyName}"
 
         public void Initialize(GeneratorInitializationContext context)
         {
-            
+
         }
     }
 
@@ -319,5 +317,5 @@ $"                {EncounterIdTypeName}.{encounter.enumFriendlyName}"
             return stringBuilder.ToString();
         }
     }
-    
+
 }

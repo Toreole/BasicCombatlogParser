@@ -1,6 +1,5 @@
 ﻿using CombatlogParser.Data.Events;
 using System.Globalization;
-using System.Runtime.CompilerServices;
 
 namespace CombatlogParser;
 
@@ -175,11 +174,11 @@ public static class ParsingUtil
     /// <returns></returns>
     public static PowerType[] AllPowerTypesIn(string str)
     {
-        if(str.Contains('|'))
+        if (str.Contains('|'))
         {
             string[] vs = str.Split('|');
             PowerType[] powerTypes = new PowerType[vs.Length];
-            for(int i = 0; i < vs.Length; i++)
+            for (int i = 0; i < vs.Length; i++)
                 powerTypes[i] = (PowerType)int.Parse(vs[i], NumberStyles.Number);
             return powerTypes;
         }
@@ -241,7 +240,7 @@ public static class ParsingUtil
             char c = line[i];
             //check for quotation start/end
             //this allows names (which are always in quotations) to include commas (,)
-            if(c == '"')
+            if (c == '"')
             {
                 //quotations end. extract the string insde, move index past next divisor
                 if (insideQuotations)
@@ -259,14 +258,14 @@ public static class ParsingUtil
                 }
             }
             //check for divisor, linebreak. (only outside of quotations)
-            if (!insideQuotations && c == divisor && i+1 < line.Length || line[i] == '\n') 
+            if (!insideQuotations && c == divisor && i + 1 < line.Length || line[i] == '\n')
             {
                 sub = line[startIndex..i];
                 startIndex = i + 1;
                 return sub;
             }
             //end of string
-            if(i == line.Length-1)
+            if (i == line.Length - 1)
             {
                 sub = line[startIndex..line.Length];
                 startIndex = line.Length;
@@ -283,14 +282,14 @@ public static class ParsingUtil
     /// </summary>
     public static void MovePastNextDivisor(string line, ref int startIndex, bool inQuotations = false, char divisor = ',')
     {
-        for(int i = startIndex; i < line.Length; i++)
+        for (int i = startIndex; i < line.Length; i++)
         {
             char c = line[i];
-            if(c == '"')
+            if (c == '"')
             {
                 inQuotations = !inQuotations;
             }
-            else if ((!inQuotations && c==divisor) && i + 1 < line.Length || line[i] == '\n')
+            else if ((!inQuotations && c == divisor) && i + 1 < line.Length || line[i] == '\n')
             {
                 startIndex = i + 1;
                 return;
@@ -359,7 +358,7 @@ public static class ParsingUtil
     /// <returns></returns>
     public static bool TryParseMiscEventF(string subevent, out object ev)
     {
-        for(int i = 0; i < miscEvents.Length; i++)
+        for (int i = 0; i < miscEvents.Length; i++)
             if (subevent.StartsWithF(miscNames[i]))
             {
                 ev = miscEvents[i];
@@ -396,7 +395,7 @@ public static class ParsingUtil
         if (!guid.StartsWithAnyOf("Creature", "Vehicle"))
             return false;
         int endIndex = guid.LastIndexOf('-');
-        int startIndex = guid.LastIndexOf('-', endIndex-1) + 1;
+        int startIndex = guid.LastIndexOf('-', endIndex - 1) + 1;
         npcId = uint.Parse(guid[startIndex..endIndex]);
         return true;
     }
@@ -404,15 +403,15 @@ public static class ParsingUtil
     public static string NextItemGroup(string data, ref int index, char divisor = ',')
     {
         bool isGroup = data[index] == '(';
-        if(!isGroup)
+        if (!isGroup)
             return NextSubstring(data, ref index, divisor);
-        int startIndex = index+1;
+        int startIndex = index + 1;
         int groupDepth = 1;
-        for(index = startIndex; index < data.Length; index++)
+        for (index = startIndex; index < data.Length; index++)
         {
             var cchar = data[index];
-            groupDepth += cchar == '('? 1 : 
-                          cchar == ')'? -1 : 0;
+            groupDepth += cchar == '(' ? 1 :
+                          cchar == ')' ? -1 : 0;
             if (groupDepth != 0)
                 continue;
             int endIndex = index;
@@ -431,7 +430,7 @@ public static class ParsingUtil
         bool isArray = data[index] == '[';
         if (!isArray)
             return NextSubstring(data, ref index);
-        int startIndex = index+1;
+        int startIndex = index + 1;
         int endIndex = data.IndexOf("]", startIndex);
         index = endIndex + 2;
         return data[startIndex..endIndex];
@@ -440,7 +439,7 @@ public static class ParsingUtil
     public static string[] SplitArgumentString(string data, int startIndex)
     {
         List<string> result = new(30);
-        while(startIndex < data.Length)
+        while (startIndex < data.Length)
         {
             result.Add(NextSubstring(data, ref startIndex));
         }

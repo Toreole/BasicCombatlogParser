@@ -58,14 +58,14 @@ public static partial class Queries
     }
 
     public static PerformanceMetadata? GetHighestDpsOnEncounterForPlayer(
-        uint playerId, 
-        EncounterId encounter, 
+        uint playerId,
+        EncounterId encounter,
         DifficultyId difficulty
         )
     {
         using CombatlogDBContext context = new();
         return context.Performances
-            .Where(p => p.PlayerMetadataId == playerId 
+            .Where(p => p.PlayerMetadataId == playerId
             && p.EncounterInfoMetadata!.WowEncounterId == encounter //p.WowEncounterId == encounter ----> WOWENCOUNTERID IS UNKNOWN FOR SOME REASON!
             && p.EncounterInfoMetadata!.Success
             && p.EncounterInfoMetadata!.DifficultyId == difficulty)
@@ -120,15 +120,17 @@ public static partial class Queries
             && p.EncounterInfoMetadata!.Success
             && p.EncounterInfoMetadata!.DifficultyId == difficulty
         );
-        switch(metric)
+        switch (metric)
         {
-            case MetricType.Dps: matching.OrderBy(p => p.Dps);
+            case MetricType.Dps:
+                matching.OrderBy(p => p.Dps);
                 break;
-            case MetricType.Hps: matching.OrderBy(p => p.Hps);
+            case MetricType.Hps:
+                matching.OrderBy(p => p.Hps);
                 break;
         }
         int count = matching.Count();
-        if(count == 0)
+        if (count == 0)
         {
             return new()
             {
@@ -208,7 +210,7 @@ public static partial class Queries
         if (rawPerformances.Length == 0)
             return Array.Empty<PlayerPerformance>();
         var results = new PlayerPerformance[rawPerformances.Length];
-        for(int i = 0; i < rawPerformances.Length; i++)
+        for (int i = 0; i < rawPerformances.Length; i++)
         {
             using CombatlogDBContext context = new();
             var encounterMetadata = context.Encounters.Where(e => e.Id == rawPerformances[i].EncounterInfoMetadataId).First();

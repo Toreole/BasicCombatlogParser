@@ -1,5 +1,4 @@
-﻿using System.Linq.Expressions;
-using static CombatlogParser.ParsingUtil;
+﻿using static CombatlogParser.ParsingUtil;
 
 namespace CombatlogParser.Data.Events.EventData;
 
@@ -22,7 +21,7 @@ public class DamageEventParams
         baseAmount = long.Parse(NextSubstring(line, ref dataIndex));
         overkill = long.Parse(NextSubstring(line, ref dataIndex));
         var schoolRaw = NextSubstring(line, ref dataIndex);
-        damageSchool = (SpellSchool) (schoolRaw.StartsWith("0x")? Convert.ToInt32(schoolRaw, 16) : int.Parse(schoolRaw));
+        damageSchool = (SpellSchool)(schoolRaw.StartsWith("0x") ? Convert.ToInt32(schoolRaw, 16) : int.Parse(schoolRaw));
         resisted = long.Parse(NextSubstring(line, ref dataIndex));
         blocked = long.Parse(NextSubstring(line, ref dataIndex));
         absorbed = long.Parse(NextSubstring(line, ref dataIndex));

@@ -1,5 +1,4 @@
 ﻿using CombatlogParser.Data.Events;
-using System.Runtime.CompilerServices;
 
 namespace CombatlogParser.Data
 {
@@ -64,7 +63,7 @@ namespace CombatlogParser.Data
         /// All combatlog events during the encounter.
         /// </summary>
         public CombatlogEvent[] CombatlogEvents { get; } = Array.Empty<CombatlogEvent>();
-        
+
         /// <summary>
         /// Combatlog Events sorted by data type.
         /// </summary>
@@ -134,7 +133,7 @@ namespace CombatlogParser.Data
 
         public PlayerInfo? FindPlayerInfoByGUID(string sourceGUID)
         {
-            foreach(var p in Players)
+            foreach (var p in Players)
             {
                 if (p.GUID == sourceGUID)
                     return p;

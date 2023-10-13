@@ -17,7 +17,7 @@ public static class ClassColors
         G = 48,
         B = 201,
         A = 255
-    }; 
+    };
     public static readonly Color Druid = new()
     {
         R = 255,

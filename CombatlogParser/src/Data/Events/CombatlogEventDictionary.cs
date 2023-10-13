@@ -1,5 +1,4 @@
 ﻿using System.Collections;
-using System.Collections.ObjectModel;
 
 namespace CombatlogParser.Data.Events;
 
@@ -24,7 +23,7 @@ public class CombatlogEventDictionary
         EType[] list = b ? (result as EType[])! : Array.Empty<EType>();
         return list;
     }
-    internal void Add(Type type, CombatlogEvent[] arr) 
+    internal void Add(Type type, CombatlogEvent[] arr)
     {
         if (dictionary.ContainsKey(type))
             return;
@@ -96,7 +95,7 @@ public class CombatlogEventDictionaryBuilder
                 dict.Add(pair.Key, pair.Value.ToArray<CombatlogEvent, AdvancedParamEvent>());
                 continue;
             }
-            
+
             dict.Add(pair.Key, pair.Value.ToArray<CombatlogEvent>());
         }
         dictionary.Clear();

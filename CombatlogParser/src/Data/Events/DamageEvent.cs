@@ -11,16 +11,16 @@ namespace CombatlogParser.Data.Events
         //what follows
         public DamageEventParams damageParams;
 
-        public DamageEvent(CombatlogEventPrefix prefix, string entry, int dataIndex) 
+        public DamageEvent(CombatlogEventPrefix prefix, string entry, int dataIndex)
             : base(entry, ref dataIndex, EventType.DAMAGE, prefix, CombatlogEventSuffix._DAMAGE)
         {
             spellData = SpellData.ParseOrGet(prefix, entry, ref dataIndex);
             AdvancedParams = new(entry, ref dataIndex);
-            if(prefix is CombatlogEventPrefix.ENVIRONMENTAL)
+            if (prefix is CombatlogEventPrefix.ENVIRONMENTAL)
             {
                 int x_index = dataIndex;
                 var nextString = ParsingUtil.NextSubstring(entry, ref x_index);
-                if(NumericInteger().Match(nextString).Success is false)
+                if (NumericInteger().Match(nextString).Success is false)
                 {
                     //if this isnt a number for damage, this is the "spell name"
                     //for example: "Falling"

@@ -1,6 +1,4 @@
-﻿using CombatlogParser.Data;
-
-namespace CombatlogParser.Tests
+﻿namespace CombatlogParser.Tests
 {
     public class UtilsTests
     {
@@ -64,7 +62,7 @@ namespace CombatlogParser.Tests
             };
 
             DateTime[] results = new DateTime[stringTimestamps.Length];
-            for(int i = 0; i < stringTimestamps.Length; i++)
+            for (int i = 0; i < stringTimestamps.Length; i++)
                 results[i] = ParsingUtil.StringTimestampToDateTime(stringTimestamps[i]);
             Assert.That(results, Is.EqualTo(expectedDateTimes));
         }

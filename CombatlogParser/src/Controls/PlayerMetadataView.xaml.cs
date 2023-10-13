@@ -15,7 +15,7 @@ public partial class PlayerMetadataView : ContentView
         InstanceId.Vault_of_the_Incarnates,
         InstanceId.Sepulcher_of_the_First_Ones,
         InstanceId.Sanctum_of_Domination,
-        InstanceId.Castle_Nathria, 
+        InstanceId.Castle_Nathria,
     };
     static readonly DifficultyId[] Difficulties = new[]
     {
@@ -25,13 +25,13 @@ public partial class PlayerMetadataView : ContentView
         DifficultyId.Mythic_Raid
     };
 
-    private List<EncounterId> encounters = new();
-    private int selectedEncounterIndex = 0;
+    private readonly List<EncounterId> encounters = new();
+    //private int selectedEncounterIndex = 0;
     private PlayerMetadata? targetPlayer;
 
     private EncounterId SelectedEncounter => encounters[Math.Max(BossSelectionComboBox.SelectedIndex, 0)];
     private DifficultyId SelectedDifficulty => Difficulties[Math.Max(DifficultySelectionComboBox.SelectedIndex, 0)];
-    private MetricType SelectedMetric => (MetricType) MetricSelectionComboBox.SelectedIndex;
+    private MetricType SelectedMetric => (MetricType)MetricSelectionComboBox.SelectedIndex;
 
     public PlayerMetadataView()
     {
@@ -66,7 +66,7 @@ public partial class PlayerMetadataView : ContentView
     private void InitializeBossSelectionForRaid(InstanceId instance)
     {
         encounters.Clear();
-        selectedEncounterIndex = 0;
+        //selectedEncounterIndex = 0;
         encounters.Add(EncounterId.All_Bosses);
         encounters.AddRange(instance.GetEncounters());
 
@@ -78,7 +78,7 @@ public partial class PlayerMetadataView : ContentView
 
     private void UpdatePerformanceList()
     {
-        if (targetPlayer is null) 
+        if (targetPlayer is null)
             return;
         var items = BestPerformanceBossList.Items;
         items.Clear();
@@ -122,7 +122,7 @@ public partial class PlayerMetadataView : ContentView
             columns.Add(
                 new() { Header = "Fastest Kill", DisplayMemberBinding = new Binding("FastestTime") }
                 );
-            columns.Add( 
+            columns.Add(
                 new() { Header = "Recorded Kills", DisplayMemberBinding = new Binding("KillCount") }
                 );
         }
@@ -189,7 +189,7 @@ public partial class PlayerMetadataView : ContentView
         else
         {
             var selectedPerformance = (PlayerPerformance)BestPerformanceBossList.SelectedItem;
-            if(selectedPerformance != null && MainWindow != null)
+            if (selectedPerformance != null && MainWindow != null)
             {
                 MainWindow.ChangeContent(new SingleEncounterView())
                     .EncounterMetadataId = selectedPerformance.EncounterMetadataId;

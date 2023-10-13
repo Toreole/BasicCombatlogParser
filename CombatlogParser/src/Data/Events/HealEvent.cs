@@ -15,7 +15,7 @@ public class HealEvent : AdvancedParamEvent
     public int Absorbed => healParams.absorbed;
     public bool Critical => healParams.critical;
 
-    public HealEvent(CombatlogEventPrefix prefix, string entry, int dataIndex) 
+    public HealEvent(CombatlogEventPrefix prefix, string entry, int dataIndex)
         : base(entry, ref dataIndex, EventType.HEALING, prefix, CombatlogEventSuffix._HEAL)
     {
         spell = SpellData.ParseOrGet(prefix, entry, ref dataIndex);

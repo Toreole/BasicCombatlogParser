@@ -6,7 +6,7 @@ class CastSuccessEvent : AdvancedParamEvent
     public string spellName;
     public SpellSchool spellSchool;
 
-    public CastSuccessEvent( string entry, int dataIndex)
+    public CastSuccessEvent(string entry, int dataIndex)
             : base(entry, ref dataIndex, EventType.CAST_SUCCESS, CombatlogEventPrefix.SPELL, CombatlogEventSuffix._CAST_SUCCESS)
     {
         GetSpellPrefixData(entry, ref dataIndex, out spellId, out spellName, out spellSchool);

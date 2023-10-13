@@ -79,10 +79,10 @@ namespace CombatlogParser
         {
             using CombatlogDBContext dbContext = new();
             PlayerMetadata? storedPlayer = dbContext.Players.FirstOrDefault(p => p.GUID == player.GUID);
-            if(storedPlayer != null)
+            if (storedPlayer != null)
             {
                 //if the player is already saved by GUID, just add missing fields if needed.
-                if(string.IsNullOrEmpty(storedPlayer.Name) && !string.IsNullOrEmpty(player.Name))
+                if (string.IsNullOrEmpty(storedPlayer.Name) && !string.IsNullOrEmpty(player.Name))
                 {
                     dbContext.Players.Update(storedPlayer);
                     storedPlayer.Name = player.Name;

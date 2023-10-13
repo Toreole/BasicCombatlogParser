@@ -2,7 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace CombatlogParser.Data.Metadata 
+namespace CombatlogParser.Data.Metadata
 {
     [Table("CombatlogMetadatas")]
     [PrimaryKey("Id")]

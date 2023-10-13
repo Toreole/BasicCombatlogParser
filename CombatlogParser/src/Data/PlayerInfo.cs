@@ -18,10 +18,10 @@ public class PlayerInfo : CombatlogUnit
     public void SetNameAndRealm(string sourceName)
     {
         int seperator = sourceName.IndexOf('-');
-        if(seperator != -1)
+        if (seperator != -1)
         {
             this.Name = sourceName[..seperator];
-            Realm = sourceName[(seperator+1)..];
+            Realm = sourceName[(seperator + 1)..];
         }
         else
         {

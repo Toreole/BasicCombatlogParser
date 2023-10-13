@@ -1,6 +1,4 @@
-﻿using CombatlogParser.Formatting;
-using System.Runtime.CompilerServices;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 
@@ -19,29 +17,29 @@ namespace CombatlogParser.Controls
 
         private static void OnLabelChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
-            if(d is LabelledBarControl bar)
+            if (d is LabelledBarControl bar)
             {
                 bar.AmountLabel.Content = (string)e.NewValue;
             }
         }
 
         public static readonly DependencyProperty MaximumProperty = DependencyProperty.Register(
-            nameof(Maximum), 
-            typeof(double), 
+            nameof(Maximum),
+            typeof(double),
             typeof(LabelledBarControl),
             new UIPropertyMetadata(1.0d, new PropertyChangedCallback(OnMaximumChanged)));
 
         private static void OnMaximumChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
-            if(d is LabelledBarControl bar) 
-            { 
+            if (d is LabelledBarControl bar)
+            {
                 bar.Maximum = (double)e.NewValue;
             }
         }
 
         public static readonly DependencyProperty ValueProperty = DependencyProperty.Register(
-            nameof(Value), 
-            typeof(double), 
+            nameof(Value),
+            typeof(double),
             typeof(LabelledBarControl),
             new UIPropertyMetadata(0.0d, new PropertyChangedCallback(OnValueChanged)));
 
@@ -50,7 +48,7 @@ namespace CombatlogParser.Controls
             if (d is LabelledBarControl bar)
             {
                 bar.Value = (double)e.NewValue;
-                if(bar.Value > bar.Maximum || bar.Value <= 0)
+                if (bar.Value > bar.Maximum || bar.Value <= 0)
                 {
                     bar.FillColor = Brushes.Transparent;
                 }
@@ -91,9 +89,10 @@ namespace CombatlogParser.Controls
             set => AmountLabel.Content = value;
         }
 
-        public double Maximum { 
-            get => FillBar.Maximum; 
-            set => FillBar.Maximum = value; 
+        public double Maximum
+        {
+            get => FillBar.Maximum;
+            set => FillBar.Maximum = value;
         }
         public double Value
         {

@@ -21,7 +21,7 @@ public class UnitData
     public static UnitData GetOrParse(string entry, ref int dataIndex)
     {
         string guid = NextSubstring(entry, ref dataIndex);
-        if(knownUnits.ContainsKey(guid))
+        if (knownUnits.ContainsKey(guid))
         {
             //skip name
             MovePastNextDivisor(entry, ref dataIndex);

@@ -10,7 +10,7 @@ namespace CombatlogParser.Data.Events
         public SpellSchool spellSchool;
 
         //should always be a SPELL_SUMMON
-        public SummonEvent(CombatlogEventPrefix prefix, string entry, int dataIndex) 
+        public SummonEvent(CombatlogEventPrefix prefix, string entry, int dataIndex)
             : base(entry, ref dataIndex, EventType.SUMMON, prefix, CombatlogEventSuffix._SUMMON)
         {
             spellId = int.Parse(NextSubstring(entry, ref dataIndex));

@@ -9,7 +9,7 @@ public static class NumberFormatting
     {
         double num = number;
         int magnitudeIndex = -1;
-        while(num > 1000.0)
+        while (num > 1000.0)
         {
             magnitudeIndex++;
             num /= 1000.0;
@@ -20,7 +20,7 @@ public static class NumberFormatting
         frontDigits += num >= 100.0 ? 1 : 0;
         int decimalDigits = Math.Min(2, 4 - frontDigits);
         StringBuilder stringBuilder = new(num.ToString($"N{decimalDigits}"));
-        if(magnitudeIndex != -1) 
+        if (magnitudeIndex != -1)
             stringBuilder.Append(magnitudeSymbols[magnitudeIndex]);
         return stringBuilder.ToString();
     }

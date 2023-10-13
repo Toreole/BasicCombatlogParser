@@ -24,7 +24,7 @@ public abstract class CombatlogEvent : LogEntryBase
     public UnitFlag TargetFlags { get; private set; }
     public RaidFlag TargetRaidFlags { get; private set; }
 
-public readonly EventType eventType = EventType.UNDEFINED;
+    public readonly EventType eventType = EventType.UNDEFINED;
 
     public bool IsSourcePet => SourceFlags.HasFlagf(UnitFlag.COMBATLOG_OBJECT_TYPE_PET);
 

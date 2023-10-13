@@ -8,7 +8,7 @@ namespace CombatlogParser.Data
             new SourceFlagFilter(UnitFlag.COMBATLOG_OBJECT_REACTION_FRIENDLY),
             new SourceFlagFilter(UnitFlag.COMBATLOG_OBJECT_REACTION_NEUTRAL)
         );
-        public static readonly TargetFlagFilter EnemyTargetFilter = 
+        public static readonly TargetFlagFilter EnemyTargetFilter =
             new(UnitFlag.COMBATLOG_OBJECT_REACTION_HOSTILE);
         public static readonly AllOfFilter AllySourceEnemyTargetFilter = new(
             AllySourceFilter,

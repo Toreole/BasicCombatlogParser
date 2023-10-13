@@ -1,13 +1,12 @@
 ﻿using CombatlogParser.Controls;
 using CombatlogParser.Data;
-using System;
+using CombatlogParser.Data.DisplayReady;
+using CombatlogParser.Data.Events;
+using CombatlogParser.Data.Metadata;
+using CombatlogParser.DBInteract;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using CombatlogParser.Data.DisplayReady;
-using CombatlogParser.DBInteract;
-using CombatlogParser.Data.Metadata;
-using CombatlogParser.Data.Events;
 
 namespace CombatlogParser.src.Controls
 {
@@ -120,7 +119,8 @@ namespace CombatlogParser.src.Controls
             }).OrderByDescending(x => x.Value).ToArray();
             var max = playerPerformances.Max(x => x.Value);
 
-            foreach (var x in playerPerformances) {
+            foreach (var x in playerPerformances)
+            {
                 x.Maximum = max;
                 DataGrid.Items.Add(x);
             }

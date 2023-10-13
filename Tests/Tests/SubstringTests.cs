@@ -1,10 +1,6 @@
-﻿using CombatlogParser.Data;
-using CombatlogParser.Data.Metadata;
-using System.Text.RegularExpressions;
-
-namespace CombatlogParser.Tests
+﻿namespace CombatlogParser.Tests
 {
-    
+
     public class SubstringTests
     {
         [Test]
@@ -34,7 +30,7 @@ namespace CombatlogParser.Tests
             int index = input.IndexOf("  ");
             index += 2;
             ParsingUtil.MovePastNextDivisor(input, ref index); //move past ENCOUNTER_START,
-            
+
             var wowEncounterId = (EncounterId)uint.Parse(ParsingUtil.NextSubstring(input, ref index));
             ParsingUtil.MovePastNextDivisor(input, ref index); //skip past the name of the encounter.
             string diff = ParsingUtil.NextSubstring(input, ref index);
@@ -68,7 +64,7 @@ namespace CombatlogParser.Tests
             string line = "One,Two,Three,Four";
             int startIndex = 0;
             string[] subs = new string[4];
-            for(int i = 0; i < 4; i++)
+            for (int i = 0; i < 4; i++)
             {
                 subs[i] = ParsingUtil.NextSubstring(line, ref startIndex);
             }
@@ -109,10 +105,10 @@ namespace CombatlogParser.Tests
             bool result4 = line.ContainsSubstringAt("012 HELLO YES", 0);
             Assert.Multiple(() =>
             {
-                Assert.That( result1); //should succeed
-                Assert.That( result2); //should succeed
+                Assert.That(result1); //should succeed
+                Assert.That(result2); //should succeed
                 Assert.That(!result3); //this should fail because the other string is too long
-                Assert.That( result4); //should succeed because theyre the same
+                Assert.That(result4); //should succeed because theyre the same
             });
         }
 
@@ -157,7 +153,7 @@ namespace CombatlogParser.Tests
             int index = 0;
             string firstSub = ParsingUtil.NextSubstring(line, ref index);
             string subGroup = ParsingUtil.NextItemGroup(line, ref index);
-            string lastSub  = ParsingUtil.NextSubstring(line, ref index);
+            string lastSub = ParsingUtil.NextSubstring(line, ref index);
             string emptyGroup = ParsingUtil.NextItemGroup(line, ref index);
             string notGroup = ParsingUtil.NextItemGroup(line, ref index);
             Assert.Multiple(() =>

@@ -24,7 +24,7 @@ public class SpellData
             return new(1, "Melee", SpellSchool.Physical);
         }
         int spellId = int.Parse(NextSubstring(line, ref index));
-        if(knownSpells.ContainsKey(spellId))
+        if (knownSpells.ContainsKey(spellId))
         {
             MovePastNextDivisor(line, ref index);
             MovePastNextDivisor(line, ref index);

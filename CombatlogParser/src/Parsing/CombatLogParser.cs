@@ -1,13 +1,13 @@
-﻿using System.IO;
-using System.Reflection;
-using System.Text.RegularExpressions;
-using CombatlogParser.Controls;
+﻿using CombatlogParser.Controls;
 using CombatlogParser.Data;
 using CombatlogParser.Data.Events;
 using CombatlogParser.Data.Metadata;
 using CombatlogParser.DBInteract;
 using CombatlogParser.Parsing;
 using Microsoft.EntityFrameworkCore;
+using System.IO;
+using System.Reflection;
+using System.Text.RegularExpressions;
 using static CombatlogParser.ParsingUtil;
 
 namespace CombatlogParser
@@ -59,7 +59,7 @@ namespace CombatlogParser
 
             //System.Windows.Controls.ProgressBar progressBar = new();
             using FileStream fileStream = new(copiedLogPath, FileMode.Open, FileAccess.Read, FileShare.Read, 16384);
-            
+
             //create a text reader for the file
             using StreamReader reader = new(fileStream);
 
@@ -94,7 +94,7 @@ namespace CombatlogParser
                 }
                 //process performances inside of the current encounter immediately.
                 var performances = ProcessPerformances(parsedEncounter, currentPlayers, encounterMetadatas[i].Id);
-                foreach(var performance in performances)
+                foreach (var performance in performances)
                 {
                     if (performance == null)
                         continue;
@@ -139,7 +139,7 @@ namespace CombatlogParser
             for (int i = 0; i < encounterMetadatas.Count; i++)
             {
                 progressDisplay.UpdateDisplay(
-                    progressPercent: (30 + (70 * ((double)i/encounterMetadatas.Count))),
+                    progressPercent: (30 + (70 * ((double)i / encounterMetadatas.Count))),
                     description: $"Parsing Encounters... ({i}/{encounterMetadatas.Count})"
                     );
                 var currentPlayers = new List<PlayerMetadata>();
@@ -308,15 +308,15 @@ namespace CombatlogParser
                     for (int j = 0; j < 5; j++) //skip past ENCOUNTER_END, encounterID, encounterName, difficultyID, groupSize
                         MovePastNextDivisor(next, ref index);
                     encounterMetadata.Success = NextSubstring(next, ref index) == "1";
-                        
+
                     encounterMetadata.EncounterLengthInFile = length;
                     string durationString = NextSubstring(next, ref index);
                     encounterMetadata.EncounterDurationMS = long.Parse(durationString);
-                    if(encounterMetadata.EncounterDurationMS > MIN_ENCOUNTER_DURATION)
+                    if (encounterMetadata.EncounterDurationMS > MIN_ENCOUNTER_DURATION)
                     {
                         encounterMetadatas.Add(encounterMetadata); //add it to the list.
                     }
-                    
+
                 }
                 else
                     length++;
@@ -340,7 +340,7 @@ namespace CombatlogParser
         /// <param name="filePath">The full file path to the combatlog.txt</param>
         /// <param name="advanced">Whether the log is using advanced parameters.</param>
         /// <returns></returns>
-        public static EncounterInfo ParseEncounter(EncounterInfoMetadata metadata, string ? filePath = null)
+        public static EncounterInfo ParseEncounter(EncounterInfoMetadata metadata, string? filePath = null)
         {
             if (string.IsNullOrEmpty(filePath))
             {
@@ -389,7 +389,7 @@ namespace CombatlogParser
             MovePastNextDivisor(line, ref index); //difficulty
             int groupSize = int.Parse(NextSubstring(line, ref index));
             uint wowInstanceId = uint.Parse(NextSubstring(line, ref index));
-            
+
             //encounterLength is guaranteed to be more or equal to the amount of actual combat events in the encounter.
             List<CombatlogEvent> events = new(metadata.EncounterLengthInFile - groupSize);
             List<MiscEvent> miscEvents = new(100); //not expecting a whole lot tbh.
@@ -543,7 +543,7 @@ namespace CombatlogParser
             _ = NextItemGroup(line, ref pos); //PvP talents skipped
             string rawEquipmentInfo = NextArray(line, ref pos);
             player.ItemLevel = GetAverageItemLevel(rawEquipmentInfo);
-            return player; 
+            return player;
         }
 
         private static async Task<EncounterInfo> ParseEncounterWorkAsync(EncounterInfoMetadata metadata, FileStream fileStream)
@@ -711,7 +711,7 @@ namespace CombatlogParser
             for (int itemSlot = 4; itemSlot < 16; itemSlot++)
                 totalLevel += GetItemLevel(NextItemGroup(equipString, ref index));
             int offHandLevel = GetItemLevel(NextItemGroup(equipString, ref index));
-            if(offHandLevel == 0)
+            if (offHandLevel == 0)
             {
                 return (int)MathF.Round(totalLevel / 15f);
             }
@@ -754,7 +754,7 @@ namespace CombatlogParser
                 };
             }
             //1.1 fetch the names for all players.
-            foreach(var player in encounterInfo.Players)
+            foreach (var player in encounterInfo.Players)
             {
                 if (player == null)
                     continue;
@@ -777,7 +777,7 @@ namespace CombatlogParser
                 //try to add the damage done directly to the player by their GUID
                 //by this point, the dictionary has ALL possible GUIDs of units in it. therefore this is OK!
                 bool sourceIsCorrect = !sourceToOwnerGUID.TryGetValue(ev.SourceGUID, out string? trueSourceGUID);
-                if(result.TryGetByGUID(sourceIsCorrect? ev.SourceGUID : trueSourceGUID!, out var perf))
+                if (result.TryGetByGUID(sourceIsCorrect ? ev.SourceGUID : trueSourceGUID!, out var perf))
                 {
                     perf!.Dps += (ev.damageParams.amount + ev.damageParams.absorbed);
                 }
@@ -788,7 +788,7 @@ namespace CombatlogParser
             }
             //HEALING 
             //add together all the healing events.
-            foreach(var ev in encounterInfo.CombatlogEventDictionary.GetEvents<HealEvent>())
+            foreach (var ev in encounterInfo.CombatlogEventDictionary.GetEvents<HealEvent>())
             {
                 if (result.TryGetByGUID(ev.SourceGUID, out var perf))
                 {
@@ -800,20 +800,20 @@ namespace CombatlogParser
                 //}
             }
             //add absorb
-            foreach(var absorbEvent in encounterInfo.CombatlogEventDictionary.GetEvents<SpellAbsorbedEvent>())
+            foreach (var absorbEvent in encounterInfo.CombatlogEventDictionary.GetEvents<SpellAbsorbedEvent>())
             {
-                if(result.TryGetByGUID(absorbEvent.AbsorbCasterGUID, out var performance))
+                if (result.TryGetByGUID(absorbEvent.AbsorbCasterGUID, out var performance))
                 {
                     performance!.Hps += absorbEvent.AbsorbedAmount;
                 }
             }
             double encounterDuration = encounterInfo.EncounterDuration / 1000.0;
-            foreach(var performance in result)
+            foreach (var performance in result)
             {
                 if (performance is null) continue;
-                if (performance.Dps != 0) 
+                if (performance.Dps != 0)
                     performance.Dps /= encounterDuration;
-                if(performance.Hps != 0)
+                if (performance.Hps != 0)
                     performance.Hps /= encounterDuration;
                 //other performance members need to be assigned toon before returned.
             }
