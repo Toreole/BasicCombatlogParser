@@ -17,7 +17,7 @@ public partial class RawDatabaseView : ContentView
     private readonly ObservableCollection<PlayerMetadata> players = new();
     private uint lastId;
     private DBViewMode viewMode = DBViewMode.Combatlogs;
-    private List<EntityBase?[]> bufferedPages = new();
+    private readonly List<EntityBase?[]> bufferedPages = new();
     private int pageIndex = 0;
     private int totalEntriesForMode = 0;
 
@@ -26,22 +26,19 @@ public partial class RawDatabaseView : ContentView
         InitializeComponent();
 
         CreateBinding(CombatlogListView, combatlogs);
-        //var cls = Queries.GetCombatlogMetadata(0, 30);
-        //ReplaceEntries(combatlogs, cls);
 
         CreateBinding(EncounterInfoListView, encounters);
-        //var ens = Queries.GetEncounterInfoMetadata(0, 30);
-        //ReplaceEntries(encounters, ens);
 
         CreateBinding(PerformancesListView, performances);
-        //var perfs = Queries.GetPerformanceMetadata(0, 30);
-        //ReplaceEntries(performances, perfs);
 
         CreateBinding(PlayersListView, players);
-        //var pls = Queries.GetPlayerMetadata(0, 30);
-        //ReplaceEntries(players, pls);
     }
 
+    /// <summary>
+    /// Binds a ListViews ItemsSourceProperty to the provided dataSource.
+    /// </summary>
+    /// <param name="listView">Any <see cref="ListView"/></param>
+    /// <param name="dataSource">Should be anything that implements INotifyCollectionChanged and/or INotifyPropertyChanged. Usually <see cref="ObservableCollection{T}"/></param>
     private static void CreateBinding(ListView listView, object dataSource)
     {
         var binding = new Binding
@@ -51,36 +48,40 @@ public partial class RawDatabaseView : ContentView
         listView.SetBinding(ListView.ItemsSourceProperty, binding);
     }
 
+    /// <summary>
+    /// Clears a list and fills it with the provided items.
+    /// List should be of compatible type. Make sure of that before passing both into this method.
+    /// </summary>
+    /// <param name="list">Any List compatible with the Type of items</param>
+    /// <param name="items"></param>
     private static void ReplaceEntries(System.Collections.IList list, EntityBase?[] items)
     {
         list.Clear();
-        foreach(var item in items)
+        foreach (var item in items)
         {
-            if(item != null)
+            if (item != null)
             {
                 list.Add(item);
             }
         }
     }
 
+    /// <summary>
+    /// NOT TO BE CALLED MANUALLY
+    /// Event for when the PlayerSearch textbox's text has changed (aka when the user has input something)
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
     private void PlayerSearch_TextChanged(object sender, TextChangedEventArgs e)
     {
-        if(string.IsNullOrEmpty(PlayerSearch.Text) || string.IsNullOrWhiteSpace(PlayerSearch.Text))
+        e.Handled = true;
+        if (string.IsNullOrEmpty(PlayerSearch.Text) || string.IsNullOrWhiteSpace(PlayerSearch.Text))
         {
-            players.Clear();
-            foreach (var p in Queries.GetPlayerMetadata(0, 30))
-            {
-                if (p != null)
-                {
-                    players.Add(p);
-                }
-            }
+            ResetPagination();
+            FetchData();
             return;
         }
-        var results = Queries.FindPlayersWithNameLike(PlayerSearch.Text);
-        players.Clear();
-        foreach (var p in results)
-            players.Add(p);
+        ReplaceEntries(players, Queries.FindPlayersWithNameLike(PlayerSearch.Text));
     }
 
     private void EncounterInfoListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -92,9 +93,10 @@ public partial class RawDatabaseView : ContentView
             .EncounterMetadata = (EncounterInfoMetadata)EncounterInfoListView.SelectedItem;
     }
 
-    private void NextPageButton_Click(object sender, RoutedEventArgs eargs)
+    private void NextPageButton_Click(object sender, RoutedEventArgs e)
     {
-        if(pageIndex == bufferedPages.Count - 1)
+        e.Handled = true;
+        if (pageIndex == bufferedPages.Count - 1)
         {
             FetchData();
         }
@@ -107,6 +109,7 @@ public partial class RawDatabaseView : ContentView
 
     private void PreviousPageButton_Click(object sender, RoutedEventArgs e)
     {
+        e.Handled = true;
         if (pageIndex == 0)
             return;
         pageIndex--;
@@ -119,18 +122,15 @@ public partial class RawDatabaseView : ContentView
         list.Clear();
         var items = bufferedPages[pageIndex];
         ReplaceEntries(list, items);
-        PaginationTextBlock.Text = $"{items.FirstOrDefault()?.Id} - {items.LastOrDefault()?.Id} of {totalEntriesForMode}";
+        UpdatePaginationText(items);
     }
-    int counter = 0;
+
     private void TabSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        counter++;
         e.Handled = true;
-        lastId = 0;
-        pageIndex = -1;
-        bufferedPages.Clear();
+        ResetPagination();
         var header = ((sender as TabControl)?.SelectedItem as TabItem)?.Header ?? string.Empty;
-        
+
         switch (header)
         {
             case "Combatlogs":
@@ -161,9 +161,23 @@ public partial class RawDatabaseView : ContentView
         pageIndex++;
         ReplaceEntries(list, items);
         lastId = items.LastOrDefault()?.Id ?? lastId;
-        PaginationTextBlock.Text = $"{items.FirstOrDefault()?.Id} - {items.LastOrDefault()?.Id} of {totalEntriesForMode} .. {counter}";
+        UpdatePaginationText(items);
     }
 
+    private void ResetPagination()
+    {
+        lastId = 0;
+        pageIndex = -1;
+        bufferedPages.Clear();
+    }
+
+    private void UpdatePaginationText(EntityBase?[] items)
+    {
+        PaginationTextBlock.Text = $"{items.FirstOrDefault()?.Id} - {items.LastOrDefault()?.Id} of {totalEntriesForMode}";
+    }
+
+    // This may not be great, but its the only way i could think of at the time
+    // to provide a as-generic-as-possible type return for any of the ObservableCollections
     private System.Collections.IList RelevantList
         => viewMode switch
         {

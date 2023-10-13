@@ -84,6 +84,8 @@
                 </DataGridTemplateColumn>
                 <DataGridTextColumn x:Name="TimestampColumn" Header="Time" Width="100" Binding="{Binding Path=FormattedTimestamp}" ElementStyle="{StaticResource text-right-center}"/>
                 <DataGridTextColumn x:Name="AbilityNameColumn" Header="Ability" Width="100" Binding="{Binding Path=AbilityName}" ElementStyle="{StaticResource text-right-center}"/>
+                <DataGridTextColumn x:Name="LastHitsColumn" Header="Last Hits" Width="100" Binding="{Binding Path=LastHits}" ElementStyle="{StaticResource text-right-center}"/>
+                <DataGridTextColumn x:Name="SlowDeathTimeColumn" Header="Died Over" Width="100" Binding="{Binding Path=DeathTime}" ElementStyle="{StaticResource text-right-center}"/>
                 <DataGridTextColumn x:Name="MetricPerSecondColumn" Header="DPS" Width="100" Binding="{Binding Path=ValueString}" SortMemberPath="Value" ElementStyle="{StaticResource text-right-center}" />
             </DataGrid.Columns>
         </DataGrid>

@@ -213,7 +213,7 @@ public partial class SingleEncounterView : ContentView
     /// <param name="lookup"></param>
     /// <param name="total">The total of all values</param>
     /// <returns></returns>
-    private static NamedTotal<TNumber>[] GetOrderedTotals<TNumber>(Dictionary<string, TNumber> lookup, out long total) 
+    private static NamedTotal<TNumber>[] GetOrderedTotals<TNumber>(Dictionary<string, TNumber> lookup, out long total)
         where TNumber : INumber<TNumber>, IBinaryInteger<TNumber>, IAdditionOperators<TNumber, long, long>
     {
         var results = new NamedTotal<TNumber>[lookup.Count];
@@ -241,35 +241,59 @@ public partial class SingleEncounterView : ContentView
         var columns = DataGrid.Columns;
         columns.Clear();
         columns.Add(NameColumn);
+        columns.Add(LastHitsColumn);
         columns.Add(AbilityNameColumn);
+        columns.Add(SlowDeathTimeColumn);
         columns.Add(TimestampColumn);
     }
 
     private void GenerateDeathsBreakdown()
     {
-        if (currentEncounter == null) return;
+        if (currentEncounter == null)
+            return;
         SetupDataGridForDeaths();
         List<PlayerDeathDataRow> deathData = new();
+        var startTime = currentEncounter.EncounterStartTime;
+        //yes, all of this data is required.
         var unitDiedEvents = currentEncounter.CombatlogEventDictionary.GetEvents<UnitDiedEvent>();
         var damageEvents = currentEncounter.CombatlogEventDictionary.GetEvents<DamageEvent>();
-        var startTime = currentEncounter.EncounterStartTime;
-        foreach(var deathEvent in unitDiedEvents.Where(x => x.TargetFlags.HasFlagf(UnitFlag.COMBATLOG_OBJECT_TYPE_PLAYER)))
+        var advancedInfoEvents = currentEncounter.CombatlogEventDictionary.GetEvents<AdvancedParamEvent>();
+        //hard-coded to only show death info for players right now. parameterize UnitFlag at a later time.
+        foreach (var deathEvent in unitDiedEvents.Where(x => x.TargetFlags.HasFlagf(UnitFlag.COMBATLOG_OBJECT_TYPE_PLAYER)))
         {
+            //playerInfo is pretty much only used for coloring via the class brush.
             PlayerInfo? player = currentEncounter.FindPlayerInfoByGUID(deathEvent.TargetGUID);
             var offsetTime = (deathEvent.Timestamp - startTime);
             var formattedTimestamp = offsetTime.ToString(@"m\:ss\.fff");
             if (player is not null)
             {
+                var beforeFilter = EventFilters.Before(deathEvent.Timestamp);
                 var last3hits = damageEvents.Reverse().Where(x => x.TargetGUID == deathEvent.TargetGUID)
-                        .Where(EventFilters.Before(deathEvent.Timestamp).Match)
+                        .Where(beforeFilter.Match)
                         .Take(3).ToArray();
+                //the time since the last time someone was at above 90% hp should give a rough estimate
+                //of how quickly they died.
+                var lastTimeFullHealth = advancedInfoEvents.Reverse().Where(beforeFilter.Match)
+                    .Where(x =>
+                    {
+                        var aparams = x.AdvancedParams;
+                        return aparams.infoGUID == player.GUID && aparams.currentHP >= 0.90 * aparams.maxHP;
+                    }
+                    ).FirstOrDefault()?.Timestamp ?? deathEvent.Timestamp;
+                var slowDeathTimeOffset = deathEvent.Timestamp - lastTimeFullHealth;
+                var formattedDeathTime = slowDeathTimeOffset.TotalMilliseconds <= 100 ?
+                    "Instant" : $"{slowDeathTimeOffset:ss\\.fff} seconds";
+
+
                 deathData.Add(
                     new(player.Name,
                     player.Class.GetClassBrush(),
                     formattedTimestamp,
-                    abilityName: string.Join(", ", last3hits.Select(x => x?.spellData.name)) // last3hits.LastOrDefault()?.spellData.name ?? "unknown"
+                    abilityName: last3hits[^1].spellData.name,
+                    lastHits: last3hits.Select(x => x.spellData.name).ToArray(), // last3hits.LastOrDefault()?.spellData.name ?? "unknown"
+                    formattedDeathTime
                     )
-                ); 
+                );
             }
         }
 
@@ -335,7 +359,7 @@ public partial class SingleEncounterView : ContentView
             healingBySource);
         var absorbEvents = currentEncounter.CombatlogEventDictionary.GetEvents<SpellAbsorbedEvent>();
         //this func should not be in here, but its a specific usecase so it is.
-        Func<SpellAbsorbedEvent, bool> absorbCasterFilter = new((x) => 
+        Func<SpellAbsorbedEvent, bool> absorbCasterFilter = new((x) =>
         {
             return x.AbsorbCasterFlags.HasFlagf(UnitFlag.COMBATLOG_OBJECT_REACTION_FRIENDLY)
                 || x.AbsorbCasterFlags.HasFlagf(UnitFlag.COMBATLOG_OBJECT_REACTION_NEUTRAL);
@@ -369,12 +393,12 @@ public partial class SingleEncounterView : ContentView
     /// <param name="amountGetter">Determines the amount. Different events have different ways of calculating it.</param>
     /// <param name="sumDictionary">The dictionary it outputs into.</param>
     private void SumAmountsForSources<T>(
-        IEnumerable<T> events, 
-        Func<T, long> amountGetter, 
+        IEnumerable<T> events,
+        Func<T, long> amountGetter,
         Dictionary<string, long> sumDictionary)
         where T : CombatlogEvent
     {
-        foreach(var ev in events)
+        foreach (var ev in events)
         {
             string sourceGuid = GetActualSource(ev.SourceGUID);
             long amount = amountGetter(ev);
