@@ -134,6 +134,10 @@ public partial class MainWindow : Window
 
     private async void TestButton_Click(object sender, RoutedEventArgs e)
     {
+        ChangeContent(new CombatlogOverviewView())
+            .FromEncounterMetadata(Queries.GetEncounterInfoMetadata(0, 1).First()!);
+
+        return;
         //LabelledProgressBar labelledProgress = PopupOverlay.Children.OfType<LabelledProgressBar>().First();
         var progressBar = ShowProgressBar();
         TestButton.IsEnabled = false;

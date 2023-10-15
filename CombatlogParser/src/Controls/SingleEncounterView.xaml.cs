@@ -271,8 +271,11 @@ public partial class SingleEncounterView : ContentView
                 var last3hits = damageEvents.Reverse().Where(x => x.TargetGUID == deathEvent.TargetGUID)
                         .Where(beforeFilter.Match)
                         .Take(3).ToArray();
-                //the time since the last time someone was at above 90% hp should give a rough estimate
-                //of how quickly they died.
+                // the time since the last time someone was at above 90% hp should give a rough estimate
+                // of how quickly they died.
+                // WARNING: there is an important edge case here:
+                // someone getting resurrected and dying again before they
+                // ever reach a high health % again. It would take the last time they were at high health before the first death.
                 var lastTimeFullHealth = advancedInfoEvents.Reverse().Where(beforeFilter.Match)
                     .Where(x =>
                     {

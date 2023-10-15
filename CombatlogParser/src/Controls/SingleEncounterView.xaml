@@ -17,7 +17,7 @@
         </ResourceDictionary>
     </UserControl.Resources>
     <Grid>
-        <Grid Height="31" Margin="0,65,0,0" VerticalAlignment="Top" Background="#FF373737">
+        <Grid Height="31" Margin="0,5,0,0" VerticalAlignment="Top" Background="#FF373737">
             <Border BorderBrush="DarkGray" BorderThickness="0 1 0 1"/>
             <StackPanel x:Name="ButtonMenuBand" Orientation="Horizontal">
                 <Button x:Name="DamageButton" 
@@ -54,7 +54,7 @@
         </Grid>
         <!--<local:TestList x:Name="MyTestList" Margin="0,101,0,0" />-->
 
-        <DataGrid d:ItemsSource="{d:SampleData ItemCount=2}" x:Name="DataGrid" AutoGenerateColumns="False" IsReadOnly="True" CanUserReorderColumns="False" MinColumnWidth="80" Margin="0,101,0,0" Height="Auto" >
+        <DataGrid d:ItemsSource="{d:SampleData ItemCount=2}" x:Name="DataGrid" AutoGenerateColumns="False" IsReadOnly="True" CanUserReorderColumns="False" MinColumnWidth="80" Margin="0,80,0,0" Height="Auto" >
             <DataGrid.RowStyle>
                 <Style TargetType="DataGridRow" BasedOn="{StaticResource {x:Type DataGridRow}}">
                     <Style.Triggers>

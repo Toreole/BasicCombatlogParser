@@ -263,4 +263,10 @@ public static partial class Queries
         using CombatlogDBContext context = new();
         return context.Players.Count();
     }
+
+    public static EncounterInfoMetadata[] GetEncountersByCombatlogId(uint combatlogId)
+    {
+        using CombatlogDBContext context = new();
+        return context.Encounters.Where(x => x.CombatlogMetadataId == combatlogId).ToArray();
+    }
 }
