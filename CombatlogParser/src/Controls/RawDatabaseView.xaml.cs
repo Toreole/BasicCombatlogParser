@@ -16,7 +16,7 @@ public partial class RawDatabaseView : ContentView
     private readonly ObservableCollection<PerformanceMetadata> performances = new();
     private readonly ObservableCollection<PlayerMetadata> players = new();
     private uint lastId;
-    private DBViewMode viewMode = DBViewMode.Combatlogs;
+    private DBViewMode viewMode = DBViewMode.EMPTY;
     private readonly List<EntityBase?[]> bufferedPages = new();
     private int pageIndex = 0;
     private int totalEntriesForMode = 0;
@@ -125,11 +125,15 @@ public partial class RawDatabaseView : ContentView
         UpdatePaginationText(items);
     }
 
+    //for some silly reason, TabSelectionChanged is being called when you click on an item in any of the lists.
+    //even weirder, its being called multiple times.
     private void TabSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         e.Handled = true;
-        ResetPagination();
+        if (sender is not TabControl)
+            return;
         var header = ((sender as TabControl)?.SelectedItem as TabItem)?.Header ?? string.Empty;
+        DBViewMode currentMode = viewMode;
 
         switch (header)
         {
@@ -150,6 +154,11 @@ public partial class RawDatabaseView : ContentView
                 totalEntriesForMode = Queries.CountPlayerMetadata();
                 break;
         }
+        if(viewMode == currentMode) //no change, dont add new data
+        {
+            return;
+        }
+        ResetPagination();
         FetchData();
     }
 
@@ -202,6 +211,6 @@ public partial class RawDatabaseView : ContentView
 
     private enum DBViewMode
     {
-        Combatlogs, Encounters, Performances, Players
+        EMPTY, Combatlogs, Encounters, Performances, Players
     }
 }

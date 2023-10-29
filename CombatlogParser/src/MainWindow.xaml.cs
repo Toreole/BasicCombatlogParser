@@ -61,6 +61,7 @@ public partial class MainWindow : Window
 
     private void PlayerSearchTextChanged(object sender, TextChangedEventArgs e)
     {
+        e.Handled = true;
         //PlayerSearchBox.IsDropDownOpen = true;
         PlayerSearchBox.SelectedIndex = -1;
         searchedPlayerNames.Clear();
@@ -74,11 +75,13 @@ public partial class MainWindow : Window
 
     private void CloseButton_Click(object sender, RoutedEventArgs e)
     {
+        e.Handled = true;
         this.Close();
     }
 
     private void TitleBar_MouseDown(object sender, MouseButtonEventArgs e)
     {
+        e.Handled = true;
         if (e.ChangedButton != MouseButton.Left)
             return;
         if (e.ClickCount == 2)
@@ -134,6 +137,7 @@ public partial class MainWindow : Window
 
     private async void TestButton_Click(object sender, RoutedEventArgs e)
     {
+        e.Handled = true;
         ChangeContent(new CombatlogOverviewView())
             .FromEncounterMetadata(Queries.GetEncounterInfoMetadata(0, 1).First()!);
 
