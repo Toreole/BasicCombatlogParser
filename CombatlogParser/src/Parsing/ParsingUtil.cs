@@ -14,6 +14,9 @@ public static class ParsingUtil
         "MM/d HH:mm:ss.fff"
     };
 
+    private static readonly Dictionary<string, CombatlogEventPrefix> prefixDictionary;
+    private static readonly Dictionary<string, CombatlogEventSuffix> suffixDictionary;
+
     private static readonly CombatlogEventPrefix[] prefixes;
     private static readonly string[] prefixNames;
 
@@ -35,6 +38,21 @@ public static class ParsingUtil
 
         miscEvents = Enum.GetValues<CombatlogMiscEvents>();
         miscNames = Enum.GetNames<CombatlogMiscEvents>();
+
+        prefixDictionary = new();
+        for (int i = 0; i < prefixes.Length; i++)
+        {
+            if (prefixes[i] == CombatlogEventPrefix.UNDEFINED)
+                continue;
+            prefixDictionary.Add(prefixNames[i], prefixes[i]);
+        }
+        suffixDictionary = new();
+        for (int i = 0; i < suffixes.Length; i++)
+        {
+            if (suffixes[i] == CombatlogEventSuffix.UNDEFINED)
+                continue;
+            suffixDictionary.Add(suffixNames[i], suffixes[i]);
+        }
     }
 
     /// <summary>
@@ -57,11 +75,39 @@ public static class ParsingUtil
     }
 
     /// <summary>
+    /// A secondary attempt to "parse" subevents via a dictionary.
+    /// The current implementation is about 2x slower than TryParse... below. (141ns vs 297ns)
+    /// </summary>
+    /// <param name="subevent"></param>
+    /// <param name="prefix"></param>
+    /// <param name="suffix"></param>
+    /// <returns></returns>
+    public static bool TryGetPrefixSuffixSubevent(string subevent, out CombatlogEventPrefix prefix, out CombatlogEventSuffix suffix)
+    {
+        int index = subevent.IndexOf('_');
+        while(0 <= index && index < subevent.Length)
+        {
+            var substring = subevent[..index];
+            var remainder = subevent[index..];
+            if(prefixDictionary.ContainsKey(substring) && suffixDictionary.ContainsKey(remainder))
+            {
+                prefix = prefixDictionary[substring];
+                suffix = suffixDictionary[remainder];
+                return true;
+            }
+            index = subevent.IndexOf('_', index+1);
+        }
+        prefix = CombatlogEventPrefix.UNDEFINED;
+        suffix = CombatlogEventSuffix.UNDEFINED;
+        return false;
+    }
+
+    /// <summary>
     /// A faster version of TryParsePrefixAffixSubevent
     /// </summary>
     /// <param name="subevent">The full subevent string. e.g. SPELL_DAMAGE</param>
     /// <returns>false if the prefix and suffix are UNDEFINED</returns>
-    public static bool TryParsePrefixAffixSubeventF(string subevent, out CombatlogEventPrefix prefix, out CombatlogEventSuffix suffix)
+    public static bool TryParsePrefixSuffixSubeventF(string subevent, out CombatlogEventPrefix prefix, out CombatlogEventSuffix suffix)
     {
         for (int i = 0; i < prefixes.Length; i++)
             if (subevent.StartsWithF(prefixNames[i]))
@@ -112,7 +158,7 @@ public static class ParsingUtil
     /// <summary>
     /// Gets the amount of parameters that are associated with the given prefix.
     /// </summary>
-    public static int GetPrefixParamAmount(CombatlogEventPrefix prefix, CombatlogEventSuffix suffix)
+    public static int GetPrefixParamAmount(CombatlogEventPrefix prefix)
     {
         return prefix switch
         {

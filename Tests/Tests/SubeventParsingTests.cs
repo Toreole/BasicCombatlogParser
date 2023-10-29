@@ -9,7 +9,7 @@ namespace CombatlogParser.Tests
         {
             string subevent = "SPELL_DAMAGE";
 
-            if (ParsingUtil.TryParsePrefixAffixSubeventF(subevent, out CombatlogEventPrefix prefix, out CombatlogEventSuffix suffix))
+            if (ParsingUtil.TryParsePrefixSuffixSubeventF(subevent, out CombatlogEventPrefix prefix, out CombatlogEventSuffix suffix))
             {
                 Assert.Multiple(() =>
                 {
@@ -28,7 +28,7 @@ namespace CombatlogParser.Tests
         {
             string subevent = "SPELL_AURA_APPLIED_DOSE";
 
-            if (ParsingUtil.TryParsePrefixAffixSubeventF(subevent, out CombatlogEventPrefix prefix, out CombatlogEventSuffix suffix))
+            if (ParsingUtil.TryParsePrefixSuffixSubeventF(subevent, out CombatlogEventPrefix prefix, out CombatlogEventSuffix suffix))
             {
                 Assert.Multiple(() =>
                 {
@@ -47,7 +47,7 @@ namespace CombatlogParser.Tests
         {
             string subevent = "SPELL_PERIODIC_DAMAGE";
 
-            if (ParsingUtil.TryParsePrefixAffixSubeventF(subevent, out CombatlogEventPrefix prefix, out CombatlogEventSuffix suffix))
+            if (ParsingUtil.TryParsePrefixSuffixSubeventF(subevent, out CombatlogEventPrefix prefix, out CombatlogEventSuffix suffix))
             {
                 Assert.Multiple(() =>
                 {
@@ -66,7 +66,7 @@ namespace CombatlogParser.Tests
         {
             string subevent = "SPELL_PERIODIC_AURA_APPLIED";
 
-            if (ParsingUtil.TryParsePrefixAffixSubeventF(subevent, out CombatlogEventPrefix prefix, out CombatlogEventSuffix suffix))
+            if (ParsingUtil.TryParsePrefixSuffixSubeventF(subevent, out CombatlogEventPrefix prefix, out CombatlogEventSuffix suffix))
             {
                 Assert.Multiple(() =>
                 {
@@ -83,19 +83,31 @@ namespace CombatlogParser.Tests
         [Test]
         public void SubeventNonCombat()
         {
-            bool failed = !ParsingUtil.TryParsePrefixAffixSubeventF("ZONE_CHANGED", out _, out _);
+            bool failed = !ParsingUtil.TryParsePrefixSuffixSubeventF("ZONE_CHANGED", out _, out _);
             Assert.That(failed);
         }
 
         [Test]
         public void UnitDiedSubeventRecognized()
         {
-            bool success = ParsingUtil.TryParsePrefixAffixSubeventF("UNIT_DIED", out var prefix, out var suffix);
+            bool success = ParsingUtil.TryParsePrefixSuffixSubeventF("UNIT_DIED", out var prefix, out var suffix);
             Assert.Multiple(() =>
             {
                 Assert.That(success);
                 Assert.That(prefix, Is.EqualTo(CombatlogEventPrefix.UNIT));
                 Assert.That(suffix, Is.EqualTo(CombatlogEventSuffix._DIED));
+            });
+        }
+
+        [Test]
+        public void DictionaryParseSubevent()
+        {
+            bool success = ParsingUtil.TryGetPrefixSuffixSubevent("SPELL_PERIODIC_AURA_APPLIED", out var prefix, out var suffix);
+            Assert.Multiple(() =>
+            {
+                Assert.That(success);
+                Assert.That(prefix, Is.EqualTo(CombatlogEventPrefix.SPELL_PERIODIC));
+                Assert.That(suffix, Is.EqualTo(CombatlogEventSuffix._AURA_APPLIED));
             });
         }
     }

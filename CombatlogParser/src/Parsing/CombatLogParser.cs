@@ -249,6 +249,7 @@ namespace CombatlogParser
             var fileOptions = FileOptions.Asynchronous | FileOptions.SequentialScan;
             var bufferSize = 81920;
 
+            //TODO: this currently fails while WoW is still running.
             using var sourceStream =
                   new FileStream(sourceFile, FileMode.Open, FileAccess.Read, FileShare.Read, bufferSize, fileOptions);
 
@@ -417,7 +418,7 @@ namespace CombatlogParser
                 string subevent = NextSubstring(line, ref pos);
                 //confirm that the subevent is a combatlog event (it has a prefix and a suffix)
                 //other events are to be handled differently.
-                if (TryParsePrefixAffixSubeventF(subevent, out var prefix, out var suffix))
+                if (TryParsePrefixSuffixSubeventF(subevent, out var prefix, out var suffix))
                 {
                     CombatlogEvent? clevent = CombatlogEvent.Create(line, prefix, suffix);
                     if (clevent != null)
@@ -592,7 +593,7 @@ namespace CombatlogParser
                 string subevent = NextSubstring(line, ref pos);
                 //confirm that the subevent is a combatlog event (it has a prefix and a suffix)
                 //other events are to be handled differently.
-                if (TryParsePrefixAffixSubeventF(subevent, out var prefix, out var suffix))
+                if (TryParsePrefixSuffixSubeventF(subevent, out var prefix, out var suffix))
                 {
                     CombatlogEvent? clevent = CombatlogEvent.Create(line, prefix, suffix);
                     if (clevent != null)
@@ -767,6 +768,7 @@ namespace CombatlogParser
             var filter = EventFilters.AllySourceEnemyTargetFilter;
             var damageEvents = encounterInfo.CombatlogEventDictionary.GetEvents<DamageEvent>()
                 .Where(filter.Match);
+            var damageSupportEvents = encounterInfo.CombatlogEventDictionary.GetEvents<DamageSupportEvent>();
 
             //the lookup for source=>actual (owner) is calculated on EncounterInfo, but cache it here for convencience.
             var sourceToOwnerGUID = encounterInfo.SourceToOwnerGuidLookup;
@@ -786,6 +788,20 @@ namespace CombatlogParser
 
                 //}
             }
+            //subtract support damage from supported player, add to evoker.
+            foreach (var ev in damageSupportEvents)
+            {
+                bool sourceIsCorrect = !sourceToOwnerGUID.TryGetValue(ev.SourceGUID, out string? trueSourceGUID);
+                if (result.TryGetByGUID(sourceIsCorrect ? ev.SourceGUID : trueSourceGUID!, out var perf))
+                {
+                    perf!.Dps -= (ev.damageParams.amount + ev.damageParams.absorbed);
+                }
+                if (result.TryGetByGUID(ev.supporterGUID, out perf))
+                {
+                    perf!.Dps += ev.damageParams.amount + ev.damageParams.absorbed;
+                }
+            }
+
             //HEALING 
             //add together all the healing events.
             foreach (var ev in encounterInfo.CombatlogEventDictionary.GetEvents<HealEvent>())
@@ -807,6 +823,21 @@ namespace CombatlogParser
                     performance!.Hps += absorbEvent.AbsorbedAmount;
                 }
             }
+            //attribute healing support correctly
+            var healingSupportEvents = encounterInfo.CombatlogEventDictionary.GetEvents<HealSupportEvent>();
+            foreach (var ev in healingSupportEvents)
+            {
+                bool sourceIsCorrect = !sourceToOwnerGUID.TryGetValue(ev.SourceGUID, out string? trueSourceGUID);
+                if (result.TryGetByGUID(sourceIsCorrect ? ev.SourceGUID : trueSourceGUID!, out var perf))
+                {
+                    perf!.Hps -= ev.healParams.amount + ev.healParams.absorbed - ev.healParams.overheal;
+                }
+                if (result.TryGetByGUID(ev.supporterGUID, out perf))
+                {
+                    perf!.Hps += ev.healParams.amount + ev.healParams.absorbed - ev.healParams.overheal;
+                }
+            }
+
             double encounterDuration = encounterInfo.EncounterDuration / 1000.0;
             foreach (var performance in result)
             {
