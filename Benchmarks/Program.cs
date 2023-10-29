@@ -29,13 +29,4 @@ public class SubeventParse
             ParsingUtil.TryParsePrefixSuffixSubeventF(subevent, out _, out _);
         }
     }
-
-    [Benchmark]
-    public void TryDictionary()
-    {
-        foreach (var subevent in subevents)
-        {
-            ParsingUtil.TryGetPrefixSuffixSubevent(subevent, out _, out _);
-        }
-    }
 }
