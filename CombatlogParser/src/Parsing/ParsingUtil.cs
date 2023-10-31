@@ -358,7 +358,7 @@ public static class ParsingUtil
     }
 
     /// <summary>
-    /// Try to parse a miscallaneous event
+    /// Try to parse a miscellaneous event
     /// </summary>
     /// <param name="subevent"></param>
     /// <param name="ev"></param>
@@ -407,6 +407,15 @@ public static class ParsingUtil
         return true;
     }
 
+    /// <summary>
+    /// Extracts the item group from the data string at the given index.
+    /// Item groups are anything surrounded by ( ).
+    /// If there is no ( at the start index, it will simply call NextSubstring.
+    /// </summary>
+    /// <param name="data"></param>
+    /// <param name="index"></param>
+    /// <param name="divisor"></param>
+    /// <returns></returns>
     public static string NextItemGroup(string data, ref int index, char divisor = ',')
     {
         bool isGroup = data[index] == '(';
@@ -432,7 +441,15 @@ public static class ParsingUtil
         return string.Empty;
     }
 
-    public static string NextArray(string data, ref int index)
+	/// <summary>
+	/// Extracts an array from the data string at the given index.
+	/// Arrays are anything surrounded by [ ].
+	/// If there is no [ at the start index, it will simply call NextSubstring.
+	/// </summary>
+	/// <param name="data"></param>
+	/// <param name="index"></param>
+	/// <returns></returns>
+	public static string NextArray(string data, ref int index)
     {
         bool isArray = data[index] == '[';
         if (!isArray)
@@ -443,6 +460,12 @@ public static class ParsingUtil
         return data[startIndex..endIndex];
     }
 
+    /// <summary>
+    /// Splits a string up at every ',' 
+    /// </summary>
+    /// <param name="data"></param>
+    /// <param name="startIndex"></param>
+    /// <returns></returns>
     public static string[] SplitArgumentString(string data, int startIndex)
     {
         List<string> result = new(30);
@@ -453,7 +476,10 @@ public static class ParsingUtil
         return result.ToArray();
     }
 
-    public struct Subevent
+    /// <summary>
+    /// Helper struct for subevent parsing.
+    /// </summary>
+    public readonly struct Subevent
     {
         public readonly CombatlogEventPrefix prefix;
         public readonly CombatlogEventSuffix suffix;
