@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
@@ -40,9 +40,11 @@
       <LastGenOutput>Config.Designer.cs</LastGenOutput>
     </None>
   </ItemGroup>
-
 	<ItemGroup>
 		<ProjectReference Include="..\Generators\Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+	</ItemGroup>
+	<ItemGroup>
+		<AdditionalFiles Include="./GeneratorData/Encounters.txt" />
 	</ItemGroup>
 	
 </Project>

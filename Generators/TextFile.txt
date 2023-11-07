@@ -1,1 +1,0 @@
-﻿content of the text file in the project.

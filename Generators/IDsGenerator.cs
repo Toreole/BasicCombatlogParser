@@ -1,6 +1,7 @@
 ﻿using Microsoft.CodeAnalysis;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -10,67 +11,6 @@ namespace Generators
     public class IDsGenerator : ISourceGenerator
     {
         readonly Regex idNameRegex = new Regex("([0-9]+): ([A-Za-z,' -]+)\n?");
-        readonly string instanceInfo = @"
-# current tier should always be at the top
-# raid instances start at the start of the line. 
-# their encounters are indented by 2. 
-# ': ' seperates id from name.
-# enum names are generated based on the full name in here.
-# DRAGONFLIGHT
-2569: Aberrus, the Shadowed Crucible
-  2688: Kazzara, the Hellforged
-  2687: The Amalgamation Chamber
-  2693: The Forgotten Experiments
-  2682: Assault of the Zaqali
-  2680: Rashok, the Elder
-  2689: The Vigilant Steward, Zskarn
-  2683: Magmorax
-  2684: Echo of Neltharion
-  2685: Scalecommander Sarkareth
-2522: Vault of the Incarnates
-  2587: Eranog
-  2639: Terros
-  2590: The Primal Council
-  2592: Sennarth, The Cold Breath
-  2635: Dathea, Ascended
-  2605: Kurog Grimtotem
-  2614: Broodkeeper Diurna
-  2607: Raszageth the Storm-Eater
-# SHADOWLANDS...
-2481: Sepulcher of the First Ones
-  2512: Vigilant Guardian
-  2540: Dausegne, the Fallen Oracle
-  2553: Artificer Xy'Mox, again
-  2544: Prototype Pantheon
-  2542: Skolex, the Insatiable Ravener
-  2529: Halondrus, the Reclaimer
-  2539: Lihuvim, Principal Architect
-  2546: Anduin Wrynn
-  2543: Lords of Dread
-  2549: Rygelon
-  2537: The Jailer
-2450: Sanctum of Domination
-  2423: The Tarragrue
-  2433: The Eye of the Jailer
-  2429: The Nine
-  2432: Remnant of Ner'zhul
-  2434: Soulrender Dormazain
-  2430: Painsmith Raznal
-  2436: Guardian of the First Ones
-  2431: Fatescribe Roh-Kalo
-  2422: Kel'Thuzad
-  2435: Sylvanas Windrunner
-2296: Castle Nathria
-  2398: Shriekwing
-  2418: Huntsman Altimor
-  2383: Hungering Destroyer
-  2402: Sun King's Salvation
-  2405: Artificer Xy'Mox
-  2406: Lady Inerva Darkvein
-  2412: The Council of Blood
-  2399: Sludgefist
-  2417: Stone Legion Generals
-  2407: Sire Denathrius";
 
         private List<Instance> instances;
 
@@ -79,7 +19,9 @@ namespace Generators
 
         public void Execute(GeneratorExecutionContext context)
         {
-            ParseInstanceInfo();
+            var additionalFile = context.AdditionalFiles.First(x => x.Path.EndsWith("Encounters.txt")); //should filter by name in case multiple files are there.
+            var inputString = additionalFile.GetText().ToString();
+            ParseInstanceInfo(inputString);
             StringBuilder instanceIdBuilder = new StringBuilder("    UNKNOWN = 0,\n");
             StringBuilder encounterIdBuilder = new StringBuilder("    UNKNOWN = 0,\n");
             encounterIdBuilder.Append("    All_Bosses = -1,\n");
@@ -228,10 +170,10 @@ $"                {EncounterIdTypeName}.{encounter.enumFriendlyName}"
             return builder.ToString();
         }
 
-        private void ParseInstanceInfo()
+        private void ParseInstanceInfo(string info)
         {
             //initialized needs to process the instance string and produce Instance[] 
-            StringReader reader = new StringReader(instanceInfo);
+            StringReader reader = new StringReader(info);
             instances = new List<Instance>();
             Instance currentInstance = null;
             string line;
@@ -271,8 +213,8 @@ $"                {EncounterIdTypeName}.{encounter.enumFriendlyName}"
 
         public void Initialize(GeneratorInitializationContext context)
         {
-
-        }
+            
+		}
     }
 
     public class Instance
