@@ -21,6 +21,7 @@ class SpellAbsorbedEvent : CombatlogEvent
     public long TotalAbsorb { get; private set; }
     public bool Critical { get; private set; }
 
+    //TODO: THIS ENTIRE FILE NEEDS UPDATING TO NEW STANDARDS IF POSSIBLE
     public SpellAbsorbedEvent(string entry, int dataIndex)
         : base(entry, ref dataIndex, EventType.SPELL_ABSORBED, CombatlogEventPrefix.SPELL, CombatlogEventSuffix._ABSORBED)
     {

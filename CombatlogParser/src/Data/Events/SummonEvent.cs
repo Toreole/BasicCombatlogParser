@@ -14,7 +14,7 @@ namespace CombatlogParser.Data.Events
             : base(entry, ref dataIndex, EventType.SUMMON, prefix, CombatlogEventSuffix._SUMMON)
         {
             spellId = int.Parse(NextSubstring(entry, ref dataIndex));
-            spellName = NextSubstring(entry, ref dataIndex);
+            spellName = string.Intern(NextSubstring(entry, ref dataIndex));
             spellSchool = (SpellSchool)HexStringToUInt(NextSubstring(entry, ref dataIndex));
         }
     }

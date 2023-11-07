@@ -16,6 +16,6 @@ internal class HealSupportEvent : AdvancedParamEvent
         AdvancedParams = new(entry, ref dataIndex);
 
         healParams = new(entry, ref dataIndex);
-        supporterGUID = ParsingUtil.NextSubstring(entry, ref dataIndex);
+        supporterGUID = string.Intern(ParsingUtil.NextSubstring(entry, ref dataIndex));
     }
 }

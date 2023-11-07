@@ -24,8 +24,8 @@ public class AdvancedParams
 
     public AdvancedParams(string data, ref int dataIndex)
     {
-        infoGUID = NextSubstring(data, ref dataIndex);
-        ownerGUID = NextSubstring(data, ref dataIndex);
+        infoGUID = string.Intern(NextSubstring(data, ref dataIndex));
+        ownerGUID = string.Intern(NextSubstring(data, ref dataIndex));
         currentHP = int.Parse(NextSubstring(data, ref dataIndex));
         maxHP = int.Parse(NextSubstring(data, ref dataIndex));
         attackPower = int.Parse(NextSubstring(data, ref dataIndex));

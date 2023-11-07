@@ -150,7 +150,7 @@ namespace CombatlogParser
                 {
                     if (player == null)
                         continue;
-                    var newPlayer = await GetOrCreatePlayerMetadataAsync(dbContext, player);
+                    var newPlayer = await DBStore.GetOrCreatePlayerMetadataAsync(dbContext, player);
                     currentPlayers.Add(newPlayer);
                 }
                 await dbContext.SaveChangesAsync(); //need to save here for player metadata changes
@@ -164,24 +164,6 @@ namespace CombatlogParser
                 }
                 await dbContext.SaveChangesAsync();
             }
-        }
-
-        private static async Task<PlayerMetadata> GetOrCreatePlayerMetadataAsync(CombatlogDBContext dbContext, PlayerInfo player)
-        {
-            PlayerMetadata? playerMetadata = await dbContext.Players.FirstOrDefaultAsync(p => p.GUID == player.GUID);
-            if (playerMetadata != null)
-            {
-                if (playerMetadata.Name == string.Empty && player.Name != string.Empty)
-                {
-                    dbContext.Update(playerMetadata);
-                    playerMetadata.Name = player.Name;
-                    playerMetadata.Realm = player.Realm;
-                }
-                return playerMetadata;
-            }
-            playerMetadata = PlayerMetadata.From(player);
-            await dbContext.Players.AddAsync(playerMetadata);
-            return playerMetadata;
         }
 
         //TODO: needs speeding up. takes too long to read through the file.

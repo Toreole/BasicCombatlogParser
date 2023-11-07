@@ -41,8 +41,8 @@ namespace CombatlogParser
         {
             using CombatlogDBContext dbContext = new();
             dbContext.Performances.Add(data);
-            //avoid double saving the playermetadata thats referenced in here.
-            dbContext.Entry(data.PlayerMetadata).State = EntityState.Unchanged;
+			//avoid double saving the playermetadata thats referenced in here.
+			dbContext.Entry(data.PlayerMetadata!).State = EntityState.Unchanged;
             dbContext.SaveChanges();
         }
 
@@ -70,12 +70,33 @@ namespace CombatlogParser
             return playerMetadata;
         }
 
-        /// <summary>
-        /// Tries to store a player. If one with the same GUID already exists, returns the existing players Id.
-        /// </summary>
-        /// <param name="player"></param>
-        /// <returns></returns>
-        public static uint StorePlayer(PlayerMetadata player)
+		/// <summary>
+		/// Gets a PlayerMetadata by the players GUID or creates a new entity for it.
+		/// </summary>
+		public static async Task<PlayerMetadata> GetOrCreatePlayerMetadataAsync(CombatlogDBContext dbContext, PlayerInfo player)
+		{
+			PlayerMetadata? playerMetadata = await dbContext.Players.FirstOrDefaultAsync(p => p.GUID == player.GUID);
+			if (playerMetadata != null)
+			{
+				if (playerMetadata.Name == string.Empty && player.Name != string.Empty)
+				{
+					dbContext.Update(playerMetadata);
+					playerMetadata.Name = player.Name;
+					playerMetadata.Realm = player.Realm;
+				}
+				return playerMetadata;
+			}
+			playerMetadata = PlayerMetadata.From(player);
+			await dbContext.Players.AddAsync(playerMetadata);
+			return playerMetadata;
+		}
+
+		/// <summary>
+		/// Tries to store a player. If one with the same GUID already exists, returns the existing players Id.
+		/// </summary>
+		/// <param name="player"></param>
+		/// <returns></returns>
+		public static uint StorePlayer(PlayerMetadata player)
         {
             using CombatlogDBContext dbContext = new();
             PlayerMetadata? storedPlayer = dbContext.Players.FirstOrDefault(p => p.GUID == player.GUID);

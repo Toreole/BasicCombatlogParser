@@ -30,8 +30,8 @@ public class SpellData
             MovePastNextDivisor(line, ref index);
             return knownSpells[spellId];
         }
-        var spellName = NextSubstring(line, ref index);
-        var spellSchool = (SpellSchool)HexStringToUInt(NextSubstring(line, ref index));
+        var spellName = string.Intern(NextSubstring(line, ref index));
+		var spellSchool = (SpellSchool)HexStringToUInt(NextSubstring(line, ref index));
         SpellData data = new(spellId, spellName, spellSchool);
         knownSpells[spellId] = data;
         return data;

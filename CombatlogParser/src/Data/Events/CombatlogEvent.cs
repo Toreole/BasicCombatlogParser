@@ -11,17 +11,14 @@ public abstract class CombatlogEvent : LogEntryBase
     public CombatlogEventPrefix SubeventPrefix { get; private set; } = CombatlogEventPrefix.UNDEFINED;
     public CombatlogEventSuffix SubeventSuffix { get; private set; } = CombatlogEventSuffix.UNDEFINED;
 
-    private readonly UnitData sourceUnit;
-    private readonly UnitData targetUnit;
-
     //these 8 parameters are guaranteed to be included in combatlog events.
-    public string SourceGUID => sourceUnit.unitGUID;
-    public string SourceName => sourceUnit.unitName;
-    public UnitFlag SourceFlags { get; private set; }
+    public string SourceGUID { get; private set; }
+    public string SourceName { get; private set; }
+	public UnitFlag SourceFlags { get; private set; }
     public RaidFlag SourceRaidFlags { get; private set; }
-    public string TargetGUID => targetUnit.unitGUID;
-    public string TargetName => targetUnit.unitName;
-    public UnitFlag TargetFlags { get; private set; }
+    public string TargetGUID { get; private set; }
+	public string TargetName { get; private set; }
+	public UnitFlag TargetFlags { get; private set; }
     public RaidFlag TargetRaidFlags { get; private set; }
 
     public readonly EventType eventType = EventType.UNDEFINED;
@@ -33,10 +30,12 @@ public abstract class CombatlogEvent : LogEntryBase
     protected CombatlogEvent(string entry, ref int dataIndex, EventType eventType, CombatlogEventPrefix prefix, CombatlogEventSuffix suffix)
     {
         Timestamp = StringTimestampToDateTime(entry[..entry.IndexOf(timestamp_end_seperator)]);
-        sourceUnit = UnitData.GetOrParse(entry, ref dataIndex);
-        SourceFlags = NextFlags(entry, ref dataIndex);
+		SourceGUID = string.Intern(NextSubstring(entry, ref dataIndex));
+        SourceName = string.Intern(NextSubstring(entry, ref dataIndex));
+		SourceFlags = NextFlags(entry, ref dataIndex);
         SourceRaidFlags = NextRaidFlags(entry, ref dataIndex);
-        targetUnit = UnitData.GetOrParse(entry, ref dataIndex);
+        TargetGUID = string.Intern(NextSubstring(entry, ref dataIndex));
+        TargetName = string.Intern(NextSubstring(entry, ref dataIndex));
         TargetFlags = NextFlags(entry, ref dataIndex);
         TargetRaidFlags = NextRaidFlags(entry, ref dataIndex);
 
@@ -141,7 +140,7 @@ public abstract class CombatlogEvent : LogEntryBase
     protected static void GetSpellPrefixData(string entry, ref int index, out int spellId, out string spellName, out SpellSchool spellSchool)
     {
         spellId = int.Parse(NextSubstring(entry, ref index));
-        spellName = NextSubstring(entry, ref index);
-        spellSchool = (SpellSchool)HexStringToUInt(NextSubstring(entry, ref index));
+        spellName = string.Intern(NextSubstring(entry, ref index));
+		spellSchool = (SpellSchool)HexStringToUInt(NextSubstring(entry, ref index));
     }
 }

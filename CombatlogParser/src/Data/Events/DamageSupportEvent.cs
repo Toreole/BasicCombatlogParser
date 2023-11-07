@@ -19,6 +19,6 @@ internal class DamageSupportEvent : AdvancedParamEvent
         spellData = SpellData.ParseOrGet(prefix, entry, ref dataIndex);
         AdvancedParams = new(entry, ref dataIndex);
         damageParams = new(entry, ref dataIndex);
-        supporterGUID = ParsingUtil.NextSubstring(entry, ref dataIndex);
-    }
+        supporterGUID = string.Intern(ParsingUtil.NextSubstring(entry, ref dataIndex));
+	}
 }
