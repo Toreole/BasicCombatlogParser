@@ -42,11 +42,15 @@ public static class ParsingUtil
         //this creates every theoretically possible combination.
         //which is kinda overkill, because not every combination actually exists as an event
         //but its easier than actually writing it all out individually.
-        for (int i = 1; i < prefixes.Length; i++)
+        for (int i = 0; i < prefixes.Length; i++)
         {
-            for (int j = 1; j < suffixes.Length; j++)
+            if (prefixes[i] == CombatlogEventPrefix.UNDEFINED)
+                continue;
+            for (int j = 0; j < suffixes.Length; j++)
             {
-                subeventDictionary.Add(prefixNames[i] + suffixNames[j], new(prefixes[i], suffixes[j]));
+				if (suffixes[i] == CombatlogEventSuffix.UNDEFINED)
+					continue;
+				subeventDictionary.Add(prefixNames[i] + suffixNames[j], new(prefixes[i], suffixes[j]));
             }
         }
     }

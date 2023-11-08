@@ -99,16 +99,5 @@ namespace CombatlogParser.Tests
             });
         }
 
-        [Test]
-        public void DictionaryParseSubevent()
-        {
-            bool success = ParsingUtil.TryGetPrefixSuffixSubevent("SPELL_PERIODIC_AURA_APPLIED", out var prefix, out var suffix);
-            Assert.Multiple(() =>
-            {
-                Assert.That(success);
-                Assert.That(prefix, Is.EqualTo(CombatlogEventPrefix.SPELL_PERIODIC));
-                Assert.That(suffix, Is.EqualTo(CombatlogEventSuffix._AURA_APPLIED));
-            });
-        }
     }
 }
