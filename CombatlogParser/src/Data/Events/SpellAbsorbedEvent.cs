@@ -1,4 +1,5 @@
-﻿using static CombatlogParser.ParsingUtil;
+﻿using CombatlogParser.Data.Events.EventData;
+using static CombatlogParser.ParsingUtil;
 
 namespace CombatlogParser.Data.Events;
 
@@ -36,16 +37,16 @@ class SpellAbsorbedEvent : CombatlogEvent
         else
         {
             AbsorbedSpellID = int.Parse(eventData[index++]);
-            AbsorbedSpellName = eventData[index++];
+            AbsorbedSpellName = string.Intern(eventData[index++]);
             AbsorbedSpellSchool = (SpellSchool)HexStringToUInt(eventData[index++]);
         }
-        AbsorbCasterGUID = eventData[index++];
-        AbsorbCasterName = eventData[index++];
-        AbsorbCasterFlags = (UnitFlag)HexStringToUInt(eventData[index++]);
+        AbsorbCasterGUID = string.Intern(eventData[index++]);
+        AbsorbCasterName = string.Intern(eventData[index++]);
+		AbsorbCasterFlags = (UnitFlag)HexStringToUInt(eventData[index++]);
         AbsorbCasterRFlags = (RaidFlag)HexStringToUInt(eventData[index++]);
 
         HealAbsorbSpellID = int.Parse(eventData[index++]);
-        HealAbsorbSpellName = eventData[index++];
+        HealAbsorbSpellName = string.Intern(eventData[index++]);
         HealAbsorbSpellSchool = (SpellSchool)HexStringToUInt(eventData[index++]);
 
         AbsorbedAmount = long.Parse(eventData[index++]);
