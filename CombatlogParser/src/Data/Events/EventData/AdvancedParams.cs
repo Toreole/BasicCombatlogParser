@@ -37,10 +37,10 @@ public class AdvancedParams
         currentPower = AllIntsIn(NextSubstring(data, ref dataIndex));
         maxPower = AllIntsIn(NextSubstring(data, ref dataIndex));
         powerCost = AllIntsIn(NextSubstring(data, ref dataIndex));
-        positionX = float.Parse(NextSubstring(data, ref dataIndex));
-        positionY = float.Parse(NextSubstring(data, ref dataIndex));
+        positionX = float.Parse(NextSubstring(data, ref dataIndex), FloatNumberFormat);
+        positionY = float.Parse(NextSubstring(data, ref dataIndex), FloatNumberFormat);
         uiMapID = int.Parse(NextSubstring(data, ref dataIndex));
-        facing = float.Parse(NextSubstring(data, ref dataIndex));
+        facing = float.Parse(NextSubstring(data, ref dataIndex), FloatNumberFormat);
         level = int.Parse(NextSubstring(data, ref dataIndex));
     }
 }

@@ -27,6 +27,8 @@ public static class ParsingUtil
 
     public static readonly string timestamp_end_seperator = "  ";
 
+    public static readonly IFormatProvider FloatNumberFormat;
+
     static ParsingUtil()
     {
         prefixes = Enum.GetValues<CombatlogEventPrefix>();
@@ -37,6 +39,9 @@ public static class ParsingUtil
 
         miscEvents = Enum.GetValues<CombatlogMiscEvents>();
         miscNames = Enum.GetNames<CombatlogMiscEvents>();
+
+        //needs to included extra because otherwise it will default to german on my machine.
+        FloatNumberFormat = new CultureInfo("en-US").NumberFormat;
 
         subeventDictionary = new();
         //this creates every theoretically possible combination.

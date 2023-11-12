@@ -7,7 +7,7 @@ namespace CombatlogParser.Data
         /// <summary>
         /// The name of the encounter, provided by ENCOUNTER_START
         /// </summary>
-        public string EncounterName { get; } = "Unnamed";
+        public string EncounterName { get; }
 
         /// <summary>
         /// the ID of the encounter, provided by ENCOUNTER_START
@@ -47,22 +47,22 @@ namespace CombatlogParser.Data
         /// <summary>
         /// Whether the encounter ended successfully, provided by ENCOUNTER_END
         /// </summary>
-        public bool EncounterSuccess { get; } = false;
+        public bool EncounterSuccess { get; }
 
         /// <summary>
         /// Size of the PlayerInfo[] is given by ENCOUNTER_START, followed by the data from COMBATANT_INFO
         /// </summary>
-        public PlayerInfo[] Players { get; } = Array.Empty<PlayerInfo>();
+        public PlayerInfo[] Players { get; }
 
         /// <summary>
         /// List of NPCs found in the events.
         /// </summary>
-        public List<NpcInfo> Npcs { get; } = new List<NpcInfo>();
+        public List<NpcInfo> Npcs { get; }
 
         /// <summary>
         /// All combatlog events during the encounter.
         /// </summary>
-        public CombatlogEvent[] CombatlogEvents { get; } = Array.Empty<CombatlogEvent>();
+        public CombatlogEvent[] CombatlogEvents { get; }
 
         /// <summary>
         /// Combatlog Events sorted by data type.
