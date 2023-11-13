@@ -16,6 +16,8 @@ public static class ParsingUtil
 
     private static readonly Dictionary<string, Subevent> subeventDictionary;
 
+    private static readonly List<PowerType[]> knownPowerTypes = new();
+
     private static readonly CombatlogEventPrefix[] prefixes;
     private static readonly string[] prefixNames;
 
@@ -196,9 +198,27 @@ public static class ParsingUtil
             PowerType[] powerTypes = new PowerType[vs.Length];
             for (int i = 0; i < vs.Length; i++)
                 powerTypes[i] = (PowerType)int.Parse(vs[i], NumberStyles.Number);
+
+            return PseudoIntern(powerTypes);
+        }
+        return PseudoIntern( new[]{ (PowerType)int.Parse(str, NumberStyles.Number) });
+    }
+
+    /// <summary>
+    /// "interns" a PowerType[] array. frees up upwards of 3MB of memory given large enough encounters.
+    /// </summary>
+    /// <param name="powerTypes"></param>
+    /// <returns></returns>
+    public static PowerType[] PseudoIntern(PowerType[] powerTypes)
+    {
+        //the LINQ SequenceEqual is acceptably slow here since arrays will rarely (possibly never) have more than 2 elements.
+        var existing = knownPowerTypes.Find(x => x.SequenceEqual(powerTypes));
+        if (existing is null)
+        {
+            knownPowerTypes.Add(powerTypes);
             return powerTypes;
         }
-        return new PowerType[] { (PowerType)int.Parse(str, NumberStyles.Number) };
+        return existing;
     }
 
     /// <summary>

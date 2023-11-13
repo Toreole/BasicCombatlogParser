@@ -1,6 +1,6 @@
 ﻿namespace CombatlogParser
 {
-    public enum PowerType
+    public enum PowerType : sbyte
     {
         HealthCost = -2,
         None = -1,
