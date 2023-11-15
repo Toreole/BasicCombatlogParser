@@ -4,6 +4,16 @@
 # ': ' seperates id from name.
 # enum names are generated based on the full name in here.
 # DRAGONFLIGHT
+2549: Amirdrassil, the Dream's Hope
+  2820: Gnarlroot
+  2709: Igira the Cruel
+  2737: Volcoross
+  2728: Council of Dreams
+  2731: Larodar, Keeper of the Flame
+  2708: Nymue, Weaver of the Cycle
+  2824: Smolderon
+  2786: Tindral Rageswift, Seer of the Flame
+  2677: Fyrakk
 2569: Aberrus, the Shadowed Crucible
   2688: Kazzara, the Hellforged
   2687: The Amalgamation Chamber
