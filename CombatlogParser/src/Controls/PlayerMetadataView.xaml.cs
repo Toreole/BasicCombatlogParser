@@ -10,13 +10,7 @@ namespace CombatlogParser.Controls;
 /// </summary>
 public partial class PlayerMetadataView : ContentView
 {
-    static readonly InstanceId[] AllRaids = new[]{
-        InstanceId.Aberrus_the_Shadowed_Crucible,
-        InstanceId.Vault_of_the_Incarnates,
-        InstanceId.Sepulcher_of_the_First_Ones,
-        InstanceId.Sanctum_of_Domination,
-        InstanceId.Castle_Nathria,
-    };
+    static readonly InstanceId[] AllRaids = InstanceEncounterUtility.OrderedRaids;
     static readonly DifficultyId[] Difficulties = new[]
     {
         DifficultyId.LFR,

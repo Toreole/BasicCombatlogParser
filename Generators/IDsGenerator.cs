@@ -68,6 +68,11 @@ namespace CombatlogParser;
 
 public static class InstanceEncounterUtility
 {{
+
+    public static readonly {InstanceIdTypeName}[] OrderedRaids = new {InstanceIdTypeName}[] {{
+        {GetOrderedRaidArray()}
+    }};
+
     public static {EncounterIdTypeName}[] GetEncounters(this {InstanceIdTypeName} instance) 
     {{
         return instance switch
@@ -106,6 +111,17 @@ public static class InstanceEncounterUtility
 }}
 ";
             context.AddSource("InstanceEncounterUtility.g.cs", generatedSource);
+        }
+
+        private string GetOrderedRaidArray()
+        {
+            StringBuilder builder = new StringBuilder();
+            foreach(var instance in instances)
+			{
+				builder.Append($"        {InstanceIdTypeName}.{instance.enumFriendlyName},");
+			}
+            builder.Remove(builder.Length - 1, 1);
+            return builder.ToString();
         }
 
         private string GetEncounterNameMapping()
