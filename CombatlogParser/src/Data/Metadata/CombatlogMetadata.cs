@@ -44,5 +44,10 @@ namespace CombatlogParser.Data.Metadata
 
         //Inverse navigation property. is populated by EncounterInfoMetadata entities that refer to this one.
         public virtual List<EncounterInfoMetadata> Encounters { get; set; } = new();
-    }
+
+		public override string ToString()
+		{
+            return $"({Id}){FileName}";
+		}
+	}
 }

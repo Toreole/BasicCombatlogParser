@@ -51,6 +51,7 @@
                         Tag="{x:Static controls:SingleEncounterViewMode.Casts}">
                 </Button>
             </StackPanel>
+            <Button x:Name="ExportMovementButton" Content="Draw Movement"  Width="100" VerticalAlignment="Bottom" HorizontalAlignment="Left" Height="22" Margin="8,0,0,-33" Click="ExportMovementButton_Click"/>
         </Grid>
         <!--<local:TestList x:Name="MyTestList" Margin="0,101,0,0" />-->
 

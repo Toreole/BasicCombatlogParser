@@ -206,6 +206,8 @@ public static class ParsingUtil
 
     /// <summary>
     /// "interns" a PowerType[] array. frees up upwards of 3MB of memory given large enough encounters.
+    /// actually that may be bullshit because they rarely ever take up more than 32b anyway, since its just 1. 
+    /// but ay whatever, it feels nice.
     /// </summary>
     /// <param name="powerTypes"></param>
     /// <returns></returns>

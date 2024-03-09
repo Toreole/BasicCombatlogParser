@@ -91,9 +91,18 @@ public partial class RawDatabaseView : ContentView
             return;
         MainWindow.ChangeContent(new SingleEncounterView())
             .EncounterMetadata = (EncounterInfoMetadata)EncounterInfoListView.SelectedItem;
-    }
+	}
 
-    private void NextPageButton_Click(object sender, RoutedEventArgs e)
+	private void Combatlog_SelectionChanged(object sender, SelectionChangedEventArgs e)
+	{
+        e.Handled = true;
+        if (MainWindow is null)
+            return;
+        MainWindow.ChangeContent(new CombatlogOverviewView())
+            .CombatlogMetadata = (CombatlogMetadata)CombatlogListView.SelectedItem;
+	}
+
+	private void NextPageButton_Click(object sender, RoutedEventArgs e)
     {
         e.Handled = true;
         if (pageIndex == bufferedPages.Count - 1)

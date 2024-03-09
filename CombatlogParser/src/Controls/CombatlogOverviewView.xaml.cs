@@ -10,8 +10,19 @@ namespace CombatlogParser.Controls
     /// </summary>
     public partial class CombatlogOverviewView : ContentView
     {
-        public CombatlogMetadata? CombatlogMetadata { get; set; }
-        private readonly ObservableCollection<EncounterInfoMetadata> encounters = new();
+        private CombatlogMetadata? currentCombatlog = null;
+		private readonly ObservableCollection<EncounterInfoMetadata> encounters = new();
+
+		public CombatlogMetadata? CombatlogMetadata 
+        { 
+            get => currentCombatlog; 
+            set 
+            {
+                if (value == currentCombatlog || value == null) return;
+                currentCombatlog = value;
+                FetchAndStoreEncounterMetadatas(currentCombatlog.Id);
+			}
+        }
 
         public CombatlogOverviewView()
         {
@@ -22,17 +33,24 @@ namespace CombatlogParser.Controls
                 Source = encounters
             };
             TestGrid.SetBinding(DataGrid.ItemsSourceProperty, binding);
-        }
+		}
 
         public void FromEncounterMetadata(EncounterInfoMetadata encounterMetadata)
         {
             //ensure the embedded view has the mainwindow reference
-            EmbeddedEncounterView.SetWindow(this.MainWindow!);
-            CombatlogMetadata = Queries.GetCombatlogMetadataByID(encounterMetadata.CombatlogMetadataId);
-            encounters.Clear();
-            var xx = Queries.GetEncountersByCombatlogId(encounterMetadata.CombatlogMetadataId);
-            foreach (var x in xx)
-                encounters.Add(x);
+            CombatlogMetadata = Queries.GetCombatlogMetadataByID(encounterMetadata.CombatlogMetadataId)!;
+            FetchAndStoreEncounterMetadatas(currentCombatlog!.Id);
+		}
+
+        private void FetchAndStoreEncounterMetadatas(uint combatlogId)
+		{
+			EmbeddedEncounterView.SetWindow(this.MainWindow!);
+			encounters.Clear();
+            var encounterMetadatas = Queries.GetEncountersByCombatlogId(combatlogId);
+            foreach (var encounter in encounterMetadatas)
+            {
+                encounters.Add(encounter);
+            }
         }
 
         private void TestGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)

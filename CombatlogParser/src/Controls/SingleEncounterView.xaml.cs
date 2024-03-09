@@ -3,10 +3,17 @@ using CombatlogParser.Data.DisplayReady;
 using CombatlogParser.Data.Events;
 using CombatlogParser.Data.Metadata;
 using CombatlogParser.Formatting;
+using Microsoft.Win32;
+using System.ComponentModel;
+using System.Drawing;
 using System.Numerics;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using WinRT;
+
+using Brushes = System.Windows.Media.Brushes;
+using Point = System.Drawing.Point;
 
 namespace CombatlogParser.Controls;
 
@@ -487,13 +494,64 @@ public partial class SingleEncounterView : ContentView
         mainGridColumns.Add(NameColumn);
         mainGridColumns.Add(MetricSumColumn);
         mainGridColumns.Add(MetricPerSecondColumn);
+	}
+
+	private void ExportMovementButton_Click(object sender, RoutedEventArgs e)
+	{
+        if (currentEncounter == null)
+            return;
+		const int resolution = 1024;
+        Bitmap bitmap = new Bitmap(resolution, resolution);
+        using var graphics = Graphics.FromImage(bitmap);
+        //set background
+        graphics.FillRectangle(System.Drawing.Brushes.Black, new(0, 0, resolution, resolution));
+
+		var events = currentEncounter.CombatlogEventDictionary.GetEvents<AdvancedParamEvent>().Select(x => x.AdvancedParams);
+
+		float minX, maxX, minY, maxY;
+        minX = events.Min(x => x.positionX);
+        maxX = events.Max(x => x.positionX);
+		minY = events.Min(x => x.positionY);
+		maxY = events.Max(x => x.positionY);
+
+        var lastPixelPosition = new Dictionary<string, Point>();
+
+        foreach (var entry in events)
+        {
+            var unitGUID = entry.infoGUID;
+            var player = currentEncounter.FindPlayerInfoByGUID(unitGUID);
+            if (player == null)
+                continue;
+
+            int x = (int) (InverseLerp(entry.positionX, minX, maxX) * resolution);
+			int y = (int)(InverseLerp(entry.positionY, minY, maxY) * resolution);
+            Point position = new(x, y);
+
+            if (lastPixelPosition.ContainsKey(unitGUID))
+			{
+				var color = player.Class.GetClassColor();
+                graphics.DrawLine(new System.Drawing.Pen(System.Drawing.Color.FromArgb(color.A, color.R, color.G, color.B), 2),
+                    lastPixelPosition[unitGUID], position);
+			}
+            lastPixelPosition[unitGUID] = position;
+		}
+
+        var fileDialog = new SaveFileDialog();
+        if (fileDialog.ShowDialog() == true)
+         bitmap.Save(fileDialog.FileName);
+
+	}
+
+    private static float InverseLerp(float value, float a, float b)
+    {
+        return (value - a) / (b - a);
     }
 
-    /// <summary>
-    /// Really nothing more than a glorified KeyValuePair
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
-    public struct NamedTotal<T> where T : INumber<T>
+	/// <summary>
+	/// Really nothing more than a glorified KeyValuePair
+	/// </summary>
+	/// <typeparam name="T"></typeparam>
+	public struct NamedTotal<T> where T : INumber<T>
     {
         public string Guid;
         public T Value;
