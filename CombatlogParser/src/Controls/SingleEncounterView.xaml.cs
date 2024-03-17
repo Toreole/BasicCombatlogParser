@@ -537,6 +537,10 @@ public partial class SingleEncounterView : ContentView
 		}
 
         var fileDialog = new SaveFileDialog();
+        fileDialog.AddExtension = true;
+        fileDialog.DefaultExt = "png";
+        fileDialog.Filter = "PNG image|*.png";
+        fileDialog.FileName = $"{currentEncounter.EncounterName}_{currentEncounter.DifficultyID}.png";
         if (fileDialog.ShowDialog() == true)
          bitmap.Save(fileDialog.FileName);
 

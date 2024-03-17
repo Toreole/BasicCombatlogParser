@@ -18,6 +18,10 @@ Character Overview:
 <img src="resources/character_page_2023-04-16.png" />
 Encounter breakdown (damage done):
 <img src="resources/encounter_dps_breakdown_2023_05_23.png" />
+
+Movement map export (taken from a mythic Terros kill):
+<img src="resources/Terros_Mythic.png" style="max-width: 512px"/>
+
 </p>
 
 ## Design in Code n stuff
