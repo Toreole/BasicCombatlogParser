@@ -501,20 +501,32 @@ public partial class SingleEncounterView : ContentView
         if (currentEncounter == null)
             return;
 		const int resolution = 1024;
-        Bitmap bitmap = new Bitmap(resolution, resolution);
+        Bitmap bitmap = new(resolution, resolution);
         using var graphics = Graphics.FromImage(bitmap);
         //set background
         graphics.FillRectangle(System.Drawing.Brushes.Black, new(0, 0, resolution, resolution));
 
 		var events = currentEncounter.CombatlogEventDictionary.GetEvents<AdvancedParamEvent>().Select(x => x.AdvancedParams);
 
+        const float padding = 5f;
 		float minX, maxX, minY, maxY;
         minX = events.Min(x => x.positionX);
         maxX = events.Max(x => x.positionX);
 		minY = events.Min(x => x.positionY);
 		maxY = events.Max(x => x.positionY);
+        { //make it a square.
+            var width = maxX - minX;
+            var height = maxY - minY;
+            var halfExtents = Math.Max(width, height) * 0.5f + padding;
+            var centerX = Average(minX, maxX);
+            var centerY = Average(minY, maxY);
+            minX = centerX - halfExtents;
+            maxX = centerX + halfExtents;
+            minY = centerY - halfExtents;
+            maxY = centerY + halfExtents;
+        }
 
-        var lastPixelPosition = new Dictionary<string, Point>();
+		var lastPixelPosition = new Dictionary<string, Point>();
 
         foreach (var entry in events)
         {
@@ -527,28 +539,32 @@ public partial class SingleEncounterView : ContentView
 			int y = (int)(InverseLerp(entry.positionY, minY, maxY) * resolution);
             Point position = new(x, y);
 
-            if (lastPixelPosition.ContainsKey(unitGUID))
+            if (lastPixelPosition.TryGetValue(unitGUID, out Point value))
 			{
 				var color = player.Class.GetClassColor();
-                graphics.DrawLine(new System.Drawing.Pen(System.Drawing.Color.FromArgb(color.A, color.R, color.G, color.B), 2),
-                    lastPixelPosition[unitGUID], position);
+                graphics.DrawLine(new System.Drawing.Pen(System.Drawing.Color.FromArgb(color.A, color.R, color.G, color.B), 2), value, position);
 			}
             lastPixelPosition[unitGUID] = position;
 		}
 
-        var fileDialog = new SaveFileDialog();
-        fileDialog.AddExtension = true;
-        fileDialog.DefaultExt = "png";
-        fileDialog.Filter = "PNG image|*.png";
-        fileDialog.FileName = $"{currentEncounter.EncounterName}_{currentEncounter.DifficultyID}.png";
-        if (fileDialog.ShowDialog() == true)
-         bitmap.Save(fileDialog.FileName);
-
+		var fileDialog = new SaveFileDialog
+		{
+			AddExtension = true,
+			DefaultExt = "png",
+			Filter = "PNG image|*.png",
+			FileName = $"{currentEncounter.EncounterName}_{currentEncounter.DifficultyID}.png"
+		};
+		if (fileDialog.ShowDialog() == true)
+            bitmap.Save(fileDialog.FileName);
 	}
 
     private static float InverseLerp(float value, float a, float b)
     {
         return (value - a) / (b - a);
+    }
+    private static float Average(params float[] values)
+    {
+        return values.Sum() / values.Length;
     }
 
 	/// <summary>
