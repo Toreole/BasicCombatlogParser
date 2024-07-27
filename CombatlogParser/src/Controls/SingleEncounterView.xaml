@@ -6,7 +6,7 @@
              xmlns:sys="clr-namespace:System;assembly=mscorlib"
              xmlns:controls="clr-namespace:CombatlogParser.Controls"
              mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800">
+             d:DesignHeight="650" d:DesignWidth="1300">
     <UserControl.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -17,7 +17,18 @@
         </ResourceDictionary>
     </UserControl.Resources>
     <Grid>
-        <Grid Height="31" Margin="0,5,0,0" VerticalAlignment="Top" Background="#FF373737">
+        <Grid Height="55" VerticalAlignment="Top">
+            <ComboBox x:Name="SourceSelectionComboBox" Margin="29,0,1071,30" SelectedIndex="0" SelectionChanged="SourceSelectionChanged">
+                <ComboBoxItem Content="All Sources"></ComboBoxItem>
+            </ComboBox>
+            <Button Margin="29,30,1177,0" Content="Friendlies" />
+            <Button Margin="129,30,1071,0" Content="Enemies" />
+            <Button Margin="949,14,257,10" Content="Summary" />
+            <Button Margin="1049,14,151,10" Content="Events" />
+            <Button x:Name="ExportMovementButton" Content="Draw Movement"  Width="105" VerticalAlignment="Top" HorizontalAlignment="Left" Height="31" Margin="1185,14,0,0" Click="ExportMovementButton_Click" RenderTransformOrigin="0.25,-4.818"/>
+
+        </Grid>
+        <Grid Height="30" Margin="0,60,0,0" VerticalAlignment="Top" Background="#FF373737">
             <Border BorderBrush="DarkGray" BorderThickness="0 1 0 1"/>
             <StackPanel x:Name="ButtonMenuBand" Orientation="Horizontal">
                 <Button x:Name="DamageButton" 
@@ -51,11 +62,11 @@
                         Tag="{x:Static controls:SingleEncounterViewMode.Casts}">
                 </Button>
             </StackPanel>
-            <Button x:Name="ExportMovementButton" Content="Draw Movement"  Width="100" VerticalAlignment="Bottom" HorizontalAlignment="Left" Height="22" Margin="8,0,0,-33" Click="ExportMovementButton_Click"/>
         </Grid>
+
         <!--<local:TestList x:Name="MyTestList" Margin="0,101,0,0" />-->
 
-        <DataGrid d:ItemsSource="{d:SampleData ItemCount=2}" x:Name="DataGrid" AutoGenerateColumns="False" IsReadOnly="True" CanUserReorderColumns="False" MinColumnWidth="80" Margin="0,80,0,0" Height="Auto" >
+        <DataGrid d:ItemsSource="{d:SampleData ItemCount=2}" x:Name="DataGrid" AutoGenerateColumns="False" IsReadOnly="True" CanUserReorderColumns="False" MinColumnWidth="80" Margin="0,105,0,0" Height="Auto" >
             <DataGrid.RowStyle>
                 <Style TargetType="DataGridRow" BasedOn="{StaticResource {x:Type DataGridRow}}">
                     <Style.Triggers>

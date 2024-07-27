@@ -1,4 +1,4 @@
-﻿using CombatlogParser.Data;
+using CombatlogParser.Data;
 using CombatlogParser.Data.DisplayReady;
 using CombatlogParser.Data.Events;
 using CombatlogParser.Data.Metadata;
@@ -27,6 +27,7 @@ public partial class SingleEncounterView : ContentView
 
     private Button highlightedButton;
 
+    private string? selectedEntityGUID = null;
     private EncounterInfoMetadata? currentEncounterMetadata = null;
     private EncounterInfo? currentEncounter = null;
     private SingleEncounterViewMode currentViewMode = SingleEncounterViewMode.DamageDone;
@@ -59,7 +60,8 @@ public partial class SingleEncounterView : ContentView
             {
                 currentEncounterMetadata = value;
                 GetData(currentEncounterMetadata);
-            }
+                //SetupSourceSelection();
+			}
         }
     }
 
@@ -93,24 +95,28 @@ public partial class SingleEncounterView : ContentView
 
             if (currentEncounter is null)
                 return;
-
-            switch (currentViewMode)
-            {
-                case SingleEncounterViewMode.DamageDone:
-                    GenerateDamageDoneBreakdown();
-                    break;
-                case SingleEncounterViewMode.Healing:
-                    GenerateHealingBreakdown();
-                    break;
-                case SingleEncounterViewMode.DamageTaken:
-                    GenerateDamageTakenBreakdown();
-                    break;
-                case SingleEncounterViewMode.Deaths:
-                    GenerateDeathsBreakdown();
-                    break;
-            }
-        }
+            UpdateViewForCurrentMode();
+		}
     }
+
+    private void UpdateViewForCurrentMode()
+    {
+		switch (currentViewMode)
+		{
+			case SingleEncounterViewMode.DamageDone:
+				GenerateDamageDoneBreakdown();
+				break;
+			case SingleEncounterViewMode.Healing:
+				GenerateHealingBreakdown();
+				break;
+			case SingleEncounterViewMode.DamageTaken:
+				GenerateDamageTakenBreakdown();
+				break;
+			case SingleEncounterViewMode.Deaths:
+				GenerateDeathsBreakdown();
+				break;
+		}
+	}
 
     /// <summary>
     /// Clears the DataGrid and starts LoadDataAsync
@@ -567,6 +573,25 @@ public partial class SingleEncounterView : ContentView
         return values.Sum() / values.Length;
     }
 
+    private void SetupSourceSelection()
+    {
+        ignoreSourceSelectionChanged = true;
+		var items = this.SourceSelectionComboBox.Items;
+        items.Clear();
+        items.Add("All Sources"); // index 0
+		SourceSelectionComboBox.SelectedIndex = 0;
+
+		// if mode == friendlies
+		if (currentEncounter == null)
+            return;
+        foreach (var player in currentEncounter.Players)
+        {
+            items.Add(player.Name);
+		}
+		ignoreSourceSelectionChanged = false;
+	}
+
+
 	/// <summary>
 	/// Really nothing more than a glorified KeyValuePair
 	/// </summary>
@@ -582,4 +607,21 @@ public partial class SingleEncounterView : ContentView
             Value = value;
         }
     }
+
+    bool ignoreSourceSelectionChanged = false;
+	private void SourceSelectionChanged(object sender, SelectionChangedEventArgs e)
+	{
+        if (ignoreSourceSelectionChanged) return;
+
+        if (SourceSelectionComboBox.SelectedIndex > 0)
+        {
+            //should do null check but should be guaranteed.
+            selectedEntityGUID = currentEncounter!.Players[SourceSelectionComboBox.SelectedIndex-1].GUID;
+		} 
+        else
+        {
+            selectedEntityGUID = null;
+        }
+		UpdateViewForCurrentMode();
+	}
 }
