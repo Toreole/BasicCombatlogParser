@@ -15,6 +15,8 @@ public class DamageEventParams
     public bool glancing;
     public bool isOffHand;
 
+    public long TotalAmount => amount + absorbed;
+
     public DamageEventParams(string line, ref int dataIndex)
     {
         amount = long.Parse(NextSubstring(line, ref dataIndex));

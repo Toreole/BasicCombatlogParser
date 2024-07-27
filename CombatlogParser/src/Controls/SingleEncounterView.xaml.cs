@@ -1,6 +1,7 @@
 using CombatlogParser.Data;
 using CombatlogParser.Data.DisplayReady;
 using CombatlogParser.Data.Events;
+using CombatlogParser.Data.Events.EventData;
 using CombatlogParser.Data.Metadata;
 using CombatlogParser.Formatting;
 using Microsoft.Win32;
@@ -101,21 +102,33 @@ public partial class SingleEncounterView : ContentView
 
     private void UpdateViewForCurrentMode()
     {
-		switch (currentViewMode)
+        if (selectedEntityGUID == null)
 		{
-			case SingleEncounterViewMode.DamageDone:
-				GenerateDamageDoneBreakdown();
-				break;
-			case SingleEncounterViewMode.Healing:
-				GenerateHealingBreakdown();
-				break;
-			case SingleEncounterViewMode.DamageTaken:
-				GenerateDamageTakenBreakdown();
-				break;
-			case SingleEncounterViewMode.Deaths:
-				GenerateDeathsBreakdown();
-				break;
+			switch (currentViewMode)
+			{
+				case SingleEncounterViewMode.DamageDone:
+					GenerateDamageDoneBreakdown();
+					break;
+				case SingleEncounterViewMode.Healing:
+					GenerateHealingBreakdown();
+					break;
+				case SingleEncounterViewMode.DamageTaken:
+					GenerateDamageTakenBreakdown();
+					break;
+				case SingleEncounterViewMode.Deaths:
+					GenerateDeathsBreakdown();
+					break;
+			}
 		}
+        else
+        {
+            switch (currentViewMode)
+            {
+                case SingleEncounterViewMode.DamageDone:
+                    GenerateDamageDoneBySource();
+                    break;
+            }
+        }
 	}
 
     /// <summary>
@@ -152,7 +165,9 @@ public partial class SingleEncounterView : ContentView
         MainWindow.HideProgressBar(progress);
         //Maybe not do this immediately but do a check before for the DamageButton being selected.
         GenerateDamageDoneBreakdown();
-    }
+        SetupSourceSelection();
+
+	}
 
     /// <summary>
     /// Calculates and shows the sums of each players damage done to enemies
@@ -187,10 +202,70 @@ public partial class SingleEncounterView : ContentView
         CalculateFinalMetricsAndDisplay(damageBySource);
     }
 
-    /// <summary>
-    /// Calculate and show the totals of each players damage taken.
-    /// </summary>
-    private void GenerateDamageTakenBreakdown()
+	private void GenerateDamageDoneBySource()
+    {
+        if (currentEncounter is null || selectedEntityGUID is null)
+            return;
+
+        SetupDataGridForDamageDone();
+
+        Dictionary<String, long> damageBySpell = new();
+        var damageEvents = currentEncounter.CombatlogEventDictionary.GetEvents<DamageEvent>();
+        foreach (var dmgEvent in damageEvents.Where(x => GetActualSource(x.SourceGUID) == selectedEntityGUID))
+        {
+            if (damageBySpell.ContainsKey(dmgEvent.spellData.name))
+            {
+                damageBySpell[dmgEvent.spellData.name] += dmgEvent.damageParams.TotalAmount;
+            }
+            else
+            {
+                damageBySpell.Add(dmgEvent.spellData.name, dmgEvent.damageParams.TotalAmount);
+            }
+        }
+        //once again, subtract any support dmg
+        var supportEvents = currentEncounter.CombatlogEventDictionary.GetEvents<DamageSupportEvent>();
+        foreach (var supportEvent in supportEvents.Where(x => x.SourceGUID == selectedEntityGUID))
+        {
+            damageBySpell[supportEvent.spellData.name] -= supportEvent.damageParams.TotalAmount;
+        }
+
+        //prepare data for displaying.
+        var results = GetOrderedTotals(damageBySpell, out long total);
+		var encounterLength = currentEncounter!.LengthInSeconds;
+		NamedValueBarData[] displayData = new NamedValueBarData[results.Length];
+		long maximum = results[0].Value;
+		for (int i = 0; i < displayData.Length; i++)
+		{
+			displayData[i] = new()
+			{
+				Maximum = maximum,
+				Value = results[i].Value,
+				Label = results[i].Value.ToShortFormString(),
+				ValueString = (results[i].Value / encounterLength).ToString("N1"),
+				Name = results[i].Guid, //unintuitively, guid has the value of the spell name right here.
+				Color = Brushes.White
+			};
+
+		}
+		foreach (var entry in displayData)
+			DataGrid.Items.Add(entry);
+		//add the special Total entry
+		DataGrid.Items.Add(new NamedValueBarData()
+		{
+			Name = "Total",
+			Color = Brushes.White,
+			Maximum = maximum,
+			Value = -1,
+			Label = total.ToShortFormString(),
+			ValueString = (total / encounterLength).ToString("N1")
+		});
+	}
+
+
+	/// <summary>
+	/// Calculate and show the totals of each players damage taken.
+	/// </summary>
+	private void GenerateDamageTakenBreakdown()
     {
         SetupDataGridForDamageTaken();
 
@@ -200,7 +275,7 @@ public partial class SingleEncounterView : ContentView
         foreach (var dmgEvent in damageEvents.Where(filter.Match))
         {
             var target = dmgEvent.TargetGUID;
-            var amount = dmgEvent.damageParams.amount + dmgEvent.damageParams.absorbed;
+            var amount = dmgEvent.damageParams.TotalAmount;
             AddSum(dmgTakenByTarget, target, amount);
         }
 
@@ -367,7 +442,7 @@ public partial class SingleEncounterView : ContentView
         SetupDataGridForHealing();
 
         Dictionary<string, long> healingBySource = new();
-        IEventFilter filter = EventFilters.AllySourceFilter; //only the source matters. you cant heal enemies after all
+        EventFilter filter = EventFilters.AllySourceFilter; //only the source matters. you cant heal enemies after all
         var healEvents = currentEncounter.CombatlogEventDictionary.GetEvents<HealEvent>();
         SumAmountsForSources(
             healEvents.Where(filter.Match),
