@@ -14,7 +14,7 @@ public static class EventExtensions
         return items;
     }
 
-    public static TEvent[] AllThatMatch<TEvent>(this ICollection<TEvent> source, IEventFilter filter) where TEvent : CombatlogEvent
+    public static TEvent[] AllThatMatch<TEvent>(this ICollection<TEvent> source, EventFilter filter) where TEvent : CombatlogEvent
     {
         TEvent[] items = new TEvent[source.Count(x => filter.Match(x))];
         int i = 0;

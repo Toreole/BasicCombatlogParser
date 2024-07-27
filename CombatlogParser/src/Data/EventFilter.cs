@@ -1,7 +1,13 @@
 ﻿using CombatlogParser.Data.Events;
+using System.Runtime.CompilerServices;
+using Windows.Foundation.Metadata;
 
 namespace CombatlogParser.Data
 {
+    /// <summary>
+    /// Helper class for ease of use. 
+    /// Place to store commonly used filters and factory methods so you dont have to memorize individual filter names.
+    /// </summary>
     public static class EventFilters
     {
         public static readonly AnyOfFilter AllySourceFilter = new(
@@ -23,20 +29,26 @@ namespace CombatlogParser.Data
                     UnitFlag.COMBATLOG_OBJECT_AFFILIATION_PARTY |
                     UnitFlag.COMBATLOG_OBJECT_AFFILIATION_MINE)
                 );
+        public static EventFilter AllOf(params EventFilter[] filters) => new AllOfFilter(filters);
+        public static EventFilter AnyOf(params EventFilter[] filters) => new AnyOfFilter(filters);
 
-        public static IEventFilter Before(DateTime dateTime) => new BeforeTimeFilter(dateTime);
-        public static IEventFilter After(DateTime dateTime) => new BeforeTimeFilter(dateTime);
+        public static EventFilter Before(DateTime dateTime) => new BeforeTimeFilter(dateTime);
+        public static EventFilter After(DateTime dateTime) => new BeforeTimeFilter(dateTime);
     }
 
-    public interface IEventFilter
+    public abstract class EventFilter
     {
-        bool Match(CombatlogEvent combatlogEvent);
+        public abstract bool Match(CombatlogEvent combatlogEvent);
+
+        public static explicit operator EventFilter(EventFilter[] filters) {
+            return new AllOfFilter(filters);
+        }
     }
 
-    public sealed class BeforeTimeFilter : IEventFilter
+    public sealed class BeforeTimeFilter : EventFilter
     {
         private readonly DateTime timestamp;
-        public bool Match(CombatlogEvent ev)
+        public override bool Match(CombatlogEvent ev)
         {
             return ev.Timestamp <= timestamp;
         }
@@ -45,10 +57,10 @@ namespace CombatlogParser.Data
             this.timestamp = timestamp;
         }
     }
-    public sealed class AfterTimeFilter : IEventFilter
+    public sealed class AfterTimeFilter : EventFilter
     {
         private readonly DateTime timestamp;
-        public bool Match(CombatlogEvent ev)
+        public override bool Match(CombatlogEvent ev)
         {
             return ev.Timestamp >= timestamp;
         }
@@ -61,14 +73,14 @@ namespace CombatlogParser.Data
     /// <summary>
     /// Filters Targets given a set of GUIDs
     /// </summary>
-    public sealed class TargetGUIDFilter : IEventFilter
+    public sealed class TargetGUIDFilter : EventFilter
     {
         private readonly string[] targets;
-        public TargetGUIDFilter(string[] targets)
+        public TargetGUIDFilter(params string[] targets)
         {
             this.targets = targets;
         }
-        public bool Match(CombatlogEvent ev)
+        public override bool Match(CombatlogEvent ev)
         {
             return targets.Contains(ev.TargetGUID);
         }
@@ -77,14 +89,14 @@ namespace CombatlogParser.Data
     /// <summary>
     /// Filters Targets given a set of Names
     /// </summary>
-    public sealed class TargetNameFilter : IEventFilter
+    public sealed class TargetNameFilter : EventFilter
     {
         private readonly string[] targets;
         public TargetNameFilter(string[] targets)
         {
             this.targets = targets;
         }
-        public bool Match(CombatlogEvent ev)
+        public override bool Match(CombatlogEvent ev)
         {
             return targets.Contains(ev.TargetName);
         }
@@ -93,42 +105,74 @@ namespace CombatlogParser.Data
     /// <summary>
     /// Filters for a specific set of flags on the target.
     /// </summary>
-    public sealed class TargetFlagFilter : IEventFilter
+    public sealed class TargetFlagFilter : EventFilter
     {
         private readonly UnitFlag flags;
         public TargetFlagFilter(UnitFlag flags)
         {
             this.flags = flags;
         }
-        public bool Match(CombatlogEvent ev)
+        public override bool Match(CombatlogEvent ev)
         {
             return ev.TargetFlags.HasFlagf(flags);
         }
     }
 
-    public sealed class TargetAnyFlagFilter : IEventFilter
+    public sealed class TargetAnyFlagFilter : EventFilter
     {
         private readonly UnitFlag searchedFlags;
         public TargetAnyFlagFilter(UnitFlag searchFlags)
         {
             this.searchedFlags = searchFlags;
         }
-        public bool Match(CombatlogEvent ev)
+        public override bool Match(CombatlogEvent ev)
             => (ev.TargetFlags & searchedFlags) != UnitFlag.NONE;
     }
 
-    /// <summary>
-    /// Filters for a specific set of flags on the source.
-    /// Events must match ALL flags.
-    /// </summary>
-    public sealed class SourceFlagFilter : IEventFilter
+	/// <summary>
+	/// Filters Sources given a set of GUIDs
+	/// </summary>
+	public sealed class SourceGUIDFilter : EventFilter
+	{
+		private readonly string[] targets;
+		public SourceGUIDFilter(params string[] targets)
+		{
+			this.targets = targets;
+		}
+		public override bool Match(CombatlogEvent ev)
+		{
+			return targets.Contains(ev.SourceGUID);
+		}
+	}
+
+	/// <summary>
+	/// Filters Sources given a set of Names
+	/// </summary>
+	public sealed class SourceNameFilter : EventFilter
+	{
+		private readonly string[] targets;
+		public SourceNameFilter(string[] targets)
+		{
+			this.targets = targets;
+		}
+		public override bool Match(CombatlogEvent ev)
+		{
+			return targets.Contains(ev.SourceName);
+		}
+	}
+
+	/// <summary>
+	/// Filters for a specific set of flags on the source.
+	/// Events must match ALL flags.
+	/// </summary>
+	public sealed class SourceFlagFilter : EventFilter
     {
         private readonly UnitFlag flags;
         public SourceFlagFilter(UnitFlag flags)
         {
             this.flags = flags;
         }
-        public bool Match(CombatlogEvent ev)
+        public override bool Match(CombatlogEvent ev)
         {
             return (ev.SourceFlags & flags) == flags;
         }
@@ -140,17 +184,17 @@ namespace CombatlogParser.Data
     /// <summary>
     /// Lets events pass that match any of the provided filters.
     /// </summary>
-    public sealed class AnyOfFilter : IEventFilter
+    public sealed class AnyOfFilter : EventFilter
     {
-        private readonly IEventFilter[] filters;
-        public bool Match(CombatlogEvent ev)
+        private readonly EventFilter[] filters;
+        public override bool Match(CombatlogEvent ev)
         {
-            foreach (IEventFilter f in filters)
+            foreach (EventFilter f in filters)
                 if (f.Match(ev))
                     return true;
             return false;
         }
-        public AnyOfFilter(params IEventFilter[] filters)
+        public AnyOfFilter(params EventFilter[] filters)
         {
             if (filters.Length == 0)
                 throw new ArgumentException("filters[] must not have a length of 0.");
@@ -161,11 +205,11 @@ namespace CombatlogParser.Data
     /// <summary>
     /// Inverts the result of another filter.
     /// </summary>
-    public sealed class NotFilter : IEventFilter
+    public sealed class NotFilter : EventFilter
     {
-        private readonly IEventFilter filter;
-        public bool Match(CombatlogEvent ev) => !filter.Match(ev);
-        public NotFilter(IEventFilter filter)
+        private readonly EventFilter filter;
+        public override bool Match(CombatlogEvent ev) => !filter.Match(ev);
+        public NotFilter(EventFilter filter)
         {
             this.filter = filter;
         }
@@ -174,17 +218,17 @@ namespace CombatlogParser.Data
     /// <summary>
     /// Composite filter that requires all supplied filters to match.
     /// </summary>
-    public sealed class AllOfFilter : IEventFilter
+    public sealed class AllOfFilter : EventFilter
     {
-        private readonly IEventFilter[] filters;
-        public bool Match(CombatlogEvent ev)
+        private readonly EventFilter[] filters;
+        public override bool Match(CombatlogEvent ev)
         {
             foreach (var f in filters)
                 if (!f.Match(ev))
                     return false;
             return true;
         }
-        public AllOfFilter(params IEventFilter[] filters)
+        public AllOfFilter(params EventFilter[] filters)
             => this.filters = filters;
     }
 }
