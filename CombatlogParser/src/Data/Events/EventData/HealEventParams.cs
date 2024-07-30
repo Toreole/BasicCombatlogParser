@@ -10,6 +10,8 @@ public class HealEventParams
     public readonly int absorbed;
     public readonly bool critical;
 
+    public int TotalAmount => amount + absorbed;
+
     public HealEventParams(string entry, ref int dataIndex)
     {
         amount = int.Parse(NextSubstring(entry, ref dataIndex));

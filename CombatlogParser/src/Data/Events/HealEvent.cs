@@ -5,7 +5,7 @@ namespace CombatlogParser.Data.Events;
 public class HealEvent : AdvancedParamEvent
 {
     //spell/spell_periodic
-    public SpellData spell;
+    public SpellData spellData;
 
     //heal
     public readonly HealEventParams healParams;
@@ -18,7 +18,7 @@ public class HealEvent : AdvancedParamEvent
     public HealEvent(CombatlogEventPrefix prefix, string entry, int dataIndex)
         : base(entry, ref dataIndex, EventType.HEALING, prefix, CombatlogEventSuffix._HEAL)
     {
-        spell = SpellData.ParseOrGet(prefix, entry, ref dataIndex);
+        spellData = SpellData.ParseOrGet(prefix, entry, ref dataIndex);
 
         AdvancedParams = new(entry, ref dataIndex);
 

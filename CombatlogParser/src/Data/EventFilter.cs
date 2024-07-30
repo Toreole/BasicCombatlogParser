@@ -12,23 +12,29 @@ namespace CombatlogParser.Data
     {
         public static readonly AnyOfFilter AllySourceFilter = new(
             new SourceFlagFilter(UnitFlag.COMBATLOG_OBJECT_REACTION_FRIENDLY),
-            new SourceFlagFilter(UnitFlag.COMBATLOG_OBJECT_REACTION_NEUTRAL)
-        );
+            new SourceFlagFilter(UnitFlag.COMBATLOG_OBJECT_REACTION_NEUTRAL));
+
         public static readonly TargetFlagFilter EnemyTargetFilter =
             new(UnitFlag.COMBATLOG_OBJECT_REACTION_HOSTILE);
+
         public static readonly AllOfFilter AllySourceEnemyTargetFilter = new(
             AllySourceFilter,
-            EnemyTargetFilter
-        );
+            EnemyTargetFilter);
+
         public static readonly TargetFlagFilter AllyTargetFilter
             = new(UnitFlag.COMBATLOG_OBJECT_REACTION_FRIENDLY);
+
         public static readonly AllOfFilter GroupMemberTargetFilter
             = new(AllyTargetFilter,
                 new TargetAnyFlagFilter(
                     UnitFlag.COMBATLOG_OBJECT_AFFILIATION_RAID |
                     UnitFlag.COMBATLOG_OBJECT_AFFILIATION_PARTY |
-                    UnitFlag.COMBATLOG_OBJECT_AFFILIATION_MINE)
-                );
+                    UnitFlag.COMBATLOG_OBJECT_AFFILIATION_MINE));
+
+        public static readonly AllOfFilter EnemySourceFilter = new(
+            new SourceFlagFilter(UnitFlag.COMBATLOG_OBJECT_REACTION_HOSTILE),
+            new SourceFlagFilter(UnitFlag.COMBATLOG_OBJECT_TYPE_NPC));
+
         public static EventFilter AllOf(params EventFilter[] filters) => new AllOfFilter(filters);
         public static EventFilter AnyOf(params EventFilter[] filters) => new AnyOfFilter(filters);
 

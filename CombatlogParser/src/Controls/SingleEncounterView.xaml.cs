@@ -102,33 +102,29 @@ public partial class SingleEncounterView : ContentView
 
     private void UpdateViewForCurrentMode()
     {
-        if (selectedEntityGUID == null)
+        if (currentEncounter == null) return;
+        Dictionary<string, long> data;
+		switch (currentViewMode)
 		{
-			switch (currentViewMode)
-			{
-				case SingleEncounterViewMode.DamageDone:
-					GenerateDamageDoneBreakdown();
-					break;
-				case SingleEncounterViewMode.Healing:
-					GenerateHealingBreakdown();
-					break;
-				case SingleEncounterViewMode.DamageTaken:
-					GenerateDamageTakenBreakdown();
-					break;
-				case SingleEncounterViewMode.Deaths:
-					GenerateDeathsBreakdown();
-					break;
-			}
+			case SingleEncounterViewMode.DamageDone:
+                SetupDataGridForDamageDone();
+				data = currentEncounter!.CalculateBreakdown(EncounterInfo.BreakdownMode.DamageDone, true, selectedEntityGUID);
+				CalculateFinalMetricsAndDisplay(data);
+				break;
+			case SingleEncounterViewMode.Healing:
+				SetupDataGridForHealing();
+				data = currentEncounter!.CalculateBreakdown(EncounterInfo.BreakdownMode.HealingDone, true, selectedEntityGUID);
+                CalculateFinalMetricsAndDisplay(data);
+				break;
+			case SingleEncounterViewMode.DamageTaken:
+				SetupDataGridForDamageTaken();
+				data = currentEncounter.CalculateBreakdown(EncounterInfo.BreakdownMode.DamageTaken, true, selectedEntityGUID);
+                CalculateFinalMetricsAndDisplay(data);
+				break;
+			case SingleEncounterViewMode.Deaths:
+				GenerateDeathsBreakdown();
+				break;
 		}
-        else
-        {
-            switch (currentViewMode)
-            {
-                case SingleEncounterViewMode.DamageDone:
-                    GenerateDamageDoneBySource();
-                    break;
-            }
-        }
 	}
 
     /// <summary>
@@ -164,123 +160,9 @@ public partial class SingleEncounterView : ContentView
         }
         MainWindow.HideProgressBar(progress);
         //Maybe not do this immediately but do a check before for the DamageButton being selected.
-        GenerateDamageDoneBreakdown();
         SetupSourceSelection();
-
+        UpdateViewForCurrentMode();
 	}
-
-    /// <summary>
-    /// Calculates and shows the sums of each players damage done to enemies
-    /// </summary>
-    private void GenerateDamageDoneBreakdown()
-    {
-        if (currentEncounter is null)
-            return;
-
-        SetupDataGridForDamageDone();
-
-        Dictionary<string, long> damageBySource = new();
-        var damageEvents = currentEncounter.CombatlogEventDictionary.GetEvents<DamageEvent>();
-        var filter = EventFilters.AllySourceEnemyTargetFilter;
-        SumAmountsForSources(
-            damageEvents.Where(filter.Match),
-            dmgEvent => dmgEvent.damageParams.amount + dmgEvent.damageParams.absorbed,
-            damageBySource);
-        //damage done via support events (augmentation evoker) needs to be attributed to the evoker
-        //and subtracted from the buffed players damage.
-        var damageSupportEvents = currentEncounter.CombatlogEventDictionary.GetEvents<DamageSupportEvent>();
-        foreach (var dmgEvent in damageSupportEvents)
-        {
-            var damageSupported = dmgEvent.damageParams.amount + dmgEvent.damageParams.absorbed;
-            if (damageBySource.ContainsKey(dmgEvent.SourceGUID))
-            {
-                damageBySource[dmgEvent.SourceGUID] -= damageSupported;
-            }
-            AddSum(damageBySource, dmgEvent.supporterGUID, damageSupported);
-        }
-
-        CalculateFinalMetricsAndDisplay(damageBySource);
-    }
-
-	private void GenerateDamageDoneBySource()
-    {
-        if (currentEncounter is null || selectedEntityGUID is null)
-            return;
-
-        SetupDataGridForDamageDone();
-
-        Dictionary<String, long> damageBySpell = new();
-        var damageEvents = currentEncounter.CombatlogEventDictionary.GetEvents<DamageEvent>();
-        foreach (var dmgEvent in damageEvents.Where(x => GetActualSource(x.SourceGUID) == selectedEntityGUID))
-        {
-            if (damageBySpell.ContainsKey(dmgEvent.spellData.name))
-            {
-                damageBySpell[dmgEvent.spellData.name] += dmgEvent.damageParams.TotalAmount;
-            }
-            else
-            {
-                damageBySpell.Add(dmgEvent.spellData.name, dmgEvent.damageParams.TotalAmount);
-            }
-        }
-        //once again, subtract any support dmg
-        var supportEvents = currentEncounter.CombatlogEventDictionary.GetEvents<DamageSupportEvent>();
-        foreach (var supportEvent in supportEvents.Where(x => x.SourceGUID == selectedEntityGUID))
-        {
-            damageBySpell[supportEvent.spellData.name] -= supportEvent.damageParams.TotalAmount;
-        }
-
-        //prepare data for displaying.
-        var results = GetOrderedTotals(damageBySpell, out long total);
-		var encounterLength = currentEncounter!.LengthInSeconds;
-		NamedValueBarData[] displayData = new NamedValueBarData[results.Length];
-		long maximum = results[0].Value;
-		for (int i = 0; i < displayData.Length; i++)
-		{
-			displayData[i] = new()
-			{
-				Maximum = maximum,
-				Value = results[i].Value,
-				Label = results[i].Value.ToShortFormString(),
-				ValueString = (results[i].Value / encounterLength).ToString("N1"),
-				Name = results[i].Guid, //unintuitively, guid has the value of the spell name right here.
-				Color = Brushes.White
-			};
-
-		}
-		foreach (var entry in displayData)
-			DataGrid.Items.Add(entry);
-		//add the special Total entry
-		DataGrid.Items.Add(new NamedValueBarData()
-		{
-			Name = "Total",
-			Color = Brushes.White,
-			Maximum = maximum,
-			Value = -1,
-			Label = total.ToShortFormString(),
-			ValueString = (total / encounterLength).ToString("N1")
-		});
-	}
-
-
-	/// <summary>
-	/// Calculate and show the totals of each players damage taken.
-	/// </summary>
-	private void GenerateDamageTakenBreakdown()
-    {
-        SetupDataGridForDamageTaken();
-
-        Dictionary<string, long> dmgTakenByTarget = new();
-        var damageEvents = currentEncounter!.CombatlogEventDictionary.GetEvents<DamageEvent>();
-        var filter = EventFilters.GroupMemberTargetFilter;
-        foreach (var dmgEvent in damageEvents.Where(filter.Match))
-        {
-            var target = dmgEvent.TargetGUID;
-            var amount = dmgEvent.damageParams.TotalAmount;
-            AddSum(dmgTakenByTarget, target, amount);
-        }
-
-        CalculateFinalMetricsAndDisplay(dmgTakenByTarget);
-    }
 
     /// <summary>
     /// Attempt to get the name of a unit through combatlog events.
@@ -416,93 +298,12 @@ public partial class SingleEncounterView : ContentView
     }
 
     /// <summary>
-    /// Looks up the given GUID in the encounters SourceToOwnerGuidLookup Dictionary.
-    /// </summary>
-    /// <param name="possibleSource"></param>
-    /// <returns>The Value in the Lookup if the key exists</returns>
-    private string GetActualSource(string possibleSource)
-    {
-        //watch out that this is only used in methods that already ensure that
-        //currentEncounter is not null.
-        if (currentEncounter!.SourceToOwnerGuidLookup.ContainsKey(possibleSource))
-        {
-            return currentEncounter.SourceToOwnerGuidLookup[possibleSource];
-        }
-        return possibleSource;
-    }
-
-    /// <summary>
-    /// Calculates and shows the total healing done by each player
-    /// </summary>
-    private void GenerateHealingBreakdown()
-    {
-        if (currentEncounter == null)
-            return;
-
-        SetupDataGridForHealing();
-
-        Dictionary<string, long> healingBySource = new();
-        EventFilter filter = EventFilters.AllySourceFilter; //only the source matters. you cant heal enemies after all
-        var healEvents = currentEncounter.CombatlogEventDictionary.GetEvents<HealEvent>();
-        SumAmountsForSources(
-            healEvents.Where(filter.Match),
-            healEvent => healEvent.Amount + healEvent.Absorbed - healEvent.Overheal,
-            healingBySource);
-        var absorbEvents = currentEncounter.CombatlogEventDictionary.GetEvents<SpellAbsorbedEvent>();
-        //this func should not be in here, but its a specific usecase so it is.
-        Func<SpellAbsorbedEvent, bool> absorbCasterFilter = new((x) =>
-        {
-            return x.AbsorbCasterFlags.HasFlagf(UnitFlag.COMBATLOG_OBJECT_REACTION_FRIENDLY)
-                || x.AbsorbCasterFlags.HasFlagf(UnitFlag.COMBATLOG_OBJECT_REACTION_NEUTRAL);
-        });
-        foreach (var absorbEvent in absorbEvents.Where(absorbCasterFilter))
-        {
-            string actualSource = GetActualSource(absorbEvent.AbsorbCasterGUID);
-            AddSum(healingBySource, actualSource, absorbEvent.AbsorbedAmount);
-        }
-        //healing done via support needs to be attributed to the evoker, not the buffed player.
-        var healSupportEvents = currentEncounter.CombatlogEventDictionary.GetEvents<HealSupportEvent>();
-        foreach (var supportEvent in healSupportEvents)
-        {
-            var healParams = supportEvent.healParams;
-            var effectiveHealing = healParams.amount + healParams.absorbed - healParams.overheal;
-            AddSum(healingBySource, supportEvent.supporterGUID, effectiveHealing);
-            if (healingBySource.ContainsKey(supportEvent.SourceGUID))
-            {
-                healingBySource[supportEvent.SourceGUID] -= effectiveHealing;
-            }
-        }
-
-        CalculateFinalMetricsAndDisplay(healingBySource);
-    }
-
-    /// <summary>
-    /// Sums up the amounts in the given events by their Source
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
-    /// <param name="events"></param>
-    /// <param name="amountGetter">Determines the amount. Different events have different ways of calculating it.</param>
-    /// <param name="sumDictionary">The dictionary it outputs into.</param>
-    private void SumAmountsForSources<T>(
-        IEnumerable<T> events,
-        Func<T, long> amountGetter,
-        Dictionary<string, long> sumDictionary)
-        where T : CombatlogEvent
-    {
-        foreach (var ev in events)
-        {
-            string sourceGuid = GetActualSource(ev.SourceGUID);
-            long amount = amountGetter(ev);
-            AddSum(sumDictionary, sourceGuid, amount);
-        }
-    }
-
-    /// <summary>
     /// Calculate X-per-second, the overall total across all entries, make it display ready, and fill the DataGrid.Items collection.
     /// </summary>
     /// <param name="amountBySource"></param>
     private void CalculateFinalMetricsAndDisplay(Dictionary<string, long> amountBySource)
     {
+        bool keyIsPlayerGUID = selectedEntityGUID == null;
         var results = GetOrderedTotals(amountBySource, out long total);
 
         var encounterLength = currentEncounter!.LengthInSeconds;
@@ -510,25 +311,40 @@ public partial class SingleEncounterView : ContentView
         long maximum = results[0].Value;
         for (int i = 0; i < displayData.Length; i++)
         {
-            PlayerInfo? player = currentEncounter.FindPlayerInfoByGUID(results[i].Guid);
-            displayData[i] = new()
+            if (keyIsPlayerGUID)
             {
-                Maximum = maximum,
-                Value = results[i].Value,
-                Label = results[i].Value.ToShortFormString(),
-                ValueString = (results[i].Value / encounterLength).ToString("N1")
-            };
-            if (player != null)
-            {
-                displayData[i].Name = player.Name;
-                displayData[i].Color = player.Class.GetClassBrush();
+                PlayerInfo? player = currentEncounter.FindPlayerInfoByGUID(results[i].Guid);
+                displayData[i] = new()
+                {
+                    Maximum = maximum,
+                    Value = results[i].Value,
+                    Label = results[i].Value.ToShortFormString(),
+                    ValueString = (results[i].Value / encounterLength).ToString("N1")
+                };
+                if (player != null)
+                {
+                    displayData[i].Name = player.Name;
+                    displayData[i].Color = player.Class.GetClassBrush();
+                }
+                else
+                {
+                    displayData[i].Name = GetUnitNameOrFallback(results[i].Guid);
+                    displayData[i].Color = Brushes.Red;
+                }
             }
             else
             {
-                displayData[i].Name = GetUnitNameOrFallback(results[i].Guid);
-                displayData[i].Color = Brushes.Red;
+                displayData[i] = new()
+                {
+                    Maximum = maximum,
+                    Value = results[i].Value,
+                    Label = results[i].Value.ToShortFormString(),
+                    ValueString = (results[i].Value / encounterLength).ToString("N1"),
+                    Name = results[i].Guid,
+                    Color = Brushes.White
+                };
             }
-        }
+		}
         foreach (var entry in displayData)
             DataGrid.Items.Add(entry);
         //add the special Total entry
@@ -541,24 +357,6 @@ public partial class SingleEncounterView : ContentView
             Label = total.ToShortFormString(),
             ValueString = (total / encounterLength).ToString("N1")
         });
-    }
-
-    /// <summary>
-    /// Add an amount to a guid's sum in the dictionary. Small helper to avoid duplicate code.
-    /// </summary>
-    /// <param name="sums"></param>
-    /// <param name="guid"></param>
-    /// <param name="amount"></param>
-    private static void AddSum(Dictionary<string, long> sums, string guid, long amount)
-    {
-        if (sums.ContainsKey(guid))
-        {
-            sums[guid] += amount;
-        }
-        else
-        {
-            sums[guid] = amount;
-        }
     }
 
     private void SetupDataGridForHealing()
