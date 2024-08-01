@@ -222,54 +222,8 @@ public partial class SingleEncounterView : ContentView
         if (currentEncounter == null)
             return;
         SetupDataGridForDeaths();
-        List<PlayerDeathDataRow> deathData = new();
-        var startTime = currentEncounter.EncounterStartTime;
-        //yes, all of this data is required.
-        var unitDiedEvents = currentEncounter.CombatlogEventDictionary.GetEvents<UnitDiedEvent>();
-        var damageEvents = currentEncounter.CombatlogEventDictionary.GetEvents<DamageEvent>();
-        var advancedInfoEvents = currentEncounter.CombatlogEventDictionary.GetEvents<AdvancedParamEvent>();
-        //hard-coded to only show death info for players right now. parameterize UnitFlag at a later time.
-        foreach (var deathEvent in unitDiedEvents.Where(x => x.TargetFlags.HasFlagf(UnitFlag.COMBATLOG_OBJECT_TYPE_PLAYER)))
-        {
-            //playerInfo is pretty much only used for coloring via the class brush.
-            PlayerInfo? player = currentEncounter.FindPlayerInfoByGUID(deathEvent.TargetGUID);
-            var offsetTime = (deathEvent.Timestamp - startTime);
-            var formattedTimestamp = offsetTime.ToString(@"m\:ss\.fff");
-            if (player is not null)
-            {
-                var beforeFilter = EventFilters.Before(deathEvent.Timestamp);
-                var last3hits = damageEvents.Reverse().Where(x => x.TargetGUID == deathEvent.TargetGUID)
-                        .Where(beforeFilter.Match)
-                        .Take(3).ToArray();
-                // the time since the last time someone was at above 90% hp should give a rough estimate
-                // of how quickly they died.
-                // WARNING: there is an important edge case here:
-                // someone getting resurrected and dying again before they
-                // ever reach a high health % again. It would take the last time they were at high health before the first death.
-                var lastTimeFullHealth = advancedInfoEvents.Reverse().Where(beforeFilter.Match)
-                    .Where(x =>
-                    {
-                        var aparams = x.AdvancedParams;
-                        return aparams.infoGUID == player.GUID && aparams.currentHP >= 0.90 * aparams.maxHP;
-                    }
-                    ).FirstOrDefault()?.Timestamp ?? deathEvent.Timestamp;
-                var slowDeathTimeOffset = deathEvent.Timestamp - lastTimeFullHealth;
-                var formattedDeathTime = slowDeathTimeOffset.TotalMilliseconds <= 100 ?
-                    "Instant" : $"{slowDeathTimeOffset:ss\\.fff} seconds";
-
-
-                deathData.Add(
-                    new(player.Name,
-                    player.Class.GetClassBrush(),
-                    formattedTimestamp,
-                    abilityName: last3hits[^1].spellData.name,
-                    lastHits: last3hits.Select(x => x.spellData.name).ToArray(), // last3hits.LastOrDefault()?.spellData.name ?? "unknown"
-                    formattedDeathTime
-                    )
-                );
-            }
-        }
-
+        //TODO: Support this for enemies aswell.
+        var deathData = currentEncounter.GetPlayerDeathInfo();
         //now add the data to the grid
         foreach (var entry in deathData)
             DataGrid.Items.Add(entry);
@@ -379,72 +333,8 @@ public partial class SingleEncounterView : ContentView
 	{
         if (currentEncounter == null)
             return;
-		const int resolution = 1024;
-        Bitmap bitmap = new(resolution, resolution);
-        using var graphics = Graphics.FromImage(bitmap);
-        //set background
-        graphics.FillRectangle(System.Drawing.Brushes.Black, new(0, 0, resolution, resolution));
-
-		var events = currentEncounter.CombatlogEventDictionary.GetEvents<AdvancedParamEvent>().Select(x => x.AdvancedParams);
-
-        const float padding = 5f;
-		float minX, maxX, minY, maxY;
-        minX = events.Min(x => x.positionX);
-        maxX = events.Max(x => x.positionX);
-		minY = events.Min(x => x.positionY);
-		maxY = events.Max(x => x.positionY);
-        { //make it a square.
-            var width = maxX - minX;
-            var height = maxY - minY;
-            var halfExtents = Math.Max(width, height) * 0.5f + padding;
-            var centerX = Average(minX, maxX);
-            var centerY = Average(minY, maxY);
-            minX = centerX - halfExtents;
-            maxX = centerX + halfExtents;
-            minY = centerY - halfExtents;
-            maxY = centerY + halfExtents;
-        }
-
-		var lastPixelPosition = new Dictionary<string, Point>();
-
-        foreach (var entry in events)
-        {
-            var unitGUID = entry.infoGUID;
-            var player = currentEncounter.FindPlayerInfoByGUID(unitGUID);
-            if (player == null)
-                continue;
-
-            int x = (int) (InverseLerp(entry.positionX, minX, maxX) * resolution);
-			int y = (int)(InverseLerp(entry.positionY, minY, maxY) * resolution);
-            Point position = new(x, y);
-
-            if (lastPixelPosition.TryGetValue(unitGUID, out Point value))
-			{
-				var color = player.Class.GetClassColor();
-                graphics.DrawLine(new System.Drawing.Pen(System.Drawing.Color.FromArgb(color.A, color.R, color.G, color.B), 2), value, position);
-			}
-            lastPixelPosition[unitGUID] = position;
-		}
-
-		var fileDialog = new SaveFileDialog
-		{
-			AddExtension = true,
-			DefaultExt = "png",
-			Filter = "PNG image|*.png",
-			FileName = $"{currentEncounter.EncounterName}_{currentEncounter.DifficultyID}.png"
-		};
-		if (fileDialog.ShowDialog() == true)
-            bitmap.Save(fileDialog.FileName);
+        currentEncounter.ExportPlayerMovementAsImage();
 	}
-
-    private static float InverseLerp(float value, float a, float b)
-    {
-        return (value - a) / (b - a);
-    }
-    private static float Average(params float[] values)
-    {
-        return values.Sum() / values.Length;
-    }
 
     private void SetupSourceSelection()
     {
