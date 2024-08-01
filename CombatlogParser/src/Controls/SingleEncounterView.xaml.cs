@@ -103,28 +103,67 @@ public partial class SingleEncounterView : ContentView
     private void UpdateViewForCurrentMode()
     {
         if (currentEncounter == null) return;
-        Dictionary<string, long> data;
-		switch (currentViewMode)
-		{
-			case SingleEncounterViewMode.DamageDone:
-                SetupDataGridForDamageDone();
-				data = currentEncounter!.CalculateBreakdown(EncounterInfo.BreakdownMode.DamageDone, true, selectedEntityGUID);
+
+        if (selectedEntityGUID == null || currentViewMode == SingleEncounterViewMode.Deaths)
+        {
+		    switch (currentViewMode)
+		    {
+			    case SingleEncounterViewMode.DamageDone:
+                    SetupDataGridForDamageDone();
+				    _GroupOverview(EncounterInfo.BreakdownMode.DamageDone);
+				    break;
+			    case SingleEncounterViewMode.Healing:
+				    SetupDataGridForHealing();
+					_GroupOverview(EncounterInfo.BreakdownMode.HealingDone);
+				    break;
+			    case SingleEncounterViewMode.DamageTaken:
+				    SetupDataGridForDamageTaken();
+					_GroupOverview(EncounterInfo.BreakdownMode.DamageTaken);
+				    break;
+			    case SingleEncounterViewMode.Deaths:
+				    GenerateDeathsBreakdown();
+				    break;
+                case SingleEncounterViewMode.Casts:
+                    SetupDataGridForCasts();
+                    _GroupOverview(EncounterInfo.BreakdownMode.Casts);
+
+					break;
+			}
+			void _GroupOverview(EncounterInfo.BreakdownMode mode)
+			{
+				var data = currentEncounter!.CalculateBreakdown(mode, true);
 				CalculateFinalMetricsAndDisplay(data);
-				break;
-			case SingleEncounterViewMode.Healing:
-				SetupDataGridForHealing();
-				data = currentEncounter!.CalculateBreakdown(EncounterInfo.BreakdownMode.HealingDone, true, selectedEntityGUID);
+			}
+		} 
+        else //single player.
+        {
+            switch (currentViewMode)
+            {
+                case SingleEncounterViewMode.DamageDone:
+                    SetupDataGridForDamageDone();
+                    _PlayerOverview(EncounterInfo.BreakdownMode.DamageDone);
+                    break;
+                case SingleEncounterViewMode.Healing:
+                    SetupDataGridForHealing();
+                    _PlayerOverview(EncounterInfo.BreakdownMode.HealingDone);
+                    break;
+				case SingleEncounterViewMode.DamageTaken:
+					SetupDataGridForDamageTaken();
+					_PlayerOverview(EncounterInfo.BreakdownMode.DamageTaken);
+					break;
+				case SingleEncounterViewMode.Casts:
+					SetupDataGridForCasts();
+					_PlayerOverview(EncounterInfo.BreakdownMode.Casts);
+					break;
+                //case Deaths TODO.
+			}
+            void _PlayerOverview(EncounterInfo.BreakdownMode mode)
+            {
+                var data = currentEncounter!.CalculateBreakdownForEntity(mode, selectedEntityGUID);
                 CalculateFinalMetricsAndDisplay(data);
-				break;
-			case SingleEncounterViewMode.DamageTaken:
-				SetupDataGridForDamageTaken();
-				data = currentEncounter.CalculateBreakdown(EncounterInfo.BreakdownMode.DamageTaken, true, selectedEntityGUID);
-                CalculateFinalMetricsAndDisplay(data);
-				break;
-			case SingleEncounterViewMode.Deaths:
-				GenerateDeathsBreakdown();
-				break;
-		}
+            }
+        }
+
 	}
 
     /// <summary>
@@ -179,29 +218,27 @@ public partial class SingleEncounterView : ContentView
     /// <summary>
     /// Sorts the totals in the dictionary in a descending order and outputs them alongside the units GUID in an array.
     /// </summary>
-    /// <typeparam name="TNumber"></typeparam>
     /// <param name="lookup"></param>
     /// <param name="total">The total of all values</param>
     /// <returns></returns>
-    private static NamedTotal<TNumber>[] GetOrderedTotals<TNumber>(Dictionary<string, TNumber> lookup, out long total)
-        where TNumber : INumber<TNumber>, IBinaryInteger<TNumber>, IAdditionOperators<TNumber, long, long>
-    {
-        var results = new NamedTotal<TNumber>[lookup.Count];
-        int i = 0;
-        total = 0;
-        foreach (var pair in lookup.OrderByDescending(x => x.Value))
-        {
-            results[i] = new(
-                pair.Key,
-                pair.Value
-            );
-            total = pair.Value + total;
-            i++;
-        }
-        return results;
-    }
+	private static KeyValuePair<T, long>[] SortDescendingAndSumTotal<T>(Dictionary<T, long> lookup, out long total) where T : notnull
+	{
+		var results = new KeyValuePair<T, long>[lookup.Count];
+		int i = 0;
+		total = 0;
+		foreach (var pair in lookup.OrderByDescending(x => x.Value))
+		{
+			results[i] = new(
+				pair.Key,
+				pair.Value
+			);
+			total = pair.Value + total;
+			i++;
+		}
+		return results;
+	}
 
-    private void SetupDataGridForDeaths()
+	private void SetupDataGridForDeaths()
     {
         DataGrid.Items.Clear();
         //Update headers where needed.
@@ -229,7 +266,21 @@ public partial class SingleEncounterView : ContentView
             DataGrid.Items.Add(entry);
     }
 
-    private void SetupDataGridForDamageTaken()
+	private void SetupDataGridForCasts()
+    {
+        DataGrid.Items.Clear();
+
+		MetricSumColumn.Header = "Amount";
+		MetricPerSecondColumn.Header = "CPS";
+
+		var mainGridColumns = DataGrid.Columns;
+		mainGridColumns.Clear();
+		mainGridColumns.Add(NameColumn);
+		mainGridColumns.Add(MetricSumColumn);
+		mainGridColumns.Add(MetricPerSecondColumn);
+	}
+
+	private void SetupDataGridForDamageTaken()
     {
         //for now, just use the same columns as damage done.
         SetupDataGridForDamageDone();
@@ -258,7 +309,7 @@ public partial class SingleEncounterView : ContentView
     private void CalculateFinalMetricsAndDisplay(Dictionary<string, long> amountBySource)
     {
         bool keyIsPlayerGUID = selectedEntityGUID == null;
-        var results = GetOrderedTotals(amountBySource, out long total);
+        var results = SortDescendingAndSumTotal(amountBySource, out long total);
 
         var encounterLength = currentEncounter!.LengthInSeconds;
         NamedValueBarData[] displayData = new NamedValueBarData[results.Length];
@@ -267,7 +318,7 @@ public partial class SingleEncounterView : ContentView
         {
             if (keyIsPlayerGUID)
             {
-                PlayerInfo? player = currentEncounter.FindPlayerInfoByGUID(results[i].Guid);
+                PlayerInfo? player = currentEncounter.FindPlayerInfoByGUID(results[i].Key);
                 displayData[i] = new()
                 {
                     Maximum = maximum,
@@ -282,7 +333,7 @@ public partial class SingleEncounterView : ContentView
                 }
                 else
                 {
-                    displayData[i].Name = GetUnitNameOrFallback(results[i].Guid);
+                    displayData[i].Name = GetUnitNameOrFallback(results[i].Key);
                     displayData[i].Color = Brushes.Red;
                 }
             }
@@ -294,7 +345,7 @@ public partial class SingleEncounterView : ContentView
                     Value = results[i].Value,
                     Label = results[i].Value.ToShortFormString(),
                     ValueString = (results[i].Value / encounterLength).ToString("N1"),
-                    Name = results[i].Guid,
+                    Name = results[i].Key,
                     Color = Brushes.White
                 };
             }
@@ -312,8 +363,42 @@ public partial class SingleEncounterView : ContentView
             ValueString = (total / encounterLength).ToString("N1")
         });
     }
+	private void CalculateFinalMetricsAndDisplay(Dictionary<SpellData, long> amountBySpell)
+	{
+		bool keyIsPlayerGUID = selectedEntityGUID == null;
+		var results = SortDescendingAndSumTotal(amountBySpell, out long total);
 
-    private void SetupDataGridForHealing()
+		var encounterLength = currentEncounter!.LengthInSeconds;
+		NamedValueBarData[] displayData = new NamedValueBarData[results.Length];
+		long maximum = results[0].Value;
+		for (int i = 0; i < displayData.Length; i++)
+		{
+				
+			displayData[i] = new()
+			{
+				Maximum = maximum,
+				Value = results[i].Value,
+				Label = results[i].Value.ToShortFormString(),
+				ValueString = (results[i].Value / encounterLength).ToString("N1"),
+                Name = results[i].Key.name,
+                Color = results[i].Key.school.GetSchoolBrush()
+			};
+		}
+		foreach (var entry in displayData)
+			DataGrid.Items.Add(entry);
+		//add the special Total entry
+		DataGrid.Items.Add(new NamedValueBarData()
+		{
+			Name = "Total",
+			Color = Brushes.White,
+			Maximum = maximum,
+			Value = -1,
+			Label = total.ToShortFormString(),
+			ValueString = (total / encounterLength).ToString("N1")
+		});
+	}
+
+	private void SetupDataGridForHealing()
     {
         DataGrid.Items.Clear();
 
@@ -353,23 +438,6 @@ public partial class SingleEncounterView : ContentView
 		}
 		ignoreSourceSelectionChanged = false;
 	}
-
-
-	/// <summary>
-	/// Really nothing more than a glorified KeyValuePair
-	/// </summary>
-	/// <typeparam name="T"></typeparam>
-	public struct NamedTotal<T> where T : INumber<T>
-    {
-        public string Guid;
-        public T Value;
-
-        public NamedTotal(string guid, T value)
-        {
-            Guid = guid;
-            Value = value;
-        }
-    }
 
     bool ignoreSourceSelectionChanged = false;
 	private void SourceSelectionChanged(object sender, SelectionChangedEventArgs e)

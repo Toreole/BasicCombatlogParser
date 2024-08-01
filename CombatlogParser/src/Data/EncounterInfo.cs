@@ -1,6 +1,7 @@
 ﻿using CombatlogParser.Controls;
 using CombatlogParser.Data.DisplayReady;
 using CombatlogParser.Data.Events;
+using CombatlogParser.Data.Events.EventData;
 using CombatlogParser.Formatting;
 using Microsoft.Win32;
 using System.Drawing;
@@ -155,22 +156,36 @@ namespace CombatlogParser.Data
         /// <param name="mode"></param>
         /// <param name="sourceGUID"></param>
         /// <returns>A dictionary of either a units GUID or a spell name mapped to </returns>
-        public Dictionary<string, long> CalculateBreakdown(BreakdownMode mode, bool alliesAsSource, string? sourceGUID)
+        public Dictionary<string, long> CalculateBreakdown(BreakdownMode mode, bool alliesAsSource)
         {
             if (mode == BreakdownMode.DamageDone)
             {
-                return sourceGUID == null ? GenerateDamageDoneBreakdown(alliesAsSource) : GenerateDamageDoneBySource(sourceGUID);
+                return GenerateDamageDoneBreakdown(alliesAsSource);
             }
 			if (mode == BreakdownMode.HealingDone)
 			{
-				return sourceGUID == null ? GenerateHealingDoneBreakdown(alliesAsSource) : GenerateHealingDoneBySource(sourceGUID);
+				return GenerateHealingDoneBreakdown(alliesAsSource);
 			}
 			if (mode == BreakdownMode.DamageTaken)
 			{
-				return sourceGUID == null ? GenerateDamageTakenBreakdown(alliesAsSource) : GenerateDamageTakenByEntityGUID(sourceGUID);
+				return GenerateDamageTakenBreakdown(alliesAsSource);
+			}
+			if (mode == BreakdownMode.Casts)
+			{
+				return CalculateCastsPerEntity(alliesAsSource);
 			}
             return new();
         }
+		public Dictionary<SpellData, long> CalculateBreakdownForEntity(BreakdownMode mode, string entityGUID)
+		{
+			return mode switch {
+				BreakdownMode.DamageDone => GenerateDamageDoneBySource(entityGUID),
+				BreakdownMode.DamageTaken => GenerateDamageTakenByEntityGUID(entityGUID),
+				BreakdownMode.HealingDone => GenerateHealingDoneBySource(entityGUID),
+				BreakdownMode.Casts => CalculateCastsForEntity(entityGUID),
+				_ => new()
+			};
+		}
 
 		private Dictionary<string, long> GenerateDamageDoneBreakdown(bool alliesAsSource)
 		{
@@ -196,26 +211,19 @@ namespace CombatlogParser.Data
 			return damageBySource;
 		}
 
-		private Dictionary<string, long> GenerateDamageDoneBySource(string selectedEntityGUID)
+		private Dictionary<SpellData, long> GenerateDamageDoneBySource(string selectedEntityGUID)
 		{
-			Dictionary<string, long> damageBySpell = new();
+			Dictionary<SpellData, long> damageBySpell = new();
 			var damageEvents = CombatlogEventDictionary.GetEvents<DamageEvent>();
 			foreach (var dmgEvent in damageEvents.Where(x => GetActualSourceGUID(x.SourceGUID) == selectedEntityGUID))
 			{
-				if (damageBySpell.ContainsKey(dmgEvent.spellData.name))
-				{
-					damageBySpell[dmgEvent.spellData.name] += dmgEvent.damageParams.TotalAmount;
-				}
-				else
-				{
-					damageBySpell.Add(dmgEvent.spellData.name, dmgEvent.damageParams.TotalAmount);
-				}
+				AddSum(damageBySpell, dmgEvent.spellData, dmgEvent.damageParams.TotalAmount);
 			}
 			//once again, subtract any support dmg
 			var supportEvents = CombatlogEventDictionary.GetEvents<DamageSupportEvent>();
 			foreach (var supportEvent in supportEvents.Where(x => x.SourceGUID == selectedEntityGUID))
 			{
-				damageBySpell[supportEvent.spellData.name] -= supportEvent.damageParams.TotalAmount;
+				damageBySpell[supportEvent.spellData] -= supportEvent.damageParams.TotalAmount;
 			}
             return damageBySpell;
 		}
@@ -244,26 +252,19 @@ namespace CombatlogParser.Data
 			return healingBySource;
 		}
 
-		private Dictionary<string, long> GenerateHealingDoneBySource(string selectedEntityGUID)
+		private Dictionary<SpellData, long> GenerateHealingDoneBySource(string selectedEntityGUID)
 		{
-			Dictionary<string, long> healingBySpell = new();
+			Dictionary<SpellData, long> healingBySpell = new();
 			var healingEvents = CombatlogEventDictionary.GetEvents<HealEvent>();
 			foreach (var healEvent in healingEvents.Where(x => GetActualSourceGUID(x.SourceGUID) == selectedEntityGUID))
 			{
-				if (healingBySpell.ContainsKey(healEvent.spellData.name))
-				{
-					healingBySpell[healEvent.spellData.name] += healEvent.healParams.TotalAmount;
-				}
-				else
-				{
-					healingBySpell.Add(healEvent.spellData.name, healEvent.healParams.TotalAmount);
-				}
+				AddSum(healingBySpell, healEvent.spellData, healEvent.healParams.TotalAmount);
 			}
 			//once again, subtract any support dmg
 			var supportEvents = CombatlogEventDictionary.GetEvents<DamageSupportEvent>();
 			foreach (var supportEvent in supportEvents.Where(x => x.SourceGUID == selectedEntityGUID))
 			{
-				healingBySpell[supportEvent.spellData.name] -= supportEvent.damageParams.TotalAmount;
+				healingBySpell[supportEvent.spellData] -= supportEvent.damageParams.TotalAmount;
 			}
 			return healingBySpell;
 		}
@@ -278,25 +279,22 @@ namespace CombatlogParser.Data
 			EventFilter filter = byAlly ? EventFilters.GroupMemberTargetFilter : EventFilters.EnemyTargetFilter;
 			foreach (var dmgEvent in damageEvents.Where(filter.Match))
 			{
-				var target = dmgEvent.TargetGUID;
-				var amount = dmgEvent.damageParams.TotalAmount;
-				AddSum(dmgTakenByTarget, target, amount);
+				AddSum(dmgTakenByTarget, dmgEvent.TargetGUID, dmgEvent.damageParams.TotalAmount);
 			}
 			return dmgTakenByTarget;
 		}
+
 		/// <summary>
 		/// Calculate and show the totals of each players damage taken.
 		/// </summary>
-		private Dictionary<string, long> GenerateDamageTakenByEntityGUID(string entityGUID)
+		private Dictionary<SpellData, long> GenerateDamageTakenByEntityGUID(string entityGUID)
 		{
-			Dictionary<string, long> dmgTakenBySpell = new();
+			Dictionary<SpellData, long> dmgTakenBySpell = new();
 			var damageEvents = CombatlogEventDictionary.GetEvents<DamageEvent>();
 			EventFilter filter = new TargetGUIDFilter(entityGUID);
 			foreach (var dmgEvent in damageEvents.Where(filter.Match))
 			{
-				var target = dmgEvent.spellData.name;
-				var amount = dmgEvent.damageParams.TotalAmount;
-				AddSum(dmgTakenBySpell, target, amount);
+				AddSum(dmgTakenBySpell, dmgEvent.spellData, dmgEvent.damageParams.TotalAmount);
 			}
 			return dmgTakenBySpell;
 		}
@@ -353,21 +351,52 @@ namespace CombatlogParser.Data
 			return deathData.ToArray();
 		}
 
+		private Dictionary<string, long> CalculateCastsPerEntity(bool isAllies)
+		{
+			Dictionary<string, long> results = new();
+			EventFilter filter = isAllies ? EventFilters.AllySourceFilter : EventFilters.EnemySourceFilter;
+			var events = CombatlogEventDictionary.GetEvents<CastSuccessEvent>();
+			foreach(var castEvent in events.Where(filter.Match))
+			{
+				var sourceGuid = GetActualSourceGUID(castEvent.SourceGUID);
+				if (results.ContainsKey(sourceGuid))
+				{
+					results[sourceGuid] += 1;
+				}
+				else
+				{
+					results[sourceGuid] = 1;
+				}
+			}
+			return results;
+		}
+
+		private Dictionary<SpellData, long> CalculateCastsForEntity(string entityGUID)
+		{
+			Dictionary<SpellData, long> results = new();
+			var events = CombatlogEventDictionary.GetEvents<CastSuccessEvent>();
+			foreach (var castEvent in events.Where(x => GetActualSourceGUID(x.SourceGUID) == entityGUID))
+			{
+				AddSum(results, castEvent.SpellData, 1);
+			}
+			return results;
+		}
+
 		/// <summary>
 		/// Add an amount to a guid's sum in the dictionary. Small helper to avoid duplicate code.
 		/// </summary>
 		/// <param name="sums"></param>
-		/// <param name="guid"></param>
+		/// <param name="key"></param>
 		/// <param name="amount"></param>
-		private static void AddSum(Dictionary<string, long> sums, string guid, long amount)
+		private static void AddSum<TKey>(Dictionary<TKey, long> sums, TKey key, long amount) where TKey : notnull
 		{
-			if (sums.ContainsKey(guid))
+			if (sums.ContainsKey(key))
 			{
-				sums[guid] += amount;
+				sums[key] += amount;
 			}
 			else
 			{
-				sums[guid] = amount;
+				sums[key] = amount;
 			}
 		}
 

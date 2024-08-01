@@ -6,6 +6,8 @@ public class SpellData
 {
     private readonly static Dictionary<int, SpellData> knownSpells = new();
 
+    private readonly static SpellData MeleeSpell = new(1, "Melee", SpellSchool.Physical);
+
     public int id;
     public string name;
     public SpellSchool school;
@@ -21,14 +23,14 @@ public class SpellData
     {
         if (prefix is CombatlogEventPrefix.SWING or CombatlogEventPrefix.ENVIRONMENTAL)
         {
-            return new(1, "Melee", SpellSchool.Physical);
+            return MeleeSpell;
         }
         int spellId = int.Parse(NextSubstring(line, ref index));
-        if (knownSpells.ContainsKey(spellId))
+        if (knownSpells.TryGetValue(spellId, out SpellData? value))
         {
             MovePastNextDivisor(line, ref index);
             MovePastNextDivisor(line, ref index);
-            return knownSpells[spellId];
+            return value;
         }
         var spellName = string.Intern(NextSubstring(line, ref index));
 		var spellSchool = (SpellSchool)HexStringToUInt(NextSubstring(line, ref index));

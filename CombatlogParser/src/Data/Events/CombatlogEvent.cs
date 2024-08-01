@@ -136,11 +136,4 @@ public abstract class CombatlogEvent : LogEntryBase
         };
         return ev;
     }
-
-    protected static void GetSpellPrefixData(string entry, ref int index, out int spellId, out string spellName, out SpellSchool spellSchool)
-    {
-        spellId = int.Parse(NextSubstring(entry, ref index));
-        spellName = string.Intern(NextSubstring(entry, ref index));
-		spellSchool = (SpellSchool)HexStringToUInt(NextSubstring(entry, ref index));
-    }
 }
