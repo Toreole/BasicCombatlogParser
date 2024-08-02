@@ -348,7 +348,7 @@ namespace CombatlogParser
 				//var difficultyId = ParsingUtil.NextSubstring(line, ref pos);
 				//var groupsize = ParsingUtil.NextSubstring(line, ref pos);
 				//var succ = ParsingUtil.NextSubstring(line, ref pos);
-				encounterDurationInMS = uint.Parse(ParsingUtil.NextSubstring(line, ref pos));
+				encounterDurationInMS = uint.Parse(NextSubstring(line, ref pos));
 			}
             else
             {
@@ -511,91 +511,28 @@ namespace CombatlogParser
                     player.SetNameAndRealm(ev.SourceName);
             }
 
-            //source is friendly or neutral (belongs to the raid/party)
-            var filter = EventFilters.AllySourceEnemyTargetFilter;
-            var damageEvents = encounterInfo.CombatlogEventDictionary.GetEvents<DamageEvent>()
-                .Where(filter.Match);
-            var damageSupportEvents = encounterInfo.CombatlogEventDictionary.GetEvents<DamageSupportEvent>();
-
-            //the lookup for source=>actual (owner) is calculated on EncounterInfo, but cache it here for convencience.
-            var sourceToOwnerGUID = encounterInfo.SourceToOwnerGuidLookup;
-
-            //add together all the damage events.
-            foreach (var ev in damageEvents)
-            {
-                //try to add the damage done directly to the player by their GUID
-                //by this point, the dictionary has ALL possible GUIDs of units in it. therefore this is OK!
-                bool sourceIsCorrect = !sourceToOwnerGUID.TryGetValue(ev.SourceGUID, out string? trueSourceGUID);
-                if (result.TryGetByGUID(sourceIsCorrect ? ev.SourceGUID : trueSourceGUID!, out var perf))
-                {
-                    perf!.Dps += (ev.damageParams.amount + ev.damageParams.absorbed);
-                }
-                //else //source is not player, but a pet/guardian/npc summoned by a player that could not be identified to belong to a player.
-                //{
-
-                //}
-            }
-            //subtract support damage from supported player, add to evoker.
-            foreach (var ev in damageSupportEvents)
-            {
-                bool sourceIsCorrect = !sourceToOwnerGUID.TryGetValue(ev.SourceGUID, out string? trueSourceGUID);
-                if (result.TryGetByGUID(sourceIsCorrect ? ev.SourceGUID : trueSourceGUID!, out var perf))
-                {
-                    perf!.Dps -= (ev.damageParams.amount + ev.damageParams.absorbed);
-                }
-                if (result.TryGetByGUID(ev.supporterGUID, out perf))
-                {
-                    perf!.Dps += ev.damageParams.amount + ev.damageParams.absorbed;
-                }
-            }
-
-            //HEALING 
-            //add together all the healing events.
-            foreach (var ev in encounterInfo.CombatlogEventDictionary.GetEvents<HealEvent>())
-            {
-                if (result.TryGetByGUID(ev.SourceGUID, out var perf))
-                {
-                    perf!.Hps += ev.Amount + ev.Absorbed - ev.Overheal;
-                }
-                //else //source is not player, but a pet/guardian/npc summoned by a player that could not be identified to belong to a player.
-                //{
-
-                //}
-            }
-            //add absorb
-            foreach (var absorbEvent in encounterInfo.CombatlogEventDictionary.GetEvents<SpellAbsorbedEvent>())
-            {
-                if (result.TryGetByGUID(absorbEvent.AbsorbCasterGUID, out var performance))
-                {
-                    performance!.Hps += absorbEvent.AbsorbedAmount;
-                }
-            }
-            //attribute healing support correctly
-            var healingSupportEvents = encounterInfo.CombatlogEventDictionary.GetEvents<HealSupportEvent>();
-            foreach (var ev in healingSupportEvents)
-            {
-                bool sourceIsCorrect = !sourceToOwnerGUID.TryGetValue(ev.SourceGUID, out string? trueSourceGUID);
-                if (result.TryGetByGUID(sourceIsCorrect ? ev.SourceGUID : trueSourceGUID!, out var perf))
-                {
-                    perf!.Hps -= ev.healParams.amount + ev.healParams.absorbed - ev.healParams.overheal;
-                }
-                if (result.TryGetByGUID(ev.supporterGUID, out perf))
-                {
-                    perf!.Hps += ev.healParams.amount + ev.healParams.absorbed - ev.healParams.overheal;
-                }
-            }
-
+            Dictionary<string, long> damageBySource = encounterInfo.CalculateBreakdown(EncounterInfo.BreakdownMode.DamageDone, true);
+			Dictionary<string, long> healingBySource = encounterInfo.CalculateBreakdown(EncounterInfo.BreakdownMode.HealingDone, true);
             double encounterDuration = encounterInfo.EncounterDuration / 1000.0;
-            foreach (var performance in result)
-            {
-                if (performance is null) continue;
-                if (performance.Dps != 0)
-                    performance.Dps /= encounterDuration;
-                if (performance.Hps != 0)
-                    performance.Hps /= encounterDuration;
-                //other performance members need to be assigned toon before returned.
-            }
-            return result;
+			foreach (var performance in result)
+			{
+				if (performance is null)
+					continue;
+				if (healingBySource.TryGetValue(performance.PlayerMetadata!.GUID, out long value))
+				{
+					performance.Hps = value;
+				}
+				if (damageBySource.TryGetValue(performance.PlayerMetadata!.GUID, out value))
+				{
+					performance!.Dps = value;
+				}
+				if (performance.Dps != 0)
+					performance.Dps /= encounterDuration;
+				if (performance.Hps != 0)
+					performance.Hps /= encounterDuration;
+				//other performance members need to be assigned toon before returned.
+			}
+			return result;
         }
 
 

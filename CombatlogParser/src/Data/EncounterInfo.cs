@@ -187,6 +187,7 @@ namespace CombatlogParser.Data
 			};
 		}
 
+		//TODO: for damage, figure out whether Absorb events are relevant. they might be.
 		private Dictionary<string, long> GenerateDamageDoneBreakdown(bool alliesAsSource)
 		{
 			Dictionary<string, long> damageBySource = new();
@@ -228,6 +229,8 @@ namespace CombatlogParser.Data
             return damageBySpell;
 		}
 
+
+		 //TODO: for healing, figure out whether Absorb events are relevant. they might be.
 		private Dictionary<string, long> GenerateHealingDoneBreakdown(bool alliesAsSource)
 		{
 			Dictionary<string, long> healingBySource = new();
