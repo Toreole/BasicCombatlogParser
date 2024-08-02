@@ -4,6 +4,7 @@ using CombatlogParser.Data.Events;
 using CombatlogParser.Data.Events.EventData;
 using CombatlogParser.Data.Metadata;
 using CombatlogParser.Formatting;
+using CombatlogParser.Parsing;
 using Microsoft.Win32;
 using System.ComponentModel;
 using System.Drawing;
@@ -28,12 +29,14 @@ public partial class SingleEncounterView : ContentView
 
     private Button highlightedButton;
 
-    private string? selectedEntityGUID = null;
     private EncounterInfoMetadata? currentEncounterMetadata = null;
     private EncounterInfo? currentEncounter = null;
     private SingleEncounterViewMode currentViewMode = SingleEncounterViewMode.DamageDone;
 
-    public uint EncounterMetadataId
+	private bool ignoreSourceSelectionChanged = false;
+	private string? selectedEntityGUID = null;
+
+	public uint EncounterMetadataId
     {
         get => currentEncounterMetadata?.Id ?? 0;
         set
@@ -171,24 +174,29 @@ public partial class SingleEncounterView : ContentView
     /// </summary>
     /// <param name="encounterInfoMetadata"></param>
     private void GetData(EncounterInfoMetadata encounterInfoMetadata)
-    {
-        DataGrid.Items.Clear();
-        //reset source selection
-        ignoreSourceSelectionChanged = true;
-        SourceSelectionComboBox.SelectedIndex = 0;
-		ignoreSourceSelectionChanged = false;
-        selectedEntityGUID = null;
+	{
+		DataGrid.Items.Clear();
+		//reset source selection
+		ResetSourceSelection();
 		//surprised it just works like this.
 		LoadDataAsync(encounterInfoMetadata).WaitAsync(CancellationToken.None);
-    }
+	}
 
-    /// <summary>
-    /// Gets Encounter data via CombatLogParser.ParseEncounter(Async) and shows 
-    /// the progress bar while waiting for it to be done
-    /// </summary>
-    /// <param name="encounterInfoMetadata"></param>
-    /// <returns></returns>
-    private async Task LoadDataAsync(EncounterInfoMetadata encounterInfoMetadata)
+	private void ResetSourceSelection()
+	{
+		ignoreSourceSelectionChanged = true;
+		SourceSelectionComboBox.SelectedIndex = 0;
+		ignoreSourceSelectionChanged = false;
+		selectedEntityGUID = null;
+	}
+
+	/// <summary>
+	/// Gets Encounter data via CombatLogParser.ParseEncounter(Async) and shows 
+	/// the progress bar while waiting for it to be done
+	/// </summary>
+	/// <param name="encounterInfoMetadata"></param>
+	/// <returns></returns>
+	private async Task LoadDataAsync(EncounterInfoMetadata encounterInfoMetadata)
     {
         var progress = MainWindow!.ShowProgressBar();
         progress.DescriptionText = "Reading Encounter...";
@@ -196,67 +204,16 @@ public partial class SingleEncounterView : ContentView
         try
         {
             currentEncounter = await CombatLogParser.ParseEncounterAsync(encounterInfoMetadata);
-        }
+            //this should be in the try, not after.
+			SetupSourceSelection();
+			UpdateViewForCurrentMode();
+		}
         catch (FormatException)
         {
 
         }
         MainWindow.HideProgressBar(progress);
-        //Maybe not do this immediately but do a check before for the DamageButton being selected.
-        SetupSourceSelection();
-        UpdateViewForCurrentMode();
 	}
-
-    /// <summary>
-    /// Attempt to get the name of a unit through combatlog Player or Npc information.
-    /// </summary>
-    /// <param name="guid"></param>
-    /// <returns></returns>
-    private string GetUnitNameOrFallback(string guid)
-    {
-        return currentEncounter?.Players.FirstOrDefault(x => x.GUID == guid)?.Name
-			?? currentEncounter?.Npcs.FirstOrDefault(x => x.InstanceGuids.Contains(guid))?.Name
-            ?? "Unknown";
-    }
-
-    /// <summary>
-    /// Sorts the totals in the dictionary in a descending order and outputs them alongside the units GUID in an array.
-    /// </summary>
-    /// <param name="lookup"></param>
-    /// <param name="total">The total of all values</param>
-    /// <returns></returns>
-	private static KeyValuePair<T, long>[] SortDescendingAndSumTotal<T>(Dictionary<T, long> lookup, out long total) where T : notnull
-	{
-		var results = new KeyValuePair<T, long>[lookup.Count];
-		int i = 0;
-		total = 0;
-		foreach (var pair in lookup.OrderByDescending(x => x.Value))
-		{
-			results[i] = new(
-				pair.Key,
-				pair.Value
-			);
-			total = pair.Value + total;
-			i++;
-		}
-		return results;
-	}
-
-	private void SetupDataGridForDeaths()
-    {
-        DataGrid.Items.Clear();
-        //Update headers where needed.
-        AbilityNameColumn.Header = "Killing Blow";
-
-        //add columns in order
-        var columns = DataGrid.Columns;
-        columns.Clear();
-        columns.Add(NameColumn);
-        columns.Add(LastHitsColumn);
-        columns.Add(AbilityNameColumn);
-        columns.Add(SlowDeathTimeColumn);
-        columns.Add(TimestampColumn);
-    }
 
     private void GenerateDeathsBreakdown()
     {
@@ -270,19 +227,6 @@ public partial class SingleEncounterView : ContentView
             DataGrid.Items.Add(entry);
     }
 
-	private void SetupDataGridForCasts()
-    {
-        DataGrid.Items.Clear();
-
-		MetricSumColumn.Header = "Amount";
-		MetricPerSecondColumn.Header = "CPS";
-
-		var mainGridColumns = DataGrid.Columns;
-		mainGridColumns.Clear();
-		mainGridColumns.Add(NameColumn);
-		mainGridColumns.Add(MetricSumColumn);
-		mainGridColumns.Add(MetricPerSecondColumn);
-	}
 
 	private void SetupDataGridForDamageTaken()
     {
@@ -304,55 +248,86 @@ public partial class SingleEncounterView : ContentView
         mainGridColumns.Add(NameColumn);
         mainGridColumns.Add(MetricSumColumn);
         mainGridColumns.Add(MetricPerSecondColumn);
-    }
+	}
 
-    /// <summary>
-    /// Calculate X-per-second, the overall total across all entries, make it display ready, and fill the DataGrid.Items collection.
-    /// </summary>
-    /// <param name="amountBySource"></param>
-    private void CalculateFinalMetricsAndDisplay(Dictionary<string, long> amountBySource)
+	private void SetupDataGridForHealing()
+	{
+		DataGrid.Items.Clear();
+
+		//Correct headers.
+		MetricSumColumn.Header = "Amount";
+		MetricPerSecondColumn.Header = "HPS";
+
+		//Setup for Damage by default.
+		var mainGridColumns = DataGrid.Columns;
+		mainGridColumns.Clear();
+		mainGridColumns.Add(NameColumn);
+		mainGridColumns.Add(MetricSumColumn);
+		mainGridColumns.Add(MetricPerSecondColumn);
+	}
+
+	private void SetupDataGridForCasts()
+	{
+		DataGrid.Items.Clear();
+
+		MetricSumColumn.Header = "Amount";
+		MetricPerSecondColumn.Header = "CPS";
+
+		var mainGridColumns = DataGrid.Columns;
+		mainGridColumns.Clear();
+		mainGridColumns.Add(NameColumn);
+		mainGridColumns.Add(MetricSumColumn);
+		mainGridColumns.Add(MetricPerSecondColumn);
+	}
+
+	private void SetupDataGridForDeaths()
+	{
+		DataGrid.Items.Clear();
+		//Update headers where needed.
+		AbilityNameColumn.Header = "Killing Blow";
+
+		//add columns in order
+		var columns = DataGrid.Columns;
+		columns.Clear();
+		columns.Add(NameColumn);
+		columns.Add(LastHitsColumn);
+		columns.Add(AbilityNameColumn);
+		columns.Add(SlowDeathTimeColumn);
+		columns.Add(TimestampColumn);
+	}
+
+	/// <summary>
+	/// Calculate X-per-second, the overall total across all entries, make it display ready, and fill the DataGrid.Items collection.
+	/// </summary>
+	/// <param name="amountBySource"></param>
+	private void CalculateFinalMetricsAndDisplay(Dictionary<string, long> amountBySource)
     {
-        bool keyIsPlayerGUID = selectedEntityGUID == null;
-        var results = SortDescendingAndSumTotal(amountBySource, out long total);
+        var results = amountBySource.SortDescendingAndSumTotal(out long total);
 
         var encounterLength = currentEncounter!.LengthInSeconds;
         NamedValueBarData[] displayData = new NamedValueBarData[results.Length];
         long maximum = results[0].Value;
         for (int i = 0; i < displayData.Length; i++)
         {
-            if (keyIsPlayerGUID)
+            NamedValueBarData current = new()
             {
-                PlayerInfo? player = currentEncounter.FindPlayerInfoByGUID(results[i].Key);
-                displayData[i] = new()
-                {
-                    Maximum = maximum,
-                    Value = results[i].Value,
-                    Label = results[i].Value.ToShortFormString(),
-                    ValueString = (results[i].Value / encounterLength).ToString("N1")
-                };
-                if (player != null)
-                {
-                    displayData[i].Name = player.Name;
-                    displayData[i].Color = player.Class.GetClassBrush();
-                }
-                else
-                {
-                    displayData[i].Name = GetUnitNameOrFallback(results[i].Key);
-                    displayData[i].Color = Brushes.Red;
-                }
+                Maximum = maximum,
+                Value = results[i].Value,
+                Label = results[i].Value.ToShortFormString(),
+                ValueString = (results[i].Value / encounterLength).ToString("N1")
+            };
+            PlayerInfo? player = currentEncounter.FindPlayerInfoByGUID(results[i].Key);
+            if (player != null)
+            {
+				current.Name = player.Name;
+				current.Color = player.Class.GetClassBrush();
             }
             else
             {
-                displayData[i] = new()
-                {
-                    Maximum = maximum,
-                    Value = results[i].Value,
-                    Label = results[i].Value.ToShortFormString(),
-                    ValueString = (results[i].Value / encounterLength).ToString("N1"),
-                    Name = results[i].Key,
-                    Color = Brushes.White
-                };
+				current.Name = currentEncounter.GetUnitNameOrFallback(results[i].Key);
+				current.Color = Brushes.Red;
             }
+			displayData[i] = current;
 		}
         foreach (var entry in displayData)
             DataGrid.Items.Add(entry);
@@ -369,8 +344,7 @@ public partial class SingleEncounterView : ContentView
     }
 	private void CalculateFinalMetricsAndDisplay(Dictionary<SpellData, long> amountBySpell)
 	{
-		bool keyIsPlayerGUID = selectedEntityGUID == null;
-		var results = SortDescendingAndSumTotal(amountBySpell, out long total);
+		var results = amountBySpell.SortDescendingAndSumTotal(out long total);
 
 		var encounterLength = currentEncounter!.LengthInSeconds;
 		NamedValueBarData[] displayData = new NamedValueBarData[results.Length];
@@ -402,22 +376,6 @@ public partial class SingleEncounterView : ContentView
 		});
 	}
 
-	private void SetupDataGridForHealing()
-    {
-        DataGrid.Items.Clear();
-
-        //Correct headers.
-        MetricSumColumn.Header = "Amount";
-        MetricPerSecondColumn.Header = "HPS";
-
-        //Setup for Damage by default.
-        var mainGridColumns = DataGrid.Columns;
-        mainGridColumns.Clear();
-        mainGridColumns.Add(NameColumn);
-        mainGridColumns.Add(MetricSumColumn);
-        mainGridColumns.Add(MetricPerSecondColumn);
-	}
-
 	private void ExportMovementButton_Click(object sender, RoutedEventArgs e)
 	{
         if (currentEncounter == null)
@@ -443,7 +401,6 @@ public partial class SingleEncounterView : ContentView
 		ignoreSourceSelectionChanged = false;
 	}
 
-    bool ignoreSourceSelectionChanged = false;
 	private void SourceSelectionChanged(object sender, SelectionChangedEventArgs e)
 	{
         if (ignoreSourceSelectionChanged) return;

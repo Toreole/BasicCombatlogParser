@@ -506,5 +506,17 @@ namespace CombatlogParser.Data
 			if (fileDialog.ShowDialog() == true)
 				bitmap.Save(fileDialog.FileName);
 		}
-    }
+
+		/// <summary>
+		/// Attempt to get the name of a unit through combatlog Player or Npc information.
+		/// </summary>
+		/// <param name="guid"></param>
+		/// <returns></returns>
+		public string GetUnitNameOrFallback(string guid)
+		{
+			return Players.FirstOrDefault(x => x.GUID == guid)?.Name
+				?? Npcs.FirstOrDefault(x => x.InstanceGuids.Contains(guid))?.Name
+				?? "Unknown";
+		}
+	}
 }

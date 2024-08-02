@@ -22,5 +22,30 @@ namespace CombatlogParser.Parsing
             perf = null;
             return false;
         }
-    }
+
+
+		/// <summary>
+		/// Sorts the totals in the dictionary in a descending order and outputs them alongside the units GUID in an array.
+		/// </summary>
+		/// <param name="lookup"></param>
+		/// <param name="total">The total of all values</param>
+		/// <returns></returns>
+		public static KeyValuePair<T, long>[] SortDescendingAndSumTotal<T>(this Dictionary<T, long> lookup, out long total) where T : notnull
+		{
+			var results = new KeyValuePair<T, long>[lookup.Count];
+			int i = 0;
+			total = 0;
+			foreach (var pair in lookup.OrderByDescending(x => x.Value))
+			{
+				results[i] = new(
+					pair.Key,
+					pair.Value
+				);
+				total = pair.Value + total;
+				i++;
+			}
+			return results;
+		}
+
+	}
 }
