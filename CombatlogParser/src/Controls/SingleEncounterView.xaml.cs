@@ -173,9 +173,13 @@ public partial class SingleEncounterView : ContentView
     private void GetData(EncounterInfoMetadata encounterInfoMetadata)
     {
         DataGrid.Items.Clear();
-
-        //surprised it just works like this.
-        LoadDataAsync(encounterInfoMetadata).WaitAsync(CancellationToken.None);
+        //reset source selection
+        ignoreSourceSelectionChanged = true;
+        SourceSelectionComboBox.SelectedIndex = 0;
+		ignoreSourceSelectionChanged = false;
+        selectedEntityGUID = null;
+		//surprised it just works like this.
+		LoadDataAsync(encounterInfoMetadata).WaitAsync(CancellationToken.None);
     }
 
     /// <summary>
@@ -204,14 +208,14 @@ public partial class SingleEncounterView : ContentView
 	}
 
     /// <summary>
-    /// Attempt to get the name of a unit through combatlog events.
+    /// Attempt to get the name of a unit through combatlog Player or Npc information.
     /// </summary>
     /// <param name="guid"></param>
     /// <returns></returns>
     private string GetUnitNameOrFallback(string guid)
     {
-        return currentEncounter?.CombatlogEvents.FirstOrDefault(x => x.TargetGUID == guid)?.TargetName
-            ?? currentEncounter?.CombatlogEvents.FirstOrDefault(x => x.SourceGUID == guid)?.SourceName
+        return currentEncounter?.Players.FirstOrDefault(x => x.GUID == guid)?.Name
+			?? currentEncounter?.Npcs.FirstOrDefault(x => x.InstanceGuids.Contains(guid))?.Name
             ?? "Unknown";
     }
 

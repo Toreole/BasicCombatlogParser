@@ -307,7 +307,7 @@ namespace CombatlogParser
 				line = (await reader.ReadLineAsync())!;
 				ParseLineInContext(line, parsingContext, events, eventDictBuilder);
 			}
-            //ENCOUNTER_EVENT should be exactly here.
+            //ENCOUNTER_END should be exactly here.
             // there used to be an if null here. fuck it, we ball.
             line = await reader.ReadLineAsync();
             ProcessEncounterEnd(line!, out  var encounterEndTime, out var encounterDurationInMS);

@@ -17,15 +17,15 @@
         </ResourceDictionary>
     </UserControl.Resources>
     <Grid>
-        <Grid Height="55" VerticalAlignment="Top">
-            <ComboBox x:Name="SourceSelectionComboBox" Margin="29,0,1071,30" SelectedIndex="0" SelectionChanged="SourceSelectionChanged">
+        <Grid Height="57" VerticalAlignment="Top">
+            <ComboBox x:Name="SourceSelectionComboBox" Margin="29,0,0,0" SelectedIndex="0" SelectionChanged="SourceSelectionChanged" Width="200" Height="26" HorizontalAlignment="Left" VerticalAlignment="Top">
                 <ComboBoxItem Content="All Sources"></ComboBoxItem>
             </ComboBox>
-            <Button Margin="29,30,1177,0" Content="Friendlies" />
-            <Button Margin="129,30,1071,0" Content="Enemies" />
-            <Button Margin="949,14,257,10" Content="Summary" />
-            <Button Margin="1049,14,151,10" Content="Events" />
-            <Button x:Name="ExportMovementButton" Content="Draw Movement"  Width="105" VerticalAlignment="Top" HorizontalAlignment="Left" Height="31" Margin="1185,14,0,0" Click="ExportMovementButton_Click" RenderTransformOrigin="0.25,-4.818"/>
+            <Button Margin="29,30,0,0" Width="98" Height="26" HorizontalAlignment="Left" VerticalAlignment="Top" Content="Friendlies" />
+            <Button Margin="131,30,0,0" Width="98" Height="26" HorizontalAlignment="Left" VerticalAlignment="Top"  Content="Enemies" />
+            <Button Content="Summary" Width="80" VerticalAlignment="Center" HorizontalAlignment="Right" Height="31" Margin="0,0,150,0" />
+            <Button Content="Events" Width="80" VerticalAlignment="Center" HorizontalAlignment="Right" Height="31" Margin="0,0,235,0" />
+            <Button x:Name="ExportMovementButton" Content="Draw Movement" Width="105" VerticalAlignment="Top" HorizontalAlignment="Right" Height="31" Margin="0,14,10,0" Click="ExportMovementButton_Click" RenderTransformOrigin="0.25,-4.818"/>
 
         </Grid>
         <Grid Height="30" Margin="0,60,0,0" VerticalAlignment="Top" Background="#FF373737">
