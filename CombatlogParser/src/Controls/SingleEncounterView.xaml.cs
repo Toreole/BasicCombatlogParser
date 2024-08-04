@@ -207,6 +207,7 @@ public partial class SingleEncounterView : ContentView
             //this should be in the try, not after.
 			SetupSourceSelection();
 			UpdateViewForCurrentMode();
+            currentEncounter.PlotGraph(MetricGraph);
 		}
         catch (FormatException)
         {

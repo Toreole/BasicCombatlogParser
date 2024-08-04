@@ -23,6 +23,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.NETCore.UniversalWindowsPlatform" Version="6.2.14" />
+    <PackageReference Include="ScottPlot.WPF" Version="5.0.37" />
     <PackageReference Include="SQLite" Version="3.13.0" />
     <PackageReference Include="System.Drawing.Common" Version="8.0.2" />
   </ItemGroup>

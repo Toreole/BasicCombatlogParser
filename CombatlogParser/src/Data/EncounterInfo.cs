@@ -4,10 +4,19 @@ using CombatlogParser.Data.Events;
 using CombatlogParser.Data.Events.EventData;
 using CombatlogParser.Formatting;
 using Microsoft.Win32;
-using System.Drawing;
 using System.Numerics;
 using System.Windows.Controls;
+using System.Windows.Shapes;
 using static CombatlogParser.Controls.SingleEncounterView;
+using System.Windows.Media;
+using System.Windows;
+using System.Drawing;
+
+using Brushes = System.Windows.Media.Brushes;
+using Point = System.Drawing.Point;
+using ScottPlot.WPF;
+using ScottPlot.TickGenerators;
+using ScottPlot.AxisPanels;
 
 namespace CombatlogParser.Data
 {
@@ -224,7 +233,7 @@ namespace CombatlogParser.Data
 			var supportEvents = CombatlogEventDictionary.GetEvents<DamageSupportEvent>();
 			foreach (var supportEvent in supportEvents.Where(x => x.SourceGUID == selectedEntityGUID))
 			{
-				damageBySpell[supportEvent.spellData] -= supportEvent.damageParams.TotalAmount;
+				AddSum(damageBySpell, supportEvent.spellData, -supportEvent.damageParams.TotalAmount);
 			}
             return damageBySpell;
 		}
@@ -255,6 +264,11 @@ namespace CombatlogParser.Data
 			return healingBySource;
 		}
 
+		/// <summary>
+		/// Calculates how much healing the selected entity did with each spell.
+		/// </summary>
+		/// <param name="selectedEntityGUID"></param>
+		/// <returns></returns>
 		private Dictionary<SpellData, long> GenerateHealingDoneBySource(string selectedEntityGUID)
 		{
 			Dictionary<SpellData, long> healingBySpell = new();
@@ -302,6 +316,10 @@ namespace CombatlogParser.Data
 			return dmgTakenBySpell;
 		}
 
+		/// <summary>
+		/// Sums up all known player deaths alongside the time it took from the last time they were at 90% or more hp.
+		/// </summary>
+		/// <returns>All player deaths ordered by time in the encounter</returns>
 		public PlayerDeathDataRow[] GetPlayerDeathInfo()
 		{
 			List<PlayerDeathDataRow> deathData = new();
@@ -336,9 +354,9 @@ namespace CombatlogParser.Data
 						}
 						).FirstOrDefault()?.Timestamp ?? deathEvent.Timestamp;
 					var slowDeathTimeOffset = deathEvent.Timestamp - lastTimeFullHealth;
-					var formattedDeathTime = slowDeathTimeOffset.TotalMilliseconds <= 100 ?
+					//TODO: It should also read instant when the killing damage event does more damage than the players max health.
+					var formattedDeathTime = slowDeathTimeOffset.TotalMilliseconds <= 100 ? 
 						"Instant" : $"{slowDeathTimeOffset:ss\\.fff} seconds";
-
 
 					deathData.Add(
 						new(player.Name,
@@ -354,6 +372,11 @@ namespace CombatlogParser.Data
 			return deathData.ToArray();
 		}
 
+		/// <summary>
+		/// Sums up the total successful spell casts by every entity grouped by alignment. (ally or enemy)
+		/// </summary>
+		/// <param name="isAllies"></param>
+		/// <returns></returns>
 		private Dictionary<string, long> CalculateCastsPerEntity(bool isAllies)
 		{
 			Dictionary<string, long> results = new();
@@ -374,6 +397,11 @@ namespace CombatlogParser.Data
 			return results;
 		}
 
+		/// <summary>
+		/// Sums up how many times an entity casted each spell during the encounter.
+		/// </summary>
+		/// <param name="entityGUID"></param>
+		/// <returns></returns>
 		private Dictionary<SpellData, long> CalculateCastsForEntity(string entityGUID)
 		{
 			Dictionary<SpellData, long> results = new();
@@ -438,6 +466,10 @@ namespace CombatlogParser.Data
 			return possibleSource;
 		}
 
+		/// <summary>
+		/// Available modes for breakdown generation via <see cref="CalculateBreakdown(BreakdownMode, bool)"/>.
+		/// May be merged with <see cref="SingleEncounterViewMode"/> at a later time.
+		/// </summary>
 		public enum BreakdownMode
         {
             DamageDone, 
@@ -447,13 +479,16 @@ namespace CombatlogParser.Data
             //Deaths, doesnt really fit in with the other ones.
 		}
 
+		/// <summary>
+		/// Exports an image of the movement of all players as a png image to a specified location.
+		/// </summary>
 		public void ExportPlayerMovementAsImage()
 		{
 			const int resolution = 1024;
 			Bitmap bitmap = new(resolution, resolution);
 			using var graphics = Graphics.FromImage(bitmap);
 			//set background
-			graphics.FillRectangle(Brushes.Black, new(0, 0, resolution, resolution));
+			graphics.FillRectangle(System.Drawing.Brushes.Black, new(0, 0, resolution, resolution));
 
 			var events = CombatlogEventDictionary.GetEvents<AdvancedParamEvent>().Select(x => x.AdvancedParams);
 
@@ -517,6 +552,48 @@ namespace CombatlogParser.Data
 			return Players.FirstOrDefault(x => x.GUID == guid)?.Name
 				?? Npcs.FirstOrDefault(x => x.InstanceGuids.Contains(guid))?.Name
 				?? "Unknown";
+		}
+
+		/// <summary>
+		/// Currently hardcoded to only ever 
+		/// </summary>
+		/// <param name="metricPlot"></param>
+		/// <param name="graphWidth"></param>
+		public void PlotGraph(WpfPlot metricPlot)
+		{
+			int seconds = (int)EncounterDuration / 1000;
+			long[] damagePerSecond = new long[seconds];
+
+			var dmgEvents = CombatlogEventDictionary.GetEvents<DamageEvent>().Where(EventFilters.AllySourceEnemyTargetFilter.Match);
+			foreach (var dmgEvent in dmgEvents)
+			{
+				try
+				{
+					var second = (int)(dmgEvent.Timestamp - EncounterStartTime).TotalSeconds;
+					damagePerSecond[second] += dmgEvent.damageParams.TotalAmount;
+				} 
+				catch (IndexOutOfRangeException)
+				{
+					damagePerSecond[seconds-1] += dmgEvent.damageParams.TotalAmount;
+				}
+			}
+			var maxDps = damagePerSecond.Max();
+
+			long[] timestamps = new long[seconds];
+			for (int i = 0; i < seconds; i++)
+			{
+				timestamps[i] = i;
+			}
+
+			ScottPlot.Plot myPlot = metricPlot.Plot;
+			myPlot.Clear();
+			var dpsGraph = myPlot.Add.Signal(damagePerSecond);
+			dpsGraph.LegendText = "DPS";
+			myPlot.Axes.Bottom.TickGenerator = new NumericAutomatic() { LabelFormatter = NumberFormatting.SecondsToMinutesAndSeconds };
+			myPlot.Axes.SetLimitsY(0, maxDps * 1.1d);
+			myPlot.Axes.SetLimitsX(0, seconds + 1);
+			myPlot.ShowLegend();
+			metricPlot.Refresh();
 		}
 	}
 }

@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:sys="clr-namespace:System;assembly=mscorlib"
+             xmlns:plot="clr-namespace:ScottPlot.WPF;assembly=ScottPlot.WPF"
              xmlns:controls="clr-namespace:CombatlogParser.Controls"
              mc:Ignorable="d" 
              d:DesignHeight="650" d:DesignWidth="1300">
@@ -19,7 +20,12 @@
     <Grid>
         <Grid Height="57" VerticalAlignment="Top">
             <ComboBox x:Name="SourceSelectionComboBox" Margin="29,0,0,0" SelectedIndex="0" SelectionChanged="SourceSelectionChanged" Width="200" Height="26" HorizontalAlignment="Left" VerticalAlignment="Top">
-                <ComboBoxItem Content="All Sources"></ComboBoxItem>
+                <ComboBox.ItemContainerStyle>
+                    <Style TargetType="ComboBoxItem">
+                        <Setter Property="HorizontalContentAlignment" Value="Left" />
+                        <Setter Property="VerticalContentAlignment" Value="Center" />
+                    </Style>
+                </ComboBox.ItemContainerStyle>
             </ComboBox>
             <Button Margin="29,30,0,0" Width="98" Height="26" HorizontalAlignment="Left" VerticalAlignment="Top" Content="Friendlies" />
             <Button Margin="131,30,0,0" Width="98" Height="26" HorizontalAlignment="Left" VerticalAlignment="Top"  Content="Enemies" />
@@ -65,8 +71,11 @@
         </Grid>
 
         <!--<local:TestList x:Name="MyTestList" Margin="0,101,0,0" />-->
-
-        <DataGrid d:ItemsSource="{d:SampleData ItemCount=2}" x:Name="DataGrid" AutoGenerateColumns="False" IsReadOnly="True" CanUserReorderColumns="False" MinColumnWidth="80" Margin="0,105,0,0" Height="Auto" >
+        <StackPanel Margin="0,105,0,0" >
+            <Expander Header="Show/Hide Graph" Foreground="White">
+                <plot:WpfPlot x:Name="MetricGraph" Height="150"/>
+            </Expander>
+            <DataGrid d:ItemsSource="{d:SampleData ItemCount=2}" x:Name="DataGrid" AutoGenerateColumns="False" IsReadOnly="True" CanUserReorderColumns="False" MinColumnWidth="80" Height="Auto" >
             <DataGrid.RowStyle>
                 <Style TargetType="DataGridRow" BasedOn="{StaticResource {x:Type DataGridRow}}">
                     <Style.Triggers>
@@ -101,5 +110,7 @@
                 <DataGridTextColumn x:Name="MetricPerSecondColumn" Header="DPS" Width="100" Binding="{Binding Path=ValueString}" SortMemberPath="Value" ElementStyle="{StaticResource text-right-center}" />
             </DataGrid.Columns>
         </DataGrid>
+        </StackPanel>
+        
     </Grid>
 </controls:ContentView>

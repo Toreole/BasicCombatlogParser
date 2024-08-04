@@ -346,34 +346,6 @@ public static class ParsingUtil
     }
 
     /// <summary>
-    /// Formats millisecond time as a human readable string 
-    /// e.g. 15240 becomes 0:15.240
-    /// </summary>
-    /// <param name="milliseconds">the total milliseconds</param>
-    /// <param name="includeMillis">whether to include the trailing millis after seconds</param>
-    public static string MillisecondsToReadableTimeString(uint milliseconds, bool includeMillis = false)
-    {
-        //the trailing milliseconds at the end.
-        uint remMil = milliseconds % 1000;
-
-        milliseconds = (milliseconds - remMil) / 1000;
-        //seconds are now the first thing
-        uint seconds = milliseconds % 60;
-        //adjust for overflow
-        seconds = seconds >= 60 ? 0 : seconds;
-
-        milliseconds = (milliseconds - seconds) / 60;
-
-        uint minutes = milliseconds % 60;
-        //adjust for overflow
-        minutes = minutes >= 60 ? 0 : minutes;
-
-        return includeMillis ?
-              $"{minutes}:{seconds:00}.{remMil:000}"
-            : $"{minutes}:{seconds:00}";
-    }
-
-    /// <summary>
     /// Check if a string contains a substring starting at a given index.
     /// </summary>
     public static bool ContainsSubstringAt(this string self, string other, int startIndex)

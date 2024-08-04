@@ -2,6 +2,10 @@
 
 namespace CombatlogParser.Parsing;
 
+/// <summary>
+/// This class is designed to help with logging issues during parsing.
+/// As of now its simply used to easily print unknown subevents along with an example.
+/// </summary>
 internal class ParsingContext : IDisposable
 {
     private readonly Dictionary<string, string> uniqueUnhandledSubevents = new();
