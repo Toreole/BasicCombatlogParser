@@ -590,6 +590,7 @@ namespace CombatlogParser.Data
 			var dpsGraph = myPlot.Add.Signal(damagePerSecond);
 			dpsGraph.LegendText = "DPS";
 			myPlot.Axes.Bottom.TickGenerator = new NumericAutomatic() { LabelFormatter = NumberFormatting.SecondsToMinutesAndSeconds };
+			myPlot.Axes.Left.TickGenerator = new NumericAutomatic() { LabelFormatter = NumberFormatting.ToShortFormString };
 			myPlot.Axes.SetLimitsY(0, maxDps * 1.1d);
 			myPlot.Axes.SetLimitsX(0, seconds + 1);
 			myPlot.ShowLegend();
