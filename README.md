@@ -54,12 +54,18 @@ The info that the generator requires is a plaintext list of instances and their 
 
 In an ideal world it would be able to grab that info via the WoW Game API, but dealing with OAuth and all that stuff is something i am not going to bother with.
 
+## Trying it
+
+This repo now comes with a sample Combatlog file that is about 30MB large. It contains two encounters from normal Aberrus in the War Within Prepatch.
+The first fight is Magmorax, a simple single target fight, the second is Echo of Neltharion, which contains a number of adds in the second and third phase.
+This log has been generated on a german WoW client, which means that all spell and creature names are german aswell.
+The file has been downsized from 80 to around 29MB and is provided in a .zip compressed format. To use it simply unzip it and import it via the "Import" button in the app.
+From there you can see the encounters within via the DB View directly, or you navigate to it via searching for players (e.g. Bänger).
 
 ## Other planned features
 
-Things such as re-importing previously imported combatlog files. This should skip copying the file and should just update all connected data.
-(This would not work with logs that a new encounter is being appended to by wow still running, that would need a nicer solution.)
+See issues here on GitHub. Most if not all features that are in consideration will be mentioned in an issue.
 
 ## Who made this and why
 
-I (Toreole) wrote all this code myself, just uhh because it's a lot of fun, somehow.
+I (Toreole) wrote (almost) all this code myself, just uhh because it's a lot of fun, somehow.
