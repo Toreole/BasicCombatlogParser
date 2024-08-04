@@ -1,6 +1,7 @@
 ﻿using CombatlogParser.Data.DisplayReady;
 using CombatlogParser.Data.Metadata;
 using CombatlogParser.DBInteract;
+using CombatlogParser.Formatting;
 
 namespace CombatlogParser;
 
@@ -157,7 +158,7 @@ public static partial class Queries
         return new()
         {
             EncounterName = encounter.GetDisplayName(),
-            FastestTime = ParsingUtil.MillisecondsToReadableTimeString((uint)fastestEncounter.EncounterDurationMS),
+            FastestTime = NumberFormatting.MillisecondsToReadableTimeString((uint)fastestEncounter.EncounterDurationMS),
             HighestMetricValue = highestMetric,
             MedianMetricValue = medianMetric,
             KillCount = count.ToString()
@@ -216,7 +217,7 @@ public static partial class Queries
             var encounterMetadata = context.Encounters.Where(e => e.Id == rawPerformances[i].EncounterInfoMetadataId).First();
             var combatlogMetadata = context.Combatlogs.Where(c => c.Id == encounterMetadata.CombatlogMetadataId).First();
 
-            string durationString = ParsingUtil.MillisecondsToReadableTimeString((uint)encounterMetadata.EncounterDurationMS);
+            string durationString = NumberFormatting.MillisecondsToReadableTimeString((uint)encounterMetadata.EncounterDurationMS);
             string dateString = DateTime.UnixEpoch.AddMilliseconds(combatlogMetadata.MsTimeStamp).ToShortDateString();
             string ilvlString = rawPerformances[i].ItemLevel.ToString();
             string metricString = metric switch
