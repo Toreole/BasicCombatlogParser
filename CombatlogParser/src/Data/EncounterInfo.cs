@@ -4,19 +4,12 @@ using CombatlogParser.Data.Events;
 using CombatlogParser.Data.Events.EventData;
 using CombatlogParser.Formatting;
 using Microsoft.Win32;
-using System.Numerics;
-using System.Windows.Controls;
-using System.Windows.Shapes;
-using static CombatlogParser.Controls.SingleEncounterView;
-using System.Windows.Media;
-using System.Windows;
 using System.Drawing;
 
-using Brushes = System.Windows.Media.Brushes;
 using Point = System.Drawing.Point;
 using ScottPlot.WPF;
 using ScottPlot.TickGenerators;
-using ScottPlot.AxisPanels;
+using CombatlogParser.Data.Events.Filters;
 
 namespace CombatlogParser.Data
 {
@@ -212,10 +205,7 @@ namespace CombatlogParser.Data
 			foreach (var dmgEvent in damageSupportEvents)
 			{
 				var damageSupported = dmgEvent.damageParams.TotalAmount;
-				if (damageBySource.ContainsKey(dmgEvent.SourceGUID))
-				{
-					damageBySource[dmgEvent.SourceGUID] -= damageSupported;
-				}
+				AddSum(damageBySource, dmgEvent.SourceGUID, -damageSupported);
 				AddSum(damageBySource, dmgEvent.supporterGUID, damageSupported);
 			}
 			return damageBySource;

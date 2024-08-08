@@ -2,6 +2,7 @@
 using CombatlogParser.Data;
 using CombatlogParser.Data.DisplayReady;
 using CombatlogParser.Data.Events;
+using CombatlogParser.Data.Events.Filters;
 using CombatlogParser.Data.Metadata;
 using CombatlogParser.DBInteract;
 using System.Windows;

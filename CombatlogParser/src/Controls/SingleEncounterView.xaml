@@ -73,7 +73,7 @@
         <!--<local:TestList x:Name="MyTestList" Margin="0,101,0,0" />-->
         <StackPanel Margin="0,105,0,0" >
             <Expander Header="Show/Hide Graph" Foreground="White">
-                <plot:WpfPlot x:Name="MetricGraph" Height="150"/>
+                <plot:WpfPlot x:Name="MetricGraph" Height="150" />
             </Expander>
             <DataGrid d:ItemsSource="{d:SampleData ItemCount=2}" x:Name="DataGrid" AutoGenerateColumns="False" IsReadOnly="True" CanUserReorderColumns="False" MinColumnWidth="80" Height="Auto" >
             <DataGrid.RowStyle>

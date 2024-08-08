@@ -1,13 +1,15 @@
-﻿namespace CombatlogParser.Tests
+﻿using CombatlogParser.Formatting;
+
+namespace CombatlogParser.Tests
 {
     public class UtilsTests
     {
         [Test]
         public void MillisToReadableString()
         {
-            string resultA = ParsingUtil.MillisecondsToReadableTimeString(60_000);
-            string resultB = ParsingUtil.MillisecondsToReadableTimeString(119_432);
-            string resultC = ParsingUtil.MillisecondsToReadableTimeString(0);
+            string resultA = NumberFormatting.MillisecondsToReadableTimeString(60_000);
+            string resultB = NumberFormatting.MillisecondsToReadableTimeString(119_432);
+            string resultC = NumberFormatting.MillisecondsToReadableTimeString(0);
             Assert.Multiple(() =>
             {
                 Assert.That(resultA, Is.EqualTo("1:00"));
@@ -19,9 +21,9 @@
         [Test]
         public void MillisToReadableStringEnabledMillis()
         {
-            string resultA = ParsingUtil.MillisecondsToReadableTimeString(60_000, true);
-            string resultB = ParsingUtil.MillisecondsToReadableTimeString(119_432, true);
-            string resultC = ParsingUtil.MillisecondsToReadableTimeString(0, true);
+            string resultA = NumberFormatting.MillisecondsToReadableTimeString(60_000, true);
+            string resultB = NumberFormatting.MillisecondsToReadableTimeString(119_432, true);
+            string resultC = NumberFormatting.MillisecondsToReadableTimeString(0, true);
             Assert.Multiple(() =>
             {
                 Assert.That(resultA, Is.EqualTo("1:00.000"));

@@ -74,7 +74,8 @@ public partial class SingleEncounterView : ContentView
         InitializeComponent();
         highlightedButton = DamageButton;
         highlightedButton.Style = this.Resources[menuBandButtonHighlighted] as Style;
-    }
+
+	}
 
     /// <summary>
     /// Triggered when a menu band button was clicked to switch the active view tab

@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using CombatlogParser.Data.Events.Filters;
 
 namespace CombatlogParser.Data.Events;
 
