@@ -5,6 +5,18 @@ namespace CombatlogParser.Tests
     public class UtilsTests
     {
         [Test]
+        public void TestCountArguments()
+        {
+            Assert.Multiple(() =>
+            {
+                Assert.That(ParsingUtil.CountArguments("one,two,three", 0), Is.EqualTo(3));
+                Assert.That(ParsingUtil.CountArguments("one,two,three", 5), Is.EqualTo(2));
+				Assert.That(ParsingUtil.CountArguments("one,two,three", 20), Is.EqualTo(0));
+                Assert.That(ParsingUtil.CountArguments("one,two,\"well, that, explains, it\",three", 0), Is.EqualTo(4));
+			});
+        }
+
+		[Test]
         public void MillisToReadableString()
         {
             string resultA = NumberFormatting.MillisecondsToReadableTimeString(60_000);

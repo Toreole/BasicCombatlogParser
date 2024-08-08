@@ -14,7 +14,7 @@ public static class EventExtensions
 
         for (int i = 0; i < size; i++)
         {
-            if (array[i] is T typedObject)
+            if (list[i] is T typedObject)
                 array[i] = typedObject;
         }
         return array;
@@ -30,7 +30,7 @@ public static class EventExtensions
 
         for (int i = 0; i < size; i++)
         {
-			if (array[i] is T typedObject)
+			if (list[i] is T typedObject)
 				array[i] = typedObject;
 		}
         return array;

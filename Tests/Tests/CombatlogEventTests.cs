@@ -10,7 +10,7 @@ namespace CombatlogParser.Tests
             CombatlogEventDictionary dic = new CombatlogEventDictionaryBuilder().Build();
             DamageEvent[] events = dic.GetEvents<DamageEvent>();
             //nothing has been added so it should be empty.
-            Assert.That(events, Is.EquivalentTo(new DamageEvent[0]));
+            Assert.That(events, Is.EquivalentTo(Array.Empty<DamageEvent>()));
         }
 
         [Test]

@@ -54,6 +54,7 @@ public class CombatlogEventDictionaryBuilder
     {
         var targetType = value.GetType();
         GetList(targetType).Add(value);
+        // AdvancedParamEvents are additionally stored in a separate list because they contain interesting information.
         if (value is AdvancedParamEvent advancedEvent)
             GetList<AdvancedParamEvent>().Add(advancedEvent);
     }

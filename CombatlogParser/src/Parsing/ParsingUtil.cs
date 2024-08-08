@@ -480,6 +480,34 @@ public static class ParsingUtil
     }
 
     /// <summary>
+    /// Counts the number of arguments in a string, where arguments are separated with a comma
+    /// and commas inside of quotations are not counted.
+    /// </summary>
+    /// <param name="data"></param>
+    /// <param name="startIndex"></param>
+    /// <returns></returns>
+    public static int CountArguments(string data, int startIndex)
+    {
+        if (startIndex >= data.Length)
+            return 0;
+        int count = 1;
+        bool inQuotes = false;
+        for (int i = startIndex; i < data.Length; i++)
+        {
+            char c = data[i];
+            if (c == '\"')
+            {
+                inQuotes = !inQuotes;
+            }
+            else if (c == ',' && !inQuotes)
+            {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    /// <summary>
     /// Helper struct for subevent parsing.
     /// </summary>
     public readonly struct Subevent
