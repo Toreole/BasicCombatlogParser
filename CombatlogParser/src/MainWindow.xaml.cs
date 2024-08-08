@@ -15,7 +15,7 @@ public partial class MainWindow : Window
 {
     private readonly ObservableCollection<string> searchedPlayerNames = new();
     private PlayerMetadata[] searchedPlayers = Array.Empty<PlayerMetadata>();
-    private LabelledProgressBar progressBar;
+    private readonly LabelledProgressBar progressBar;
 
     public MainWindow()
     {
@@ -135,26 +135,13 @@ public partial class MainWindow : Window
             this.ChangeContent(new RawDatabaseView());
     }
 
-    private async void TestButton_Click(object sender, RoutedEventArgs e)
+    private void TestButton_Click(object sender, RoutedEventArgs e)
     {
         e.Handled = true;
         ChangeContent(new CombatlogOverviewView())
             .FromEncounterMetadata(Queries.GetEncounterInfoMetadata(0, 1).First()!);
 
         return;
-        //LabelledProgressBar labelledProgress = PopupOverlay.Children.OfType<LabelledProgressBar>().First();
-        var progressBar = ShowProgressBar();
-        TestButton.IsEnabled = false;
-        for (int i = 0; i <= 100; i++)
-        {
-            progressBar.ProgressPercent = i;
-            progressBar.DescriptionText = $"Working... {i}%";
-
-            await Task.Delay(70);
-        }
-        await Task.Delay(200);
-        TestButton.IsEnabled = true;
-        HideProgressBar(progressBar);
     }
 
     public LabelledProgressBar ShowProgressBar()

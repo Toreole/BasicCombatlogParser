@@ -37,8 +37,7 @@ namespace CombatlogParser.src.Controls
             var filter = new TargetFlagFilter(UnitFlag.COMBATLOG_OBJECT_REACTION_HOSTILE);
             foreach (var dmgEvent in damageEvents.Where(filter.Match))
             {
-                string? actualSource;
-                if (!encounterInfo.SourceToOwnerGuidLookup.TryGetValue(dmgEvent.SourceGUID, out actualSource))
+                if (!encounterInfo.SourceToOwnerGuidLookup.TryGetValue(dmgEvent.SourceGUID, out string? actualSource))
                     actualSource = dmgEvent.SourceGUID;
                 if (damageBySource.ContainsKey(actualSource))
                     damageBySource[actualSource] += dmgEvent.damageParams.amount;
