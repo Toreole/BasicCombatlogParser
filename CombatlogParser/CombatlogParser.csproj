@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
@@ -8,6 +8,8 @@
     <UseWindowsForms>False</UseWindowsForms>
     <UseWPF>True</UseWPF>
     <StartupObject>CombatlogParser.Program</StartupObject>
+    <RepositoryUrl>https://github.com/Toreole/BasicCombatlogParser</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
   </PropertyGroup>
 
   <ItemGroup>
