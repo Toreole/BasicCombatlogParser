@@ -1,6 +1,6 @@
 ﻿namespace CombatlogParser.Tests
 {
-    public class DBTests
-    {
-    }
+	public class DBTests
+	{
+	}
 }
