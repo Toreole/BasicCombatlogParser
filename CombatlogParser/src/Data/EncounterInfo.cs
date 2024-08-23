@@ -197,16 +197,16 @@ namespace CombatlogParser.Data
 			EventFilter filter = alliesAsSource? EventFilters.AllySourceEnemyTargetFilter : EventFilters.EnemySourceFilter;
 			SumAmountsForSources(
 				damageEvents.Where(filter.Match),
-				dmgEvent => dmgEvent.damageParams.TotalAmount,
+				dmgEvent => dmgEvent.DamageParams.TotalAmount,
 				damageBySource);
 			//damage done via support events (augmentation evoker) needs to be attributed to the evoker
 			//and subtracted from the buffed players damage.
 			var damageSupportEvents = CombatlogEventDictionary.GetEvents<DamageSupportEvent>();
 			foreach (var dmgEvent in damageSupportEvents)
 			{
-				var damageSupported = dmgEvent.damageParams.TotalAmount;
+				var damageSupported = dmgEvent.DamageParams.TotalAmount;
 				AddSum(damageBySource, dmgEvent.SourceGUID, -damageSupported);
-				AddSum(damageBySource, dmgEvent.supporterGUID, damageSupported);
+				AddSum(damageBySource, dmgEvent.SupporterGUID, damageSupported);
 			}
 			return damageBySource;
 		}
@@ -217,13 +217,13 @@ namespace CombatlogParser.Data
 			var damageEvents = CombatlogEventDictionary.GetEvents<DamageEvent>();
 			foreach (var dmgEvent in damageEvents.Where(x => GetActualSourceGUID(x.SourceGUID) == selectedEntityGUID))
 			{
-				AddSum(damageBySpell, dmgEvent.spellData, dmgEvent.damageParams.TotalAmount);
+				AddSum(damageBySpell, dmgEvent.SpellData, dmgEvent.DamageParams.TotalAmount);
 			}
 			//once again, subtract any support dmg
 			var supportEvents = CombatlogEventDictionary.GetEvents<DamageSupportEvent>();
 			foreach (var supportEvent in supportEvents.Where(x => x.SourceGUID == selectedEntityGUID))
 			{
-				AddSum(damageBySpell, supportEvent.spellData, -supportEvent.damageParams.TotalAmount);
+				AddSum(damageBySpell, supportEvent.SpellData, -supportEvent.DamageParams.TotalAmount);
 			}
             return damageBySpell;
 		}
@@ -237,19 +237,19 @@ namespace CombatlogParser.Data
 			EventFilter filter = alliesAsSource ? EventFilters.AllySourceFilter : EventFilters.EnemySourceFilter;
 			SumAmountsForSources(
 				healEvents.Where(filter.Match),
-				healEvent => healEvent.healParams.amount + healEvent.healParams.absorbed,
+				healEvent => healEvent.HealParams.amount + healEvent.HealParams.absorbed,
 				healingBySource);
 			//damage done via support events (augmentation evoker) needs to be attributed to the evoker
 			//and subtracted from the buffed players damage.
 			var damageSupportEvents = CombatlogEventDictionary.GetEvents<DamageSupportEvent>();
 			foreach (var supportEvent in damageSupportEvents)
 			{
-				var damageSupported = supportEvent.damageParams.amount + supportEvent.damageParams.absorbed;
+				var damageSupported = supportEvent.DamageParams.amount + supportEvent.DamageParams.absorbed;
 				if (healingBySource.ContainsKey(supportEvent.SourceGUID))
 				{
 					healingBySource[supportEvent.SourceGUID] -= damageSupported;
 				}
-				AddSum(healingBySource, supportEvent.supporterGUID, damageSupported);
+				AddSum(healingBySource, supportEvent.SupporterGUID, damageSupported);
 			}
 			return healingBySource;
 		}
@@ -265,13 +265,13 @@ namespace CombatlogParser.Data
 			var healingEvents = CombatlogEventDictionary.GetEvents<HealEvent>();
 			foreach (var healEvent in healingEvents.Where(x => GetActualSourceGUID(x.SourceGUID) == selectedEntityGUID))
 			{
-				AddSum(healingBySpell, healEvent.spellData, healEvent.healParams.TotalAmount);
+				AddSum(healingBySpell, healEvent.SpellData, healEvent.HealParams.TotalAmount);
 			}
 			//once again, subtract any support dmg
 			var supportEvents = CombatlogEventDictionary.GetEvents<DamageSupportEvent>();
 			foreach (var supportEvent in supportEvents.Where(x => x.SourceGUID == selectedEntityGUID))
 			{
-				healingBySpell[supportEvent.spellData] -= supportEvent.damageParams.TotalAmount;
+				healingBySpell[supportEvent.SpellData] -= supportEvent.DamageParams.TotalAmount;
 			}
 			return healingBySpell;
 		}
@@ -286,7 +286,7 @@ namespace CombatlogParser.Data
 			EventFilter filter = byAlly ? EventFilters.GroupMemberTargetFilter : EventFilters.EnemyTargetFilter;
 			foreach (var dmgEvent in damageEvents.Where(filter.Match))
 			{
-				AddSum(dmgTakenByTarget, dmgEvent.TargetGUID, dmgEvent.damageParams.TotalAmount);
+				AddSum(dmgTakenByTarget, dmgEvent.TargetGUID, dmgEvent.DamageParams.TotalAmount);
 			}
 			return dmgTakenByTarget;
 		}
@@ -301,7 +301,7 @@ namespace CombatlogParser.Data
 			EventFilter filter = new TargetGUIDFilter(entityGUID);
 			foreach (var dmgEvent in damageEvents.Where(filter.Match))
 			{
-				AddSum(dmgTakenBySpell, dmgEvent.spellData, dmgEvent.damageParams.TotalAmount);
+				AddSum(dmgTakenBySpell, dmgEvent.SpellData, dmgEvent.DamageParams.TotalAmount);
 			}
 			return dmgTakenBySpell;
 		}
@@ -352,8 +352,8 @@ namespace CombatlogParser.Data
 						new(player.Name,
 						player.Class.GetClassBrush(),
 						formattedTimestamp,
-						abilityName: last3hits[^1].spellData.name,
-						lastHits: last3hits.Select(x => x.spellData.name).ToArray(), // last3hits.LastOrDefault()?.spellData.name ?? "unknown"
+						abilityName: last3hits[^1].SpellData.name,
+						lastHits: last3hits.Select(x => x.SpellData.name).ToArray(), // last3hits.LastOrDefault()?.spellData.name ?? "unknown"
 						formattedDeathTime
 						)
 					);
@@ -560,11 +560,11 @@ namespace CombatlogParser.Data
 				try
 				{
 					var second = (int)(dmgEvent.Timestamp - EncounterStartTime).TotalSeconds;
-					damagePerSecond[second] += dmgEvent.damageParams.TotalAmount;
+					damagePerSecond[second] += dmgEvent.DamageParams.TotalAmount;
 				} 
 				catch (IndexOutOfRangeException)
 				{
-					damagePerSecond[seconds-1] += dmgEvent.damageParams.TotalAmount;
+					damagePerSecond[seconds-1] += dmgEvent.DamageParams.TotalAmount;
 				}
 			}
 			var maxDps = damagePerSecond.Max();

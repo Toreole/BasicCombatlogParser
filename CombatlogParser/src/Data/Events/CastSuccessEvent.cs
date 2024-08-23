@@ -2,7 +2,7 @@
 
 namespace CombatlogParser.Data.Events;
 
-class CastSuccessEvent : AdvancedParamEvent
+class CastSuccessEvent : AdvancedParamEvent, ISpellEvent
 {
     public SpellData SpellData { get; private set; }
 

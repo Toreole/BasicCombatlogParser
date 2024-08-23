@@ -3,7 +3,7 @@ using static CombatlogParser.ParsingUtil;
 
 namespace CombatlogParser.Data.Events;
 
-class SpellAbsorbedEvent : CombatlogEvent
+class SpellAbsorbedEvent : CombatlogEvent, ISpellEvent
 {
     //These will not be included when the cause for this event is a SWING_DAMAGE event with event.Absorbed > 0
     public SpellData AbsorbedSpellData { get; private set; }
@@ -18,8 +18,10 @@ class SpellAbsorbedEvent : CombatlogEvent
     public long TotalAbsorb { get; private set; }
     public bool Critical { get; private set; }
 
-    //TODO: THIS ENTIRE FILE NEEDS UPDATING TO NEW STANDARDS IF POSSIBLE
-    public SpellAbsorbedEvent(string entry, int dataIndex)
+    public SpellData SpellData => AbsorbedSpellData;
+
+	//TODO: THIS ENTIRE FILE NEEDS UPDATING TO NEW STANDARDS IF POSSIBLE
+	public SpellAbsorbedEvent(string entry, int dataIndex)
         : base(entry, ref dataIndex, EventType.SPELL_ABSORBED, CombatlogEventPrefix.SPELL, CombatlogEventSuffix._ABSORBED)
     {
         int argumentCount = CountArguments(entry, dataIndex);

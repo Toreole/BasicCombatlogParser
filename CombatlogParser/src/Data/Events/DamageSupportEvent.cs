@@ -2,16 +2,20 @@
 
 namespace CombatlogParser.Data.Events;
 
-internal class DamageSupportEvent : AdvancedParamEvent
+internal class DamageSupportEvent : AdvancedParamEvent, ISpellEvent
 {
     //the leading bits of data.
-    public SpellData spellData;
+    private readonly SpellData spellData;
 
-    //what follows
-    public DamageEventParams damageParams;
+	//what follows
+	private readonly DamageEventParams damageParams;
 
-    //whats important for Support
-    public string supporterGUID;
+	//whats important for Support
+	private readonly string supporterGUID;
+
+    public SpellData SpellData => spellData;
+    public DamageEventParams DamageParams => damageParams;
+    public string SupporterGUID => supporterGUID;
 
     public DamageSupportEvent(CombatlogEventPrefix prefix, string entry, int dataIndex)
         : base(entry, ref dataIndex, EventType.DAMAGE, prefix, CombatlogEventSuffix._DAMAGE)

@@ -1,4 +1,6 @@
-﻿namespace CombatlogParser.Data.Events.Filters;
+﻿using CombatlogParser.Data.Events.EventData;
+
+namespace CombatlogParser.Data.Events.Filters;
 
 /// <summary>
 /// Baseclass for all EventFilter types to filter CombatlogEvents.
@@ -11,4 +13,13 @@ public abstract class EventFilter
     {
         return new AllOfFilter(filters);
     }
+}
+
+/// <summary>
+/// Allows for specializing event filters for specific types of events.
+/// </summary>
+/// <typeparam name="T"></typeparam>
+public interface IEventFilter<T>
+{
+    bool Match(T tEvent);
 }

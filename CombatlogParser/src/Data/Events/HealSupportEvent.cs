@@ -2,16 +2,20 @@
 
 namespace CombatlogParser.Data.Events;
 
-internal class HealSupportEvent : AdvancedParamEvent
+internal class HealSupportEvent : AdvancedParamEvent, ISpellEvent
 {
-    public readonly SpellData spell;
-    public readonly HealEventParams healParams;
-    public readonly string supporterGUID;
+    private readonly SpellData spellData;
+	private readonly HealEventParams healParams;
+	private readonly string supporterGUID;
+
+    public SpellData SpellData => spellData;
+    public HealEventParams HealParams => healParams;
+    public string SupporterGUID => supporterGUID;
 
     public HealSupportEvent(CombatlogEventPrefix prefix, string entry, int dataIndex)
         : base(entry, ref dataIndex, EventType.HEALING, prefix, CombatlogEventSuffix._HEAL)
     {
-        spell = SpellData.ParseOrGet(prefix, entry, ref dataIndex);
+        spellData = SpellData.ParseOrGet(prefix, entry, ref dataIndex);
 
         AdvancedParams = new(entry, ref dataIndex);
 

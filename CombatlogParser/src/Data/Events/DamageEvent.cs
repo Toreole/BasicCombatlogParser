@@ -3,13 +3,17 @@ using System.Text.RegularExpressions;
 
 namespace CombatlogParser.Data.Events
 {
-    public partial class DamageEvent : AdvancedParamEvent
+    public partial class DamageEvent : AdvancedParamEvent, ISpellEvent
     {
         //the leading bits of data.
-        public SpellData spellData;
+        private readonly SpellData spellData;
+
+        public SpellData SpellData => spellData;
 
         //what follows
-        public DamageEventParams damageParams;
+        private readonly DamageEventParams damageParams;
+
+        public DamageEventParams DamageParams => damageParams;
 
         public DamageEvent(CombatlogEventPrefix prefix, string entry, int dataIndex)
             : base(entry, ref dataIndex, EventType.DAMAGE, prefix, CombatlogEventSuffix._DAMAGE)
