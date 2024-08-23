@@ -5,10 +5,10 @@
 /// </summary>
 public sealed class NotFilter : EventFilter
 {
-    private readonly EventFilter filter;
-    public override bool Match(CombatlogEvent ev) => !filter.Match(ev);
-    public NotFilter(EventFilter filter)
-    {
-        this.filter = filter;
-    }
+	private readonly EventFilter filter;
+	public override bool Match(CombatlogEvent ev) => !filter.Match(ev);
+	public NotFilter(EventFilter filter)
+	{
+		this.filter = filter;
+	}
 }

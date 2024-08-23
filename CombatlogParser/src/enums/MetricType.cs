@@ -2,5 +2,5 @@
 
 public enum MetricType
 {
-    Dps, Hps, //BossDamage
+	Dps, Hps, //BossDamage
 }

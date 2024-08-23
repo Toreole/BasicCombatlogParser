@@ -4,121 +4,121 @@ using System.Windows.Media;
 
 namespace CombatlogParser.Controls
 {
-    /// <summary>
-    /// Interaction logic for LabelledBarControl.xaml
-    /// </summary>
-    public partial class LabelledBarControl : UserControl
-    {
-        public static readonly DependencyProperty LabelProperty = DependencyProperty.Register(
-            "Label",
-            typeof(string),
-            typeof(LabelledBarControl),
-            new UIPropertyMetadata(string.Empty, new PropertyChangedCallback(OnLabelChanged)));
+	/// <summary>
+	/// Interaction logic for LabelledBarControl.xaml
+	/// </summary>
+	public partial class LabelledBarControl : UserControl
+	{
+		public static readonly DependencyProperty LabelProperty = DependencyProperty.Register(
+			"Label",
+			typeof(string),
+			typeof(LabelledBarControl),
+			new UIPropertyMetadata(string.Empty, new PropertyChangedCallback(OnLabelChanged)));
 
-        private static void OnLabelChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-        {
-            if (d is LabelledBarControl bar)
-            {
-                bar.AmountLabel.Content = (string)e.NewValue;
-            }
-        }
+		private static void OnLabelChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+		{
+			if (d is LabelledBarControl bar)
+			{
+				bar.AmountLabel.Content = (string)e.NewValue;
+			}
+		}
 
-        public static readonly DependencyProperty MaximumProperty = DependencyProperty.Register(
-            nameof(Maximum),
-            typeof(double),
-            typeof(LabelledBarControl),
-            new UIPropertyMetadata(1.0d, new PropertyChangedCallback(OnMaximumChanged)));
+		public static readonly DependencyProperty MaximumProperty = DependencyProperty.Register(
+			nameof(Maximum),
+			typeof(double),
+			typeof(LabelledBarControl),
+			new UIPropertyMetadata(1.0d, new PropertyChangedCallback(OnMaximumChanged)));
 
-        private static void OnMaximumChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-        {
-            if (d is LabelledBarControl bar)
-            {
-                bar.Maximum = (double)e.NewValue;
-            }
-        }
+		private static void OnMaximumChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+		{
+			if (d is LabelledBarControl bar)
+			{
+				bar.Maximum = (double)e.NewValue;
+			}
+		}
 
-        public static readonly DependencyProperty ValueProperty = DependencyProperty.Register(
-            nameof(Value),
-            typeof(double),
-            typeof(LabelledBarControl),
-            new UIPropertyMetadata(0.0d, new PropertyChangedCallback(OnValueChanged)));
+		public static readonly DependencyProperty ValueProperty = DependencyProperty.Register(
+			nameof(Value),
+			typeof(double),
+			typeof(LabelledBarControl),
+			new UIPropertyMetadata(0.0d, new PropertyChangedCallback(OnValueChanged)));
 
-        private static void OnValueChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-        {
-            if (d is LabelledBarControl bar)
-            {
-                bar.Value = (double)e.NewValue;
-                if (bar.Value > bar.Maximum || bar.Value <= 0)
-                {
-                    bar.FillColor = Brushes.Transparent;
-                }
-            }
-        }
+		private static void OnValueChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+		{
+			if (d is LabelledBarControl bar)
+			{
+				bar.Value = (double)e.NewValue;
+				if (bar.Value > bar.Maximum || bar.Value <= 0)
+				{
+					bar.FillColor = Brushes.Transparent;
+				}
+			}
+		}
 
-        public static readonly DependencyProperty FillColorProperty = DependencyProperty.Register(
-            nameof(FillColor),
-            typeof(Brush),
-            typeof(LabelledBarControl),
-            new UIPropertyMetadata(Brushes.Green, new PropertyChangedCallback(OnForegroundChanged)));
+		public static readonly DependencyProperty FillColorProperty = DependencyProperty.Register(
+			nameof(FillColor),
+			typeof(Brush),
+			typeof(LabelledBarControl),
+			new UIPropertyMetadata(Brushes.Green, new PropertyChangedCallback(OnForegroundChanged)));
 
-        public static readonly DependencyProperty TextColorPoperty = DependencyProperty.Register(
-            "TextColor",
-            typeof(Brush),
-            typeof(LabelledBarControl),
-            new UIPropertyMetadata(Brushes.Black, new PropertyChangedCallback(OnTextColorChanged)));
+		public static readonly DependencyProperty TextColorPoperty = DependencyProperty.Register(
+			"TextColor",
+			typeof(Brush),
+			typeof(LabelledBarControl),
+			new UIPropertyMetadata(Brushes.Black, new PropertyChangedCallback(OnTextColorChanged)));
 
-        private static void OnForegroundChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-        {
-            if (d is LabelledBarControl bar)
-            {
-                bar.FillColor = (Brush)e.NewValue;
-            }
-        }
+		private static void OnForegroundChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+		{
+			if (d is LabelledBarControl bar)
+			{
+				bar.FillColor = (Brush)e.NewValue;
+			}
+		}
 
-        private static void OnTextColorChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-        {
-            if (d is LabelledBarControl bar)
-            {
-                bar.AmountLabel.Foreground = (Brush)e.NewValue;
-            }
-        }
+		private static void OnTextColorChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+		{
+			if (d is LabelledBarControl bar)
+			{
+				bar.AmountLabel.Foreground = (Brush)e.NewValue;
+			}
+		}
 
-        public string Label
-        {
-            get => (string)AmountLabel.Content;
-            set => AmountLabel.Content = value;
-        }
+		public string Label
+		{
+			get => (string)AmountLabel.Content;
+			set => AmountLabel.Content = value;
+		}
 
-        public double Maximum
-        {
-            get => FillBar.Maximum;
-            set => FillBar.Maximum = value;
-        }
-        public double Value
-        {
-            get => FillBar.Value;
-            set
-            {
-                FillBar.Value = value;
-                //AmountLabel.Content = value.ToShortFormString();
-            }
-        }
+		public double Maximum
+		{
+			get => FillBar.Maximum;
+			set => FillBar.Maximum = value;
+		}
+		public double Value
+		{
+			get => FillBar.Value;
+			set
+			{
+				FillBar.Value = value;
+				//AmountLabel.Content = value.ToShortFormString();
+			}
+		}
 
-        public LabelledBarControl()
-        {
-            InitializeComponent();
-        }
+		public LabelledBarControl()
+		{
+			InitializeComponent();
+		}
 
-        public Brush FillColor
-        {
-            get => FillBar.Foreground;
-            set => FillBar.Foreground = value;
-        }
+		public Brush FillColor
+		{
+			get => FillBar.Foreground;
+			set => FillBar.Foreground = value;
+		}
 
-        public Brush TextColor
-        {
-            get => AmountLabel.Foreground;
-            set => AmountLabel.Foreground = value;
-        }
-    }
+		public Brush TextColor
+		{
+			get => AmountLabel.Foreground;
+			set => AmountLabel.Foreground = value;
+		}
+	}
 }

@@ -5,13 +5,13 @@
 /// </summary>
 public sealed class AfterTimeFilter : EventFilter
 {
-    private readonly DateTime timestamp;
-    public override bool Match(CombatlogEvent ev)
-    {
-        return ev.Timestamp >= timestamp;
-    }
-    public AfterTimeFilter(DateTime timestamp)
-    {
-        this.timestamp = timestamp;
-    }
+	private readonly DateTime timestamp;
+	public override bool Match(CombatlogEvent ev)
+	{
+		return ev.Timestamp >= timestamp;
+	}
+	public AfterTimeFilter(DateTime timestamp)
+	{
+		this.timestamp = timestamp;
+	}
 }

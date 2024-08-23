@@ -2,10 +2,10 @@
 
 public class Program
 {
-    [STAThread]
-    static void Main()
-    {
-        MainWindow app = new();
-        app.ShowDialog();
-    }
+	[STAThread]
+	static void Main()
+	{
+		MainWindow app = new();
+		app.ShowDialog();
+	}
 }

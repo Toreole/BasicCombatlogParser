@@ -2,9 +2,9 @@
 
 public enum SingleEncounterViewMode
 {
-    DamageDone = 0, //Default
-    DamageTaken,
-    Healing,
-    Deaths,
-    Casts
+	DamageDone = 0, //Default
+	DamageTaken,
+	Healing,
+	Deaths,
+	Casts
 }

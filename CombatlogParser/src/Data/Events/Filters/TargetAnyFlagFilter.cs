@@ -5,11 +5,11 @@
 /// </summary>
 public sealed class TargetAnyFlagFilter : EventFilter
 {
-    private readonly UnitFlag searchedFlags;
-    public TargetAnyFlagFilter(UnitFlag mask)
-    {
-        searchedFlags = mask;
-    }
-    public override bool Match(CombatlogEvent ev)
-        => (ev.TargetFlags & searchedFlags) != UnitFlag.NONE;
+	private readonly UnitFlag searchedFlags;
+	public TargetAnyFlagFilter(UnitFlag mask)
+	{
+		searchedFlags = mask;
+	}
+	public override bool Match(CombatlogEvent ev)
+		=> (ev.TargetFlags & searchedFlags) != UnitFlag.NONE;
 }

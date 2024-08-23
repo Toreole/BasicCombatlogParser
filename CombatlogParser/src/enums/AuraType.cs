@@ -1,7 +1,7 @@
 ﻿namespace CombatlogParser
 {
-    public enum AuraType
-    {
-        BUFF, DEBUFF
-    }
+	public enum AuraType
+	{
+		BUFF, DEBUFF
+	}
 }

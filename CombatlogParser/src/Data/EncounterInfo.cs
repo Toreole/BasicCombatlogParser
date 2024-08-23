@@ -2,168 +2,167 @@
 using CombatlogParser.Data.DisplayReady;
 using CombatlogParser.Data.Events;
 using CombatlogParser.Data.Events.EventData;
+using CombatlogParser.Data.Events.Filters;
 using CombatlogParser.Formatting;
 using Microsoft.Win32;
-using System.Drawing;
-
-using Point = System.Drawing.Point;
-using ScottPlot.WPF;
 using ScottPlot.TickGenerators;
-using CombatlogParser.Data.Events.Filters;
+using ScottPlot.WPF;
+using System.Drawing;
+using Point = System.Drawing.Point;
 
 namespace CombatlogParser.Data
 {
-    public class EncounterInfo
-    {
-        /// <summary>
-        /// The name of the encounter, provided by ENCOUNTER_START
-        /// </summary>
-        public string EncounterName { get; }
+	public class EncounterInfo
+	{
+		/// <summary>
+		/// The name of the encounter, provided by ENCOUNTER_START
+		/// </summary>
+		public string EncounterName { get; }
 
-        /// <summary>
-        /// the ID of the encounter, provided by ENCOUNTER_START
-        /// </summary>
-        public EncounterId EncounterID { get; }
+		/// <summary>
+		/// the ID of the encounter, provided by ENCOUNTER_START
+		/// </summary>
+		public EncounterId EncounterID { get; }
 
-        /// <summary>
-        /// The difficulty of the encounter. see https://wowpedia.fandom.com/wiki/DifficultyID 
-        /// </summary>
-        public DifficultyId DifficultyID { get; }
+		/// <summary>
+		/// The difficulty of the encounter. see https://wowpedia.fandom.com/wiki/DifficultyID 
+		/// </summary>
+		public DifficultyId DifficultyID { get; }
 
-        /// <summary>
-        /// The size of the group involved in the encounter.
-        /// </summary>
-        public int GroupSize { get; }
+		/// <summary>
+		/// The size of the group involved in the encounter.
+		/// </summary>
+		public int GroupSize { get; }
 
-        /// <summary>
-        /// ID if the instance the encounter is in. https://wowpedia.fandom.com/wiki/InstanceID
-        /// </summary>
-        public uint InstanceID { get; }
+		/// <summary>
+		/// ID if the instance the encounter is in. https://wowpedia.fandom.com/wiki/InstanceID
+		/// </summary>
+		public uint InstanceID { get; }
 
-        /// <summary>
-        /// The timestamp of the ENCOUNTER_START event
-        /// </summary>
-        public DateTime EncounterStartTime { get; }
+		/// <summary>
+		/// The timestamp of the ENCOUNTER_START event
+		/// </summary>
+		public DateTime EncounterStartTime { get; }
 
-        /// <summary>
-        /// The timestamp of ENCOUNTER_END
-        /// </summary>
-        public DateTime EncounterEndTime { get; }
+		/// <summary>
+		/// The timestamp of ENCOUNTER_END
+		/// </summary>
+		public DateTime EncounterEndTime { get; }
 
-        /// <summary>
-        /// The duration of the encounter in milliseconds, provided by ENCOUNTER_END
-        /// </summary>
-        public uint EncounterDuration { get; }
+		/// <summary>
+		/// The duration of the encounter in milliseconds, provided by ENCOUNTER_END
+		/// </summary>
+		public uint EncounterDuration { get; }
 
-        /// <summary>
-        /// Whether the encounter ended successfully, provided by ENCOUNTER_END
-        /// </summary>
-        public bool EncounterSuccess { get; }
+		/// <summary>
+		/// Whether the encounter ended successfully, provided by ENCOUNTER_END
+		/// </summary>
+		public bool EncounterSuccess { get; }
 
-        /// <summary>
-        /// Size of the PlayerInfo[] is given by ENCOUNTER_START, followed by the data from COMBATANT_INFO
-        /// </summary>
-        public PlayerInfo[] Players { get; }
+		/// <summary>
+		/// Size of the PlayerInfo[] is given by ENCOUNTER_START, followed by the data from COMBATANT_INFO
+		/// </summary>
+		public PlayerInfo[] Players { get; }
 
-        /// <summary>
-        /// List of NPCs found in the events.
-        /// </summary>
-        public List<NpcInfo> Npcs { get; }
+		/// <summary>
+		/// List of NPCs found in the events.
+		/// </summary>
+		public List<NpcInfo> Npcs { get; }
 
-        /// <summary>
-        /// All combatlog events during the encounter.
-        /// </summary>
-        public CombatlogEvent[] CombatlogEvents { get; }
+		/// <summary>
+		/// All combatlog events during the encounter.
+		/// </summary>
+		public CombatlogEvent[] CombatlogEvents { get; }
 
-        /// <summary>
-        /// Combatlog Events sorted by data type.
-        /// </summary>
-        public CombatlogEventDictionary CombatlogEventDictionary { get; }
+		/// <summary>
+		/// Combatlog Events sorted by data type.
+		/// </summary>
+		public CombatlogEventDictionary CombatlogEventDictionary { get; }
 
-        public Dictionary<string, string> SourceToOwnerGuidLookup { get; }
+		public Dictionary<string, string> SourceToOwnerGuidLookup { get; }
 
-        /// <summary>
-        /// The duration of the encounter in seconds. Used for DPS calculation.
-        /// </summary>
-        public float LengthInSeconds
-        {
-            get => EncounterDuration / 1000;
-        }
+		/// <summary>
+		/// The duration of the encounter in seconds. Used for DPS calculation.
+		/// </summary>
+		public float LengthInSeconds
+		{
+			get => EncounterDuration / 1000;
+		}
 
-        public EncounterInfo(
-            CombatlogEvent[] allEvents,
-            CombatlogEventDictionary eventDictionary,
-            DateTime startTime,
-            bool success,
-            DifficultyId difficultyId,
-            EncounterId encounterId,
-            string encounterName,
-            int groupSize,
-            uint encounterDurationInMS,
-            DateTime endTime,
-            PlayerInfo[] players,
-            List<NpcInfo> npcs) //could be an array aswell 
-        {
-            CombatlogEvents = allEvents;
-            CombatlogEventDictionary = eventDictionary;
-            EncounterStartTime = startTime;
-            EncounterEndTime = endTime;
-            Players = players;
-            EncounterSuccess = success;
-            DifficultyID = difficultyId;
-            EncounterName = encounterName;
-            EncounterID = encounterId;
-            GroupSize = groupSize;
-            EncounterDuration = encounterDurationInMS;
-            Npcs = npcs;
+		public EncounterInfo(
+			CombatlogEvent[] allEvents,
+			CombatlogEventDictionary eventDictionary,
+			DateTime startTime,
+			bool success,
+			DifficultyId difficultyId,
+			EncounterId encounterId,
+			string encounterName,
+			int groupSize,
+			uint encounterDurationInMS,
+			DateTime endTime,
+			PlayerInfo[] players,
+			List<NpcInfo> npcs) //could be an array aswell 
+		{
+			CombatlogEvents = allEvents;
+			CombatlogEventDictionary = eventDictionary;
+			EncounterStartTime = startTime;
+			EncounterEndTime = endTime;
+			Players = players;
+			EncounterSuccess = success;
+			DifficultyID = difficultyId;
+			EncounterName = encounterName;
+			EncounterID = encounterId;
+			GroupSize = groupSize;
+			EncounterDuration = encounterDurationInMS;
+			Npcs = npcs;
 
-            //initialize the lookup table
-            SourceToOwnerGuidLookup = new();
-            foreach (var summon in CombatlogEventDictionary.GetEvents<SummonEvent>())
-            {
-                //the summoned "pet" is the targetGUID of the event.
-                if (SourceToOwnerGuidLookup.ContainsKey(summon.TargetGUID) == false)
-                    SourceToOwnerGuidLookup.Add(summon.TargetGUID, summon.SourceGUID);
-            }
-            foreach (var e in CombatlogEventDictionary.GetEvents<AdvancedParamEvent>())
-            {
-                var sourceGUID = e.SourceGUID;
-                //if the source unit is the advanced info unit
-                if (sourceGUID != e.AdvancedParams.infoGUID)
-                    continue;
-                var owner = e.AdvancedParams.ownerGUID;
-                //"000000000000" is the default GUID for "no owner".
-                //regular GUIDs start with "Player", "Creature" or "Pet".
-                if (SourceToOwnerGuidLookup.ContainsKey(sourceGUID) == false)
-                    SourceToOwnerGuidLookup.Add(sourceGUID, owner[0] == '0' ? sourceGUID : owner);
-            }
-        }
+			//initialize the lookup table
+			SourceToOwnerGuidLookup = new();
+			foreach (var summon in CombatlogEventDictionary.GetEvents<SummonEvent>())
+			{
+				//the summoned "pet" is the targetGUID of the event.
+				if (SourceToOwnerGuidLookup.ContainsKey(summon.TargetGUID) == false)
+					SourceToOwnerGuidLookup.Add(summon.TargetGUID, summon.SourceGUID);
+			}
+			foreach (var e in CombatlogEventDictionary.GetEvents<AdvancedParamEvent>())
+			{
+				var sourceGUID = e.SourceGUID;
+				//if the source unit is the advanced info unit
+				if (sourceGUID != e.AdvancedParams.infoGUID)
+					continue;
+				var owner = e.AdvancedParams.ownerGUID;
+				//"000000000000" is the default GUID for "no owner".
+				//regular GUIDs start with "Player", "Creature" or "Pet".
+				if (SourceToOwnerGuidLookup.ContainsKey(sourceGUID) == false)
+					SourceToOwnerGuidLookup.Add(sourceGUID, owner[0] == '0' ? sourceGUID : owner);
+			}
+		}
 
-        public CombatlogEvent? FirstEventForGUID(string guid)
-            => CombatlogEvents.FirstOrDefault(x => x.SourceGUID == guid);
+		public CombatlogEvent? FirstEventForGUID(string guid)
+			=> CombatlogEvents.FirstOrDefault(x => x.SourceGUID == guid);
 
-        public PlayerInfo? FindPlayerInfoByGUID(string sourceGUID)
-        {
-            foreach (var p in Players)
-            {
-                if (p.GUID == sourceGUID)
-                    return p;
-            }
-            return null;
-        }
+		public PlayerInfo? FindPlayerInfoByGUID(string sourceGUID)
+		{
+			foreach (var p in Players)
+			{
+				if (p.GUID == sourceGUID)
+					return p;
+			}
+			return null;
+		}
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="mode"></param>
-        /// <param name="sourceGUID"></param>
-        /// <returns>A dictionary of either a units GUID or a spell name mapped to </returns>
-        public Dictionary<string, long> CalculateBreakdown(BreakdownMode mode, bool alliesAsSource)
-        {
-            if (mode == BreakdownMode.DamageDone)
-            {
-                return GenerateDamageDoneBreakdown(alliesAsSource);
-            }
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="mode"></param>
+		/// <param name="sourceGUID"></param>
+		/// <returns>A dictionary of either a units GUID or a spell name mapped to </returns>
+		public Dictionary<string, long> CalculateBreakdown(BreakdownMode mode, bool alliesAsSource)
+		{
+			if (mode == BreakdownMode.DamageDone)
+			{
+				return GenerateDamageDoneBreakdown(alliesAsSource);
+			}
 			if (mode == BreakdownMode.HealingDone)
 			{
 				return GenerateHealingDoneBreakdown(alliesAsSource);
@@ -176,11 +175,12 @@ namespace CombatlogParser.Data
 			{
 				return CalculateCastsPerEntity(alliesAsSource);
 			}
-            return new();
-        }
+			return new();
+		}
 		public Dictionary<SpellData, long> CalculateBreakdownForEntity(BreakdownMode mode, string entityGUID)
 		{
-			return mode switch {
+			return mode switch
+			{
 				BreakdownMode.DamageDone => GenerateDamageDoneBySource(entityGUID),
 				BreakdownMode.DamageTaken => GenerateDamageTakenByEntityGUID(entityGUID),
 				BreakdownMode.HealingDone => GenerateHealingDoneBySource(entityGUID),
@@ -194,7 +194,7 @@ namespace CombatlogParser.Data
 		{
 			Dictionary<string, long> damageBySource = new();
 			var damageEvents = CombatlogEventDictionary.GetEvents<DamageEvent>();
-			EventFilter filter = alliesAsSource? EventFilters.AllySourceEnemyTargetFilter : EventFilters.EnemySourceFilter;
+			EventFilter filter = alliesAsSource ? EventFilters.AllySourceEnemyTargetFilter : EventFilters.EnemySourceFilter;
 			SumAmountsForSources(
 				damageEvents.Where(filter.Match),
 				dmgEvent => dmgEvent.DamageParams.TotalAmount,
@@ -225,11 +225,11 @@ namespace CombatlogParser.Data
 			{
 				AddSum(damageBySpell, supportEvent.SpellData, -supportEvent.DamageParams.TotalAmount);
 			}
-            return damageBySpell;
+			return damageBySpell;
 		}
 
 
-		 //TODO: for healing, figure out whether Absorb events are relevant. they might be.
+		//TODO: for healing, figure out whether Absorb events are relevant. they might be.
 		private Dictionary<string, long> GenerateHealingDoneBreakdown(bool alliesAsSource)
 		{
 			Dictionary<string, long> healingBySource = new();
@@ -345,7 +345,7 @@ namespace CombatlogParser.Data
 						).FirstOrDefault()?.Timestamp ?? deathEvent.Timestamp;
 					var slowDeathTimeOffset = deathEvent.Timestamp - lastTimeFullHealth;
 					//TODO: It should also read instant when the killing damage event does more damage than the players max health.
-					var formattedDeathTime = slowDeathTimeOffset.TotalMilliseconds <= 100 ? 
+					var formattedDeathTime = slowDeathTimeOffset.TotalMilliseconds <= 100 ?
 						"Instant" : $"{slowDeathTimeOffset:ss\\.fff} seconds";
 
 					deathData.Add(
@@ -372,7 +372,7 @@ namespace CombatlogParser.Data
 			Dictionary<string, long> results = new();
 			EventFilter filter = isAllies ? EventFilters.AllySourceFilter : EventFilters.EnemySourceFilter;
 			var events = CombatlogEventDictionary.GetEvents<CastSuccessEvent>();
-			foreach(var castEvent in events.Where(filter.Match))
+			foreach (var castEvent in events.Where(filter.Match))
 			{
 				var sourceGuid = GetActualSourceGUID(castEvent.SourceGUID);
 				if (results.ContainsKey(sourceGuid))
@@ -461,12 +461,12 @@ namespace CombatlogParser.Data
 		/// May be merged with <see cref="SingleEncounterViewMode"/> at a later time.
 		/// </summary>
 		public enum BreakdownMode
-        {
-            DamageDone, 
-            HealingDone,
-            DamageTaken,
-            Casts,
-            //Deaths, doesnt really fit in with the other ones.
+		{
+			DamageDone,
+			HealingDone,
+			DamageTaken,
+			Casts,
+			//Deaths, doesnt really fit in with the other ones.
 		}
 
 		/// <summary>
@@ -561,10 +561,10 @@ namespace CombatlogParser.Data
 				{
 					var second = (int)(dmgEvent.Timestamp - EncounterStartTime).TotalSeconds;
 					damagePerSecond[second] += dmgEvent.DamageParams.TotalAmount;
-				} 
+				}
 				catch (IndexOutOfRangeException)
 				{
-					damagePerSecond[seconds-1] += dmgEvent.DamageParams.TotalAmount;
+					damagePerSecond[seconds - 1] += dmgEvent.DamageParams.TotalAmount;
 				}
 			}
 			var maxDps = damagePerSecond.Max();

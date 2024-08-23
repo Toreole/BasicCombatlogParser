@@ -2,5 +2,5 @@
 
 public abstract class EntityBase
 {
-    public abstract uint Id { get; set; }
+	public abstract uint Id { get; set; }
 }
