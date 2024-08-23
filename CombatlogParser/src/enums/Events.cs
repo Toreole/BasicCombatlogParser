@@ -100,12 +100,17 @@
 		_DAMAGE_SUPPORT,
 
 		/// <summary>
-		/// UNDEFINED
+		/// Suffix params: spellId, spellName, spellSchool
 		/// </summary>
 		_EMPOWER_START,
 
 		/// <summary>
-		/// UNDEFINED
+		/// Suffix params: spellId, spellName, spellSchool, empowerLevel
+		/// </summary>
+		_EMPOWER_INTERRUPT,
+
+		/// <summary>
+		/// Suffix params: spellId, spellName, spellSchool, empowerLevel
 		/// </summary>
 		_EMPOWER_END,
 

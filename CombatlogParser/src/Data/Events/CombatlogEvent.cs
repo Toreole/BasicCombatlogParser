@@ -20,7 +20,7 @@ public abstract class CombatlogEvent : LogEntryBase
 	public UnitFlag TargetFlags { get; private set; }
 	public RaidFlag TargetRaidFlags { get; private set; }
 
-	public readonly EventType eventType = EventType.UNDEFINED;
+	public EventType EventType { get; private set; } = EventType.UNDEFINED;
 
 	public bool IsSourcePet => SourceFlags.HasFlagf(UnitFlag.COMBATLOG_OBJECT_TYPE_PET);
 
@@ -38,7 +38,7 @@ public abstract class CombatlogEvent : LogEntryBase
 		TargetFlags = NextFlags(entry, ref dataIndex);
 		TargetRaidFlags = NextRaidFlags(entry, ref dataIndex);
 
-		this.eventType = eventType;
+		EventType = eventType;
 		SubeventPrefix = prefix;
 		SubeventSuffix = suffix;
 	}
