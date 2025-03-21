@@ -3,6 +3,25 @@
 # their encounters are indented by 2. 
 # ': ' seperates id from name.
 # enum names are generated based on the full name in here.
+# THE WAR WITHIN
+2769: Liberation of Undermine
+  3009: Vexie and the Geargrinders
+  3010: Cauldron of Carnage
+  3011: Rik Reverb
+  3012: Stix Bunkjunker
+  3013: Sprocketmonger Lockenstock
+  3014: One-Armed Bandit
+  3015: Mug'Zee, Heads of Security
+  3016: Chrome King Gallywix
+2657: Nerub'ar Palace
+  2902: Ulgrax the Devourer
+  2917: The Bloodbound Horror
+  2898: Sikran, Captain of the Sureki
+  2918: Rasha'nan
+  2919: Broodtwister Ovi'nax
+  2920: Nexus-Princess Ky'veza
+  2921: The Silken Court
+  2922: Queen Ansurek
 # DRAGONFLIGHT
 2549: Amirdrassil, the Dream's Hope
   2820: Gnarlroot
