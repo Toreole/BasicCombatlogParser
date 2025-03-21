@@ -1,0 +1,58 @@
+﻿<Window x:Name="window" x:Class="CombatlogParser.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:CombatlogParser"
+        xmlns:controls="clr-namespace:CombatlogParser.Controls"
+        xmlns:views="clr-namespace:CombatlogParser.Controls.Views"
+        xmlns:test="clr-namespace:CombatlogParser.Controls"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="700" Width="1300"
+        WindowStyle="None">
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Controls/Styles/DefaultStyleOverrides.xaml" />
+                <ResourceDictionary Source="Controls/Styles/CustomButtons.xaml" />
+                <ResourceDictionary Source="Controls/Styles/CustomComboBoxTemplates.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+    <DockPanel x:Name="RootWindow">
+        <DockPanel x:Name="TitleBar" DockPanel.Dock="Top" Background="{StaticResource custom_NearBlack}" MouseDown="TitleBar_MouseDown">
+            <Button x:Name="CloseButton" Content="X" DockPanel.Dock="Right" Click="CloseButton_Click"/>
+            <TextBlock HorizontalAlignment="Left">Application Name</TextBlock>
+        </DockPanel>
+        <!-- actual content -->
+        <Grid Background="{StaticResource custom_NearBlack}" Width="Auto">
+            <Rectangle Width="Auto" Height="50" VerticalAlignment="Top">
+                <Rectangle.Fill>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                        <GradientStop Color="#171717" Offset="0.0"/>
+                        <GradientStop Color="#171717" Offset="0.2"/>
+                        <GradientStop Color="#3f3f3f" Offset="1.0"/>
+                    </LinearGradientBrush>
+                </Rectangle.Fill>
+            </Rectangle>
+
+            <Label x:Name="HeaderLabel" Content="Combatlog Viewer" HorizontalAlignment="Left" VerticalAlignment="Top" FontSize="20" FontWeight="Bold" Width="194" />
+            <Button x:Name="ImportLogButton" Click="ImportLogButtonClicked" HorizontalAlignment="Right" VerticalAlignment="Top" Width="150" Height="30" FontSize="15" Margin="0,10,10,0">Import Combatlog</Button>
+            <Button x:Name="DBViewButton" HorizontalAlignment="Right" VerticalAlignment="Top" Content="DB View" Margin="0,16,180,0" Click="DBViewButton_Click"/>
+            <ComboBox x:Name="PlayerSearchBox" Margin="199,10,0,0" IsEditable="True" SelectionChanged="PlayerSearchSelectionChanged" TextBoxBase.TextChanged="PlayerSearchTextChanged" Width="225" Height="30" HorizontalAlignment="Left" VerticalAlignment="Top" VerticalContentAlignment="Center" HorizontalContentAlignment="Left">
+
+            </ComboBox>
+
+            <ContentControl x:Name="MainContentControl" Margin="0,50,0,0">
+                <views:RawDatabaseView />
+            </ContentControl>
+            <Button x:Name="TestButton" HorizontalAlignment="Right" VerticalAlignment="Top" Content="Test Something" Margin="0,17,263,0" Click="TestButton_Click"/>
+
+            <Grid x:Name="PopupOverlay" Background="#70111111" Visibility="Hidden">
+                <!--<controls:LabelledProgressBar />-->
+            </Grid>
+        </Grid>
+
+
+    </DockPanel>
+</Window>
