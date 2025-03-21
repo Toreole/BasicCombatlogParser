@@ -1,6 +1,7 @@
-﻿using CombatlogParser.Formatting;
+﻿using CombatlogParser.Parsing;
+using CombatlogParser.Utilities.Formatting;
 
-namespace CombatlogParser.Tests
+namespace Tests
 {
 	public class UtilsTests
 	{

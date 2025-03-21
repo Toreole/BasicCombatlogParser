@@ -1,4 +1,7 @@
-﻿namespace CombatlogParser.Tests
+﻿using CombatlogParser.Data.WowEnums;
+using CombatlogParser.Parsing;
+
+namespace CombatlogParser.Tests
 {
 
 	public class SubstringTests

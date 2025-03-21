@@ -1,4 +1,4 @@
-﻿using CombatlogParser.Formatting;
+﻿using CombatlogParser.Utilities.Formatting;
 using System.Globalization;
 
 namespace CombatlogParser.Tests;

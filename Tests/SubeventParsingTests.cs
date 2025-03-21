@@ -1,6 +1,7 @@
-using CombatlogParser.Data.Events;
+using CombatlogParser.Data.WowEnums;
+using CombatlogParser.Parsing;
 
-namespace CombatlogParser.Tests
+namespace Tests
 {
 	public class SubeventParsingTests
 	{
