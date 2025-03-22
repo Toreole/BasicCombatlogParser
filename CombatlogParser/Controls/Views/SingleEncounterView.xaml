@@ -1,4 +1,4 @@
-﻿<controls:ContentView x:Class="CombatlogParser.Controls.Views.SingleEncounterView"
+﻿<views:ContentView x:Class="CombatlogParser.Controls.Views.SingleEncounterView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -6,6 +6,8 @@
              xmlns:sys="clr-namespace:System;assembly=mscorlib"
              xmlns:plot="clr-namespace:ScottPlot.WPF;assembly=ScottPlot.WPF"
              xmlns:controls="clr-namespace:CombatlogParser.Controls"
+             xmlns:views="clr-namespace:CombatlogParser.Controls.Views"
+             xmlns:components="clr-namespace:CombatlogParser.Controls.Components"
              mc:Ignorable="d" 
              d:DesignHeight="650" d:DesignWidth="1300">
     <UserControl.Resources>
@@ -41,31 +43,31 @@
                         Content="Damage" 
                         Style="{StaticResource selection-button-spaced-highlighted}" 
                         Click="TabButtonClick"
-                        Tag="{x:Static controls:SingleEncounterViewMode.DamageDone}">
+                        Tag="{x:Static views:SingleEncounterViewMode.DamageDone}">
                 </Button>
                 <Button x:Name="HealingButton" 
                         Content="Healing" 
                         Style="{StaticResource selection-button-spaced}" 
                         Click="TabButtonClick"
-                        Tag="{x:Static controls:SingleEncounterViewMode.Healing}">
+                        Tag="{x:Static views:SingleEncounterViewMode.Healing}">
                 </Button>
                 <Button x:Name="DamageTakenButton" 
                         Content="Damage Taken" 
                         Style="{StaticResource selection-button-spaced}" 
                         Click="TabButtonClick"
-                        Tag="{x:Static controls:SingleEncounterViewMode.DamageTaken}">
+                        Tag="{x:Static views:SingleEncounterViewMode.DamageTaken}">
                 </Button>
                 <Button x:Name="DeathsButton" 
                         Content="Deaths" 
                         Style="{StaticResource selection-button-spaced}" 
                         Click="TabButtonClick"
-                        Tag="{x:Static controls:SingleEncounterViewMode.Deaths}">
+                        Tag="{x:Static views:SingleEncounterViewMode.Deaths}">
                 </Button>
                 <Button x:Name="CastsButton" 
                         Content="Casts" 
                         Style="{StaticResource selection-button-spaced}" 
                         Click="TabButtonClick"
-                        Tag="{x:Static controls:SingleEncounterViewMode.Casts}">
+                        Tag="{x:Static views:SingleEncounterViewMode.Casts}">
                 </Button>
             </StackPanel>
         </Grid>
@@ -99,7 +101,7 @@
                 <DataGridTemplateColumn x:Name="MetricSumColumn" Header="Damage Done" Width="*" SortMemberPath="Value">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <controls:LabelledBarControl Value="{Binding Path=Value}" Maximum="{Binding Path=Maximum}" FillColor="{Binding Path=Color}" Label="{Binding Path=Label}" TextColor="White"/>
+                            <components:LabelledBarControl Value="{Binding Path=Value}" Maximum="{Binding Path=Maximum}" FillColor="{Binding Path=Color}" Label="{Binding Path=Label}" TextColor="White"/>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
@@ -113,4 +115,4 @@
         </StackPanel>
         
     </Grid>
-</controls:ContentView>
+</views:ContentView>

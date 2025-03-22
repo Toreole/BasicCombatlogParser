@@ -7,7 +7,7 @@
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="600">
     <UserControl.Resources>
-        <ResourceDictionary Source="Styles/CustomColors.xaml" />
+        <ResourceDictionary Source="../Styles/CustomColors.xaml" />
     </UserControl.Resources>
     <Border BorderThickness="2" BorderBrush="LightGray" Margin="10" Width="500" Height="100" Background="{StaticResource custom_NearBlack}">
         <Grid VerticalAlignment="Center" HorizontalAlignment="Center" Width="450">
