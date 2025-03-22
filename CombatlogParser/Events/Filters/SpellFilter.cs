@@ -2,14 +2,8 @@
 
 namespace CombatlogParser.Events.Filters;
 
-public class SpellFilter : EventFilter, IEventFilter<ISpellEvent>
+public class SpellFilter(SpellData spell) : EventFilter, IEventFilter<ISpellEvent>
 {
-	private readonly SpellData spell;
-	public SpellFilter(SpellData spell)
-	{
-		this.spell = spell;
-	}
-
 	public override bool Match(CombatlogEvent combatlogEvent)
 	{
 		if (combatlogEvent is ISpellEvent ev)

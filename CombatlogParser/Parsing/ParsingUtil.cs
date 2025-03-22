@@ -7,16 +7,16 @@ public static class ParsingUtil
 {
 	private static readonly CultureInfo formatInfoProvider = CultureInfo.GetCultureInfo("en-US");
 	private static readonly string[] acceptedTimestampFormats =
-	{
+	[
 		"MM/dd HH:mm:ss.fff",
 		"M/dd HH:mm:ss.fff",
 		"M/d HH:mm:ss.fff",
 		"MM/d HH:mm:ss.fff"
-	};
+	];
 
 	private static readonly Dictionary<string, Subevent> subeventDictionary;
 
-	private static readonly List<PowerType[]> knownPowerTypes = new();
+	private static readonly List<PowerType[]> knownPowerTypes = [];
 
 	private static readonly CombatlogEventPrefix[] prefixes;
 	private static readonly string[] prefixNames;
@@ -45,7 +45,7 @@ public static class ParsingUtil
 		//needs to included extra because otherwise it will default to german on my machine.
 		FloatNumberFormat = new CultureInfo("en-US").NumberFormat;
 
-		subeventDictionary = new();
+		subeventDictionary = [];
 		//this creates every theoretically possible combination.
 		//which is kinda overkill, because not every combination actually exists as an event
 		//but its easier than actually writing it all out individually.
@@ -201,7 +201,7 @@ public static class ParsingUtil
 
 			return PseudoIntern(powerTypes);
 		}
-		return PseudoIntern(new[] { (PowerType)int.Parse(str, NumberStyles.Number) });
+		return PseudoIntern([(PowerType)int.Parse(str, NumberStyles.Number)]);
 	}
 
 	/// <summary>
@@ -230,7 +230,7 @@ public static class ParsingUtil
 	/// <returns></returns>
 	public static int[] AllIntsIn(string str)
 	{
-		if (string.IsNullOrEmpty(str)) return new int[] { 0 };
+		if (string.IsNullOrEmpty(str)) return [0];
 		if (str.Contains('|'))
 		{
 			string[] vs = str.Split('|');
@@ -239,7 +239,7 @@ public static class ParsingUtil
 				ix[i] = int.Parse(vs[i], NumberStyles.Number);
 			return ix;
 		}
-		return new int[] { int.Parse(str, NumberStyles.Number) };
+		return [int.Parse(str, NumberStyles.Number)];
 	}
 
 	/// <summary>
@@ -458,7 +458,7 @@ public static class ParsingUtil
 		if (!isArray)
 			return NextSubstring(data, ref index);
 		int startIndex = index + 1;
-		int endIndex = data.IndexOf("]", startIndex);
+		int endIndex = data.IndexOf(']', startIndex);
 		index = endIndex + 2;
 		return data[startIndex..endIndex];
 	}
@@ -510,15 +510,9 @@ public static class ParsingUtil
 	/// <summary>
 	/// Helper struct for subevent parsing.
 	/// </summary>
-	public readonly struct Subevent
+	public readonly struct Subevent(CombatlogEventPrefix prefix, CombatlogEventSuffix suffix)
 	{
-		public readonly CombatlogEventPrefix prefix;
-		public readonly CombatlogEventSuffix suffix;
-
-		public Subevent(CombatlogEventPrefix prefix, CombatlogEventSuffix suffix)
-		{
-			this.prefix = prefix;
-			this.suffix = suffix;
-		}
+		public readonly CombatlogEventPrefix prefix = prefix;
+		public readonly CombatlogEventSuffix suffix = suffix;
 	}
 }

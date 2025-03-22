@@ -4,7 +4,7 @@ namespace CombatlogParser.Utilities.Formatting;
 
 public static class NumberFormatting
 {
-	static readonly char[] magnitudeSymbols = { 'k', 'm', 'b', 't' }; //not expecting wow to ever go to trillions and higher
+	static readonly char[] magnitudeSymbols = ['k', 'm', 'b', 't']; //not expecting wow to ever go to trillions and higher
 
 	/// <summary>
 	/// Formats a possibly very large number in a way that it has a maximum of 3 digits before the decimal and a total of 4 digits at all times,

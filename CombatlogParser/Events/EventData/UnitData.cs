@@ -4,7 +4,7 @@ namespace CombatlogParser.Events.EventData;
 
 public class UnitData
 {
-	private static readonly Dictionary<string, UnitData> knownUnits = new();
+	private static readonly Dictionary<string, UnitData> knownUnits = [];
 
 	public readonly string unitGUID;
 	public readonly string unitName;
@@ -21,11 +21,11 @@ public class UnitData
 	public static UnitData GetOrParse(string entry, ref int dataIndex)
 	{
 		string guid = NextSubstring(entry, ref dataIndex);
-		if (knownUnits.ContainsKey(guid))
+		if (knownUnits.TryGetValue(guid, out UnitData? value))
 		{
 			//skip name
 			MovePastNextDivisor(entry, ref dataIndex);
-			return knownUnits[guid];
+			return value;
 		}
 		var name = NextSubstring(entry, ref dataIndex);
 		var unit = new UnitData(guid, name);

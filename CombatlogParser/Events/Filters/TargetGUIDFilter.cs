@@ -3,13 +3,8 @@
 /// <summary>
 /// Filters Targets given a set of GUIDs
 /// </summary>
-public sealed class TargetGUIDFilter : EventFilter
+public sealed class TargetGUIDFilter(params string[] targets) : EventFilter
 {
-	private readonly string[] targets;
-	public TargetGUIDFilter(params string[] targets)
-	{
-		this.targets = targets;
-	}
 	public override bool Match(CombatlogEvent ev)
 	{
 		return targets.Contains(ev.TargetGUID);

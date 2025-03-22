@@ -12,13 +12,13 @@ namespace CombatlogParser.Controls.Views;
 /// </summary>
 public partial class RawDatabaseView : ContentView
 {
-	private readonly ObservableCollection<CombatlogMetadata> combatlogs = new();
-	private readonly ObservableCollection<EncounterInfoMetadata> encounters = new();
-	private readonly ObservableCollection<PerformanceMetadata> performances = new();
-	private readonly ObservableCollection<PlayerMetadata> players = new();
+	private readonly ObservableCollection<CombatlogMetadata> combatlogs = [];
+	private readonly ObservableCollection<EncounterInfoMetadata> encounters = [];
+	private readonly ObservableCollection<PerformanceMetadata> performances = [];
+	private readonly ObservableCollection<PlayerMetadata> players = [];
 	private uint lastId;
 	private DBViewMode viewMode = DBViewMode.EMPTY;
-	private readonly List<EntityBase?[]> bufferedPages = new();
+	private readonly List<EntityBase?[]> bufferedPages = [];
 	private int pageIndex = 0;
 	private int totalEntriesForMode = 0;
 
@@ -215,7 +215,7 @@ public partial class RawDatabaseView : ContentView
 			DBViewMode.Encounters => Queries.GetEncounterInfoMetadata(lastId, 30),
 			DBViewMode.Performances => Queries.GetPerformanceMetadata(lastId, 30),
 			DBViewMode.Players => Queries.GetPlayerMetadata(lastId, 30),
-			_ => Array.Empty<EntityBase?>()
+			_ => []
 		};
 	}
 

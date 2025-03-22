@@ -44,7 +44,7 @@ public class CombatlogMetadata : EntityBase
 	public WowProjectID ProjectID { get; set; }
 
 	//Inverse navigation property. is populated by EncounterInfoMetadata entities that refer to this one.
-	public virtual List<EncounterInfoMetadata> Encounters { get; set; } = new();
+	public virtual List<EncounterInfoMetadata> Encounters { get; set; } = [];
 
 	public override string ToString()
 	{

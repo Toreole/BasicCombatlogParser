@@ -1,20 +1,14 @@
-﻿using CombatlogParser.Events.EventData;
-using CombatlogParser.Data.WowEnums;
+﻿using CombatlogParser.Data.WowEnums;
+using CombatlogParser.Events.EventData;
 
 namespace CombatlogParser.Events
 {
-	public class SummonEvent : CombatlogEvent, ISpellEvent
+	public class SummonEvent(CombatlogEventPrefix prefix, string entry, int dataIndex) 
+		: CombatlogEvent(entry, ref dataIndex, EventType.SUMMON, prefix, CombatlogEventSuffix._SUMMON), ISpellEvent
 	{
 		//basically just a SPELL event, there is nothing special to it.
-		private readonly SpellData spellData;
+		private readonly SpellData spellData = SpellData.ParseOrGet(prefix, entry, ref dataIndex);
 
 		public SpellData SpellData => spellData;
-
-		//should always be a SPELL_SUMMON
-		public SummonEvent(CombatlogEventPrefix prefix, string entry, int dataIndex)
-			: base(entry, ref dataIndex, EventType.SUMMON, prefix, CombatlogEventSuffix._SUMMON)
-		{
-			spellData = SpellData.ParseOrGet(prefix, entry, ref dataIndex);
-		}
 	}
 }

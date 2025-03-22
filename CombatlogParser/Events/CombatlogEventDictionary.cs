@@ -10,7 +10,7 @@ namespace CombatlogParser.Events;
 // The goal with this was to minimize linear searches through EncounterInfo.CombatlogEvents by GetEvents<T> 
 public class CombatlogEventDictionary
 {
-	private readonly Dictionary<Type, CombatlogEvent[]> dictionary = new();
+	private readonly Dictionary<Type, CombatlogEvent[]> dictionary = [];
 
 	/// <summary>
 	/// Gets all events of a given type in an array. If no events of a type are present, the array will be empty. <br />
@@ -20,7 +20,7 @@ public class CombatlogEventDictionary
 	public EType[] GetEvents<EType>() where EType : CombatlogEvent
 	{
 		bool b = dictionary.TryGetValue(typeof(EType), out CombatlogEvent[]? result);
-		EType[] list = b ? (result as EType[])! : Array.Empty<EType>();
+		EType[] list = b ? (result as EType[])! : [];
 		return list;
 	}
 	internal void Add(Type type, CombatlogEvent[] arr)
@@ -41,7 +41,7 @@ public class CombatlogEventDictionary
 /// </summary>
 public class CombatlogEventDictionaryBuilder
 {
-	private readonly Dictionary<Type, IList> dictionary = new();
+	private readonly Dictionary<Type, IList> dictionary = [];
 
 	public void Add<T>(T value) where T : CombatlogEvent
 	{

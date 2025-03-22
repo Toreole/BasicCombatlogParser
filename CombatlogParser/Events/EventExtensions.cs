@@ -8,7 +8,7 @@ public static class EventExtensions
 	{
 		int size = list.Count;
 		if (size == 0 || list[0] is T == false)
-			return Array.Empty<T>();
+			return [];
 
 		T[] array = (T[])Array.CreateInstance(list[0]!.GetType(), size);
 
@@ -24,7 +24,7 @@ public static class EventExtensions
 	{
 		int size = list.Count;
 		if (size == 0 || list[0] is T == false)
-			return Array.Empty<T>();
+			return [];
 
 		T[] array = new ExplicitType[size];
 

@@ -124,10 +124,10 @@ public static partial class Queries
 		switch (metric)
 		{
 			case MetricType.Dps:
-				matching.OrderBy(p => p.Dps);
+				matching = matching.OrderBy(p => p.Dps);
 				break;
 			case MetricType.Hps:
-				matching.OrderBy(p => p.Hps);
+				matching = matching.OrderBy(p => p.Hps);
 				break;
 		}
 		int count = matching.Count();
@@ -206,10 +206,10 @@ public static partial class Queries
 		{
 			MetricType.Dps => GetDpsPerformances(playerId, encounter, difficulty),
 			MetricType.Hps => GetHpsPerformances(playerId, encounter, difficulty),
-			_ => Array.Empty<PerformanceMetadata>()
+			_ => []
 		};
 		if (rawPerformances.Length == 0)
-			return Array.Empty<PlayerPerformance>();
+			return [];
 		var results = new PlayerPerformance[rawPerformances.Length];
 		for (int i = 0; i < rawPerformances.Length; i++)
 		{

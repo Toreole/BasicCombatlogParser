@@ -6,13 +6,8 @@ namespace CombatlogParser.Events.Filters;
 /// Filters for a specific set of flags on the source.
 /// Events must match ALL flags.
 /// </summary>
-public sealed class SourceFlagFilter : EventFilter
+public sealed class SourceFlagFilter(UnitFlag flags) : EventFilter
 {
-	private readonly UnitFlag flags;
-	public SourceFlagFilter(UnitFlag flags)
-	{
-		this.flags = flags;
-	}
 	public override bool Match(CombatlogEvent ev)
 	{
 		return (ev.SourceFlags & flags) == flags;

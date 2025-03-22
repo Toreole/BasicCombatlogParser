@@ -1,13 +1,10 @@
-﻿using CombatlogParser.Events;
-
-namespace CombatlogParser.Events.Filters;
+﻿namespace CombatlogParser.Events.Filters;
 
 /// <summary>
 /// Composite filter that requires all supplied filters to match.
 /// </summary>
-public sealed class AllOfFilter : EventFilter
+public sealed class AllOfFilter(params EventFilter[] filters) : EventFilter
 {
-	private readonly EventFilter[] filters;
 	public override bool Match(CombatlogEvent ev)
 	{
 		foreach (var f in filters)
@@ -15,6 +12,4 @@ public sealed class AllOfFilter : EventFilter
 				return false;
 		return true;
 	}
-	public AllOfFilter(params EventFilter[] filters)
-		=> this.filters = filters;
 }

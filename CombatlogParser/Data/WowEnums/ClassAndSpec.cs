@@ -101,20 +101,20 @@ public static class ClassSpecUtil
 	{
 		return @class switch
 		{
-			ClassId.Death_Knight => new[] { SpecId.DK_Frost, SpecId.DK_Blood, SpecId.DK_Unholy },
-			ClassId.Warrior => new[] { SpecId.Warrior_Arms, SpecId.Warrior_Fury, SpecId.Warrior_Protection },
-			ClassId.Paladin => new[] { SpecId.Paladin_Holy, SpecId.Paladin_Protection, SpecId.Paladin_Retribution },
-			ClassId.Hunter => new[] { SpecId.Hunter_Marksman, SpecId.Hunter_BeastMastery, SpecId.Hunter_Survival },
-			ClassId.Rogue => new[] { SpecId.Rogue_Assassination, SpecId.Rogue_Outlaw, SpecId.Rogue_Subtlety },
-			ClassId.Priest => new[] { SpecId.Priest_Discipline, SpecId.Priest_Holy, SpecId.Priest_Shadow },
-			ClassId.Shaman => new[] { SpecId.Shaman_Enhancement, SpecId.Shaman_Elemental, SpecId.Shaman_Restoration },
-			ClassId.Mage => new[] { SpecId.DK_Frost, SpecId.DK_Blood, SpecId.DK_Unholy },
-			ClassId.Warlock => new[] { SpecId.Warlock_Affliction, SpecId.Warlock_Demonology, SpecId.Warlock_Destruction },
-			ClassId.Monk => new[] { SpecId.Monk_Brewmaster, SpecId.Monk_Windwalker, SpecId.Monk_Mistweaver },
-			ClassId.Druid => new[] { SpecId.Druid_Balance, SpecId.Druid_Feral, SpecId.Druid_Guardian, SpecId.Druid_Restoration },
-			ClassId.Demon_Hunter => new[] { SpecId.DH_Havoc, SpecId.DH_Vengeance },
-			ClassId.Evoker => new[] { SpecId.Evoker_Devastation, SpecId.Evoker_Devastation, SpecId.Evoker_Augmentation },
-			_ => new[] { SpecId.UNKNOWN },
+			ClassId.Death_Knight => [SpecId.DK_Frost, SpecId.DK_Blood, SpecId.DK_Unholy],
+			ClassId.Warrior => [SpecId.Warrior_Arms, SpecId.Warrior_Fury, SpecId.Warrior_Protection],
+			ClassId.Paladin => [SpecId.Paladin_Holy, SpecId.Paladin_Protection, SpecId.Paladin_Retribution],
+			ClassId.Hunter => [SpecId.Hunter_Marksman, SpecId.Hunter_BeastMastery, SpecId.Hunter_Survival],
+			ClassId.Rogue => [SpecId.Rogue_Assassination, SpecId.Rogue_Outlaw, SpecId.Rogue_Subtlety],
+			ClassId.Priest => [SpecId.Priest_Discipline, SpecId.Priest_Holy, SpecId.Priest_Shadow],
+			ClassId.Shaman => [SpecId.Shaman_Enhancement, SpecId.Shaman_Elemental, SpecId.Shaman_Restoration],
+			ClassId.Mage => [SpecId.DK_Frost, SpecId.DK_Blood, SpecId.DK_Unholy],
+			ClassId.Warlock => [SpecId.Warlock_Affliction, SpecId.Warlock_Demonology, SpecId.Warlock_Destruction],
+			ClassId.Monk => [SpecId.Monk_Brewmaster, SpecId.Monk_Windwalker, SpecId.Monk_Mistweaver],
+			ClassId.Druid => [SpecId.Druid_Balance, SpecId.Druid_Feral, SpecId.Druid_Guardian, SpecId.Druid_Restoration],
+			ClassId.Demon_Hunter => [SpecId.DH_Havoc, SpecId.DH_Vengeance],
+			ClassId.Evoker => [SpecId.Evoker_Devastation, SpecId.Evoker_Devastation, SpecId.Evoker_Augmentation],
+			_ => [SpecId.UNKNOWN],
 		};
 	}
 

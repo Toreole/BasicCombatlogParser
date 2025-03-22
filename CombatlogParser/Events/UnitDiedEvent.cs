@@ -2,11 +2,7 @@
 
 namespace CombatlogParser.Events;
 
-public class UnitDiedEvent : CombatlogEvent
+public class UnitDiedEvent(CombatlogEventPrefix prefix, string entry, int index) 
+	: CombatlogEvent(entry, ref index, EventType.DEATH, prefix, CombatlogEventSuffix._DIED)
 {
-	public UnitDiedEvent(CombatlogEventPrefix prefix, string entry, int index)
-		: base(entry, ref index, EventType.DEATH, prefix, CombatlogEventSuffix._DIED)
-	{
-		//this event technically has a single integer as a payload, but it just doesn't matter at all.
-	}
 }

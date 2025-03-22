@@ -1,7 +1,7 @@
-﻿using CombatlogParser.Events.EventData;
-using CombatlogParser.Data.WowEnums;
-using System.Text.RegularExpressions;
+﻿using CombatlogParser.Data.WowEnums;
+using CombatlogParser.Events.EventData;
 using CombatlogParser.Parsing;
+using System.Text.RegularExpressions;
 
 namespace CombatlogParser.Events
 {

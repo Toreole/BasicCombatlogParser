@@ -1,9 +1,9 @@
 ﻿using CombatlogParser.Controls.Components;
 using CombatlogParser.Data;
-using CombatlogParser.Events;
 using CombatlogParser.Data.Metadata;
 using CombatlogParser.Data.WowEnums;
 using CombatlogParser.Database;
+using CombatlogParser.Events;
 using System.IO;
 using System.Reflection;
 using System.Text.RegularExpressions;

@@ -1,15 +1,15 @@
 ﻿using CombatlogParser.Controls.Styles;
 using CombatlogParser.Data;
 using CombatlogParser.Data.DisplayReady;
-using CombatlogParser.Events;
-using CombatlogParser.Events.Filters;
 using CombatlogParser.Data.Metadata;
 using CombatlogParser.Data.WowEnums;
 using CombatlogParser.Database;
+using CombatlogParser.Events;
+using CombatlogParser.Events.Filters;
+using CombatlogParser.Parsing;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using CombatlogParser.Parsing;
 
 namespace CombatlogParser.Controls.Components;
 
@@ -34,7 +34,7 @@ public partial class TestList : UserControl
 
 		EncounterInfo encounterInfo = ParserCore.ParseEncounter(encounterInfoMetadata);
 
-		Dictionary<string, long> damageBySource = new();
+		Dictionary<string, long> damageBySource = [];
 		var damageEvents = encounterInfo.CombatlogEventDictionary.GetEvents<DamageEvent>();
 		var filter = new TargetFlagFilter(UnitFlag.COMBATLOG_OBJECT_REACTION_HOSTILE);
 		foreach (var dmgEvent in damageEvents.Where(filter.Match))

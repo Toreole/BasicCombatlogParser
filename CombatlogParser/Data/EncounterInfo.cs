@@ -1,17 +1,17 @@
 ﻿using CombatlogParser.Controls.Styles;
 using CombatlogParser.Controls.Views;
 using CombatlogParser.Data.DisplayReady;
+using CombatlogParser.Data.WowEnums;
 using CombatlogParser.Events;
 using CombatlogParser.Events.EventData;
 using CombatlogParser.Events.Filters;
-using CombatlogParser.Data.WowEnums;
+using CombatlogParser.Parsing;
 using CombatlogParser.Utilities.Formatting;
 using Microsoft.Win32;
 using ScottPlot.TickGenerators;
 using ScottPlot.WPF;
 using System.Drawing;
 using Point = System.Drawing.Point;
-using CombatlogParser.Parsing;
 
 namespace CombatlogParser.Data;
 
@@ -120,7 +120,7 @@ public class EncounterInfo
 		Npcs = npcs;
 
 		//initialize the lookup table
-		SourceToOwnerGuidLookup = new();
+		SourceToOwnerGuidLookup = [];
 		foreach (var summon in CombatlogEventDictionary.GetEvents<SummonEvent>())
 		{
 			//the summoned "pet" is the targetGUID of the event.
@@ -178,7 +178,7 @@ public class EncounterInfo
 		{
 			return CalculateCastsPerEntity(alliesAsSource);
 		}
-		return new();
+		return [];
 	}
 	public Dictionary<SpellData, long> CalculateBreakdownForEntity(BreakdownMode mode, string entityGUID)
 	{
@@ -188,14 +188,14 @@ public class EncounterInfo
 			BreakdownMode.DamageTaken => GenerateDamageTakenByEntityGUID(entityGUID),
 			BreakdownMode.HealingDone => GenerateHealingDoneBySource(entityGUID),
 			BreakdownMode.Casts => CalculateCastsForEntity(entityGUID),
-			_ => new()
+			_ => []
 		};
 	}
 
 	//TODO: for damage, figure out whether Absorb events are relevant. they might be.
 	private Dictionary<string, long> GenerateDamageDoneBreakdown(bool alliesAsSource)
 	{
-		Dictionary<string, long> damageBySource = new();
+		Dictionary<string, long> damageBySource = [];
 		var damageEvents = CombatlogEventDictionary.GetEvents<DamageEvent>();
 		EventFilter filter = alliesAsSource ? EventFilters.AllySourceEnemyTargetFilter : EventFilters.EnemySourceFilter;
 		SumAmountsForSources(
@@ -216,7 +216,7 @@ public class EncounterInfo
 
 	private Dictionary<SpellData, long> GenerateDamageDoneBySource(string selectedEntityGUID)
 	{
-		Dictionary<SpellData, long> damageBySpell = new();
+		Dictionary<SpellData, long> damageBySpell = [];
 		var damageEvents = CombatlogEventDictionary.GetEvents<DamageEvent>();
 		foreach (var dmgEvent in damageEvents.Where(x => GetActualSourceGUID(x.SourceGUID) == selectedEntityGUID))
 		{
@@ -235,7 +235,7 @@ public class EncounterInfo
 	//TODO: for healing, figure out whether Absorb events are relevant. they might be.
 	private Dictionary<string, long> GenerateHealingDoneBreakdown(bool alliesAsSource)
 	{
-		Dictionary<string, long> healingBySource = new();
+		Dictionary<string, long> healingBySource = [];
 		var healEvents = CombatlogEventDictionary.GetEvents<HealEvent>();
 		EventFilter filter = alliesAsSource ? EventFilters.AllySourceFilter : EventFilters.EnemySourceFilter;
 		SumAmountsForSources(
@@ -264,7 +264,7 @@ public class EncounterInfo
 	/// <returns></returns>
 	private Dictionary<SpellData, long> GenerateHealingDoneBySource(string selectedEntityGUID)
 	{
-		Dictionary<SpellData, long> healingBySpell = new();
+		Dictionary<SpellData, long> healingBySpell = [];
 		var healingEvents = CombatlogEventDictionary.GetEvents<HealEvent>();
 		foreach (var healEvent in healingEvents.Where(x => GetActualSourceGUID(x.SourceGUID) == selectedEntityGUID))
 		{
@@ -284,7 +284,7 @@ public class EncounterInfo
 	/// </summary>
 	private Dictionary<string, long> GenerateDamageTakenBreakdown(bool byAlly)
 	{
-		Dictionary<string, long> dmgTakenByTarget = new();
+		Dictionary<string, long> dmgTakenByTarget = [];
 		var damageEvents = CombatlogEventDictionary.GetEvents<DamageEvent>();
 		EventFilter filter = byAlly ? EventFilters.GroupMemberTargetFilter : EventFilters.EnemyTargetFilter;
 		foreach (var dmgEvent in damageEvents.Where(filter.Match))
@@ -299,7 +299,7 @@ public class EncounterInfo
 	/// </summary>
 	private Dictionary<SpellData, long> GenerateDamageTakenByEntityGUID(string entityGUID)
 	{
-		Dictionary<SpellData, long> dmgTakenBySpell = new();
+		Dictionary<SpellData, long> dmgTakenBySpell = [];
 		var damageEvents = CombatlogEventDictionary.GetEvents<DamageEvent>();
 		EventFilter filter = new TargetGUIDFilter(entityGUID);
 		foreach (var dmgEvent in damageEvents.Where(filter.Match))
@@ -315,7 +315,7 @@ public class EncounterInfo
 	/// <returns>All player deaths ordered by time in the encounter</returns>
 	public PlayerDeathDataRow[] GetPlayerDeathInfo()
 	{
-		List<PlayerDeathDataRow> deathData = new();
+		List<PlayerDeathDataRow> deathData = [];
 		var startTime = EncounterStartTime;
 		//yes, all of this data is required.
 		var unitDiedEvents = CombatlogEventDictionary.GetEvents<UnitDiedEvent>();
@@ -372,7 +372,7 @@ public class EncounterInfo
 	/// <returns></returns>
 	private Dictionary<string, long> CalculateCastsPerEntity(bool isAllies)
 	{
-		Dictionary<string, long> results = new();
+		Dictionary<string, long> results = [];
 		EventFilter filter = isAllies ? EventFilters.AllySourceFilter : EventFilters.EnemySourceFilter;
 		var events = CombatlogEventDictionary.GetEvents<CastSuccessEvent>();
 		foreach (var castEvent in events.Where(filter.Match))
@@ -397,7 +397,7 @@ public class EncounterInfo
 	/// <returns></returns>
 	private Dictionary<SpellData, long> CalculateCastsForEntity(string entityGUID)
 	{
-		Dictionary<SpellData, long> results = new();
+		Dictionary<SpellData, long> results = [];
 		var events = CombatlogEventDictionary.GetEvents<CastSuccessEvent>();
 		foreach (var castEvent in events.Where(x => GetActualSourceGUID(x.SourceGUID) == entityGUID))
 		{

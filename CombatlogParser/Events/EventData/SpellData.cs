@@ -5,7 +5,7 @@ namespace CombatlogParser.Events.EventData;
 
 public class SpellData
 {
-	private readonly static Dictionary<int, SpellData> knownSpells = new();
+	private readonly static Dictionary<int, SpellData> knownSpells = [];
 
 	public readonly static SpellData MeleeHit = new(1, "Melee", SpellSchool.Physical);
 

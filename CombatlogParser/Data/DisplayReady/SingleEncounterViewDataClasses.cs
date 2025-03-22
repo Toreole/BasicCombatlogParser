@@ -2,22 +2,19 @@
 
 namespace CombatlogParser.Data.DisplayReady;
 
-public class PlayerDeathDataRow
+public class PlayerDeathDataRow(
+	string name, 
+	Brush color, 
+	string formattedTimestamp, 
+	string abilityName, 
+	string[] lastHits, 
+	string deathTime
+	)
 {
-	public string Name { get; set; }
-	public Brush Color { get; set; }
-	public string FormattedTimestamp { get; set; }
-	public string AbilityName { get; set; }
-	public string LastHits { get; set; }
-	public string DeathTime { get; set; }
-
-	public PlayerDeathDataRow(string name, Brush color, string formattedTimestamp, string abilityName, string[] lastHits, string deathTime)
-	{
-		Name = name;
-		Color = color;
-		FormattedTimestamp = formattedTimestamp;
-		AbilityName = abilityName;
-		LastHits = string.Join(", ", lastHits);
-		DeathTime = deathTime;
-	}
+	public string Name { get; set; } = name;
+	public Brush Color { get; set; } = color;
+	public string FormattedTimestamp { get; set; } = formattedTimestamp;
+	public string AbilityName { get; set; } = abilityName;
+	public string LastHits { get; set; } = string.Join(", ", lastHits);
+	public string DeathTime { get; set; } = deathTime;
 }

@@ -19,8 +19,8 @@ public class Combatlog
 	/// <summary>
 	/// All encounters in the log.
 	/// </summary>
-	public EncounterInfo[] Encounters { get; set; } = Array.Empty<EncounterInfo>();
+	public EncounterInfo[] Encounters { get; set; } = [];
 
 	//TODO: zone_changed events should be handled, so we know which instance this is in.
-	public LogEntryBase[] ZoneChangeEvents = Array.Empty<LogEntryBase>();
+	public LogEntryBase[] ZoneChangeEvents = [];
 }

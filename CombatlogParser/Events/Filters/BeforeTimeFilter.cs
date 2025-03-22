@@ -3,15 +3,10 @@
 /// <summary>
 /// Matches events that are before or at the given timestamp.
 /// </summary>
-public sealed class BeforeTimeFilter : EventFilter
+public sealed class BeforeTimeFilter(DateTime timestamp) : EventFilter
 {
-	private readonly DateTime timestamp;
 	public override bool Match(CombatlogEvent ev)
 	{
 		return ev.Timestamp <= timestamp;
-	}
-	public BeforeTimeFilter(DateTime timestamp)
-	{
-		this.timestamp = timestamp;
 	}
 }

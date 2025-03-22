@@ -12,7 +12,7 @@ namespace CombatlogParser.Controls.Views;
 public partial class CombatlogOverviewView : ContentView
 {
 	private CombatlogMetadata? currentCombatlog = null;
-	private readonly ObservableCollection<EncounterInfoMetadata> encounters = new();
+	private readonly ObservableCollection<EncounterInfoMetadata> encounters = [];
 
 	public CombatlogMetadata? CombatlogMetadata
 	{

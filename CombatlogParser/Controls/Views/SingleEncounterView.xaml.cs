@@ -1,14 +1,13 @@
 using CombatlogParser.Controls.Styles;
 using CombatlogParser.Data;
 using CombatlogParser.Data.DisplayReady;
+using CombatlogParser.Data.Metadata;
 using CombatlogParser.Database;
 using CombatlogParser.Events.EventData;
-using CombatlogParser.Data.Metadata;
 using CombatlogParser.Parsing;
 using CombatlogParser.Utilities.Formatting;
 using System.Windows;
 using System.Windows.Controls;
-
 using Brushes = System.Windows.Media.Brushes;
 
 namespace CombatlogParser.Controls.Views;

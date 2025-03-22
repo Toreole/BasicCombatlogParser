@@ -16,8 +16,8 @@ namespace CombatlogParser;
 /// </summary>
 public partial class MainWindow : Window
 {
-	private readonly ObservableCollection<string> searchedPlayerNames = new();
-	private PlayerMetadata[] searchedPlayers = Array.Empty<PlayerMetadata>();
+	private readonly ObservableCollection<string> searchedPlayerNames = [];
+	private PlayerMetadata[] searchedPlayers = [];
 	private readonly LabelledProgressBar progressBar;
 
 	public MainWindow()

@@ -14,15 +14,15 @@ namespace CombatlogParser.Controls.Views;
 public partial class PlayerMetadataView : ContentView
 {
 	static readonly InstanceId[] AllRaids = InstanceEncounterUtility.OrderedRaids;
-	static readonly DifficultyId[] Difficulties = new[]
-	{
+	static readonly DifficultyId[] Difficulties =
+	[
 		DifficultyId.LFR,
 		DifficultyId.Normal_Raid,
 		DifficultyId.Heroic_Raid,
 		DifficultyId.Mythic_Raid
-	};
+	];
 
-	private readonly List<EncounterId> encounters = new();
+	private readonly List<EncounterId> encounters = [];
 	//private int selectedEncounterIndex = 0;
 	private PlayerMetadata? targetPlayer;
 
