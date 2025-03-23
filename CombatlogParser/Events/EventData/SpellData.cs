@@ -9,17 +9,26 @@ public class SpellData
 
 	public readonly static SpellData MeleeHit = new(1, "Melee", SpellSchool.Physical);
 
-	public int id;
-	public string name;
-	public SpellSchool school;
+	public int Id { get; internal set; }
+	public string Name { get; internal set; }
+	public SpellSchool School { get; internal set; }
 
 	private SpellData(int id, string name, SpellSchool school)
 	{
-		this.id = id;
-		this.name = name;
-		this.school = school;
+		Id = id;
+		Name = name;
+		School = school;
 	}
 
+	/// <summary>
+	/// Attempts to obtain SpellData from a string at a given index.
+	/// Depending on the known prefix, SpellData might not exist at the expected location
+	/// and is then defaulted to "Melee". (Ranged auto attacks for hunters have SpellData)
+	/// </summary>
+	/// <param name="prefix">The prefix used</param>
+	/// <param name="line">The full line of the combatlog</param>
+	/// <param name="index">Index where to expect SpellData in the log.</param>
+	/// <returns></returns>
 	public static SpellData ParseOrGet(CombatlogEventPrefix prefix, string line, ref int index)
 	{
 		if (prefix is CombatlogEventPrefix.SWING or CombatlogEventPrefix.ENVIRONMENTAL)

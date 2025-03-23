@@ -1,14 +1,18 @@
 ﻿using CombatlogParser.Data.WowEnums;
 using CombatlogParser.Events.EventData;
 
-namespace CombatlogParser.Events
-{
-	public class SummonEvent(CombatlogEventPrefix prefix, string entry, int dataIndex) 
-		: CombatlogEvent(entry, ref dataIndex, EventType.SUMMON, prefix, CombatlogEventSuffix._SUMMON), ISpellEvent
-	{
-		//basically just a SPELL event, there is nothing special to it.
-		private readonly SpellData spellData = SpellData.ParseOrGet(prefix, entry, ref dataIndex);
+namespace CombatlogParser.Events;
 
-		public SpellData SpellData => spellData;
+[CombatlogEvent(CombatlogEventSuffix._SUMMON, CombatlogEventPrefix.SPELL)]
+public class SummonEvent: CombatlogEvent, ISpellEvent
+{
+	//basically just a SPELL event, there is nothing special to it.
+	public SpellData SpellData { get; private set; } = null!;
+
+	public override void SetDataFrom(string entry, int dataIndex, CombatlogEventPrefix prefix)
+	{
+		SetBasicCombatlogData(entry, ref dataIndex);
+		SpellData = SpellData.ParseOrGet(prefix, entry, ref dataIndex);
 	}
+
 }

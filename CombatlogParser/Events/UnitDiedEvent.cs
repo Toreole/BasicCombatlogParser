@@ -2,7 +2,11 @@
 
 namespace CombatlogParser.Events;
 
-public class UnitDiedEvent(CombatlogEventPrefix prefix, string entry, int index) 
-	: CombatlogEvent(entry, ref index, EventType.DEATH, prefix, CombatlogEventSuffix._DIED)
+[CombatlogEvent(CombatlogEventSuffix._DIED, CombatlogEventPrefix.UNIT)]
+public class UnitDiedEvent: CombatlogEvent
 {
+	public override void SetDataFrom(string entry, int dataIndex, CombatlogEventPrefix prefix)
+	{
+		SetBasicCombatlogData(entry, ref dataIndex);
+	}
 }

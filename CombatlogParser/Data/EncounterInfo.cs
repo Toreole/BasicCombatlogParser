@@ -355,8 +355,8 @@ public class EncounterInfo
 					new(player.Name,
 					player.Class.GetClassBrush(),
 					formattedTimestamp,
-					abilityName: last3hits[^1].SpellData.name,
-					lastHits: last3hits.Select(x => x.SpellData.name).ToArray(), // last3hits.LastOrDefault()?.spellData.name ?? "unknown"
+					abilityName: last3hits[^1].SpellData.Name,
+					lastHits: last3hits.Select(x => x.SpellData.Name).ToArray(), // last3hits.LastOrDefault()?.spellData.name ?? "unknown"
 					formattedDeathTime
 					)
 				);

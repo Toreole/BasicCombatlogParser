@@ -4,6 +4,8 @@ using CombatlogParser.Data.Metadata;
 using CombatlogParser.Data.WowEnums;
 using CombatlogParser.Database;
 using CombatlogParser.Events;
+using System.CodeDom;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Text.RegularExpressions;
@@ -22,6 +24,7 @@ public static partial class ParserCore
 	private readonly static FieldInfo charBufferField;
 
 	private readonly static Regex logInfoSeparationRegex = LogInfoSeparationRegex();
+	private static readonly Dictionary<string, Type> eventTypeDictionary = [];
 
 	static ParserCore()
 	{
@@ -416,7 +419,7 @@ public static partial class ParserCore
 		//other events are to be handled differently.
 		if (TryParsePrefixSuffixSubeventF(subevent, out var prefix, out var suffix))
 		{
-			CombatlogEvent? clevent = CombatlogEvent.Create(line, prefix, suffix);
+			CombatlogEvent? clevent = ParseCombatlogEvent(line, pos, prefix, suffix);
 			if (clevent != null)
 			{
 				events.Add(clevent);
@@ -442,6 +445,40 @@ public static partial class ParserCore
 		{
 			//TODO: Write to a Log that a subevent could not be recognized. Its probably new.
 			parsingContext.RegisterUnhandledSubevent(subevent, line);
+		}
+	}
+
+	private static CombatlogEvent ParseCombatlogEvent(string line, int startIndex, CombatlogEventPrefix prefix, CombatlogEventSuffix suffix)
+	{
+		if (eventTypeDictionary.Count == 0)
+		{
+			InitializeEventTypeDictionary();
+		}
+		string fullEvent = $"{prefix}{suffix}";
+		if (eventTypeDictionary.TryGetValue(fullEvent, out var eventType))
+		{
+			var eventData = Activator.CreateInstance(eventType) as CombatlogEvent;
+			eventData?.SetDataFrom(line, startIndex, prefix);
+			return eventData ?? throw new Exception("wow ok");
+		}
+		throw new Exception("Event Type not configured.");
+	}
+
+	private static void InitializeEventTypeDictionary()
+	{
+		Assembly assembly = Assembly.GetExecutingAssembly();
+		foreach (var type in assembly.DefinedTypes.Where(it => it.IsSubclassOf(typeof(CombatlogEvent)) && !it.IsAbstract))
+		{
+			var config = type.GetCustomAttribute<CombatlogEventAttribute>();
+			if (config == null)
+			{
+				Debug.WriteLine($"Type {type.Name} is a concrete CombatlogEvent but does not have the CombatlogEventAttribute configured. Is this intended?");
+				continue;
+			}
+			foreach (var pre in config.AllowedPrefixes)
+			{
+				eventTypeDictionary.Add($"{pre}{config.TargetSuffix}", type);
+			}
 		}
 	}
 

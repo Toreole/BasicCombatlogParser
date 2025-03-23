@@ -4,24 +4,24 @@ using CombatlogParser.Parsing;
 
 namespace CombatlogParser.Events;
 
+[CombatlogEvent(CombatlogEventSuffix._HEAL_SUPPORT,
+	allowedPrefixes: [
+		CombatlogEventPrefix.SPELL,
+		CombatlogEventPrefix.SPELL_PERIODIC
+	]
+)]
 internal class HealSupportEvent : AdvancedParamEvent, ISpellEvent
 {
-	private readonly SpellData spellData;
-	private readonly HealEventParams healParams;
-	private readonly string supporterGUID;
+	public SpellData SpellData { get; private set; } = null!;
+	public HealEventParams HealParams { get; private set; } = null!;
+	public string SupporterGUID { get; private set; } = null!;
 
-	public SpellData SpellData => spellData;
-	public HealEventParams HealParams => healParams;
-	public string SupporterGUID => supporterGUID;
-
-	public HealSupportEvent(CombatlogEventPrefix prefix, string entry, int dataIndex)
-		: base(entry, ref dataIndex, EventType.HEALING, prefix, CombatlogEventSuffix._HEAL)
+	public override void SetDataFrom(string entry, int dataIndex, CombatlogEventPrefix prefix)
 	{
-		spellData = SpellData.ParseOrGet(prefix, entry, ref dataIndex);
-
-		AdvancedParams = new(entry, ref dataIndex);
-
-		healParams = new(entry, ref dataIndex);
-		supporterGUID = string.Intern(ParsingUtil.NextSubstring(entry, ref dataIndex));
+		SetBasicCombatlogData(entry, ref dataIndex);
+		SpellData = SpellData.ParseOrGet(prefix, entry, ref dataIndex);
+		SetAdvancedParams(entry, ref dataIndex);
+		HealParams = new(entry, ref dataIndex);
+		SupporterGUID = string.Intern(ParsingUtil.NextSubstring(entry, ref dataIndex));
 	}
 }

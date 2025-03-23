@@ -3,7 +3,7 @@ using static CombatlogParser.Parsing.ParsingUtil;
 
 namespace CombatlogParser.Events.EventData;
 
-public class AdvancedParams
+public class AdvancedEventData
 {
 	public readonly string infoGUID;
 	public readonly string ownerGUID;
@@ -23,7 +23,7 @@ public class AdvancedParams
 	public readonly float facing;
 	public readonly int level;
 
-	public AdvancedParams(string data, ref int dataIndex)
+	public AdvancedEventData(string data, ref int dataIndex)
 	{
 		infoGUID = string.Intern(NextSubstring(data, ref dataIndex));
 		ownerGUID = string.Intern(NextSubstring(data, ref dataIndex));

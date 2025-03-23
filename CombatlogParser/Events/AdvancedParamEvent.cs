@@ -5,8 +5,14 @@ namespace CombatlogParser.Events;
 
 public abstract class AdvancedParamEvent : CombatlogEvent
 {
-#pragma warning disable //AdvancedParams is going to be set by the inheriting class. I do not care that its not initialized here.
-	protected AdvancedParamEvent(string entry, ref int dataIndex, EventType eventType, CombatlogEventPrefix prefix, CombatlogEventSuffix suffix) : base(entry, ref dataIndex, eventType, prefix, suffix) { }
-#pragma warning restore
-	public AdvancedParams AdvancedParams { get; protected set; }
+	/// <summary>
+	/// This is null! until SetAdvancedParams is called!
+	/// Make sure to have all advanced param events use that method in SetDataFrom(...)
+	/// </summary>
+	public AdvancedEventData AdvancedParams { get; protected set; } = null!;
+
+	protected void SetAdvancedParams(string entry, ref int dataIndex)
+	{
+		AdvancedParams = new(entry, ref dataIndex);
+	}
 }

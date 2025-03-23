@@ -4,27 +4,26 @@ using CombatlogParser.Parsing;
 
 namespace CombatlogParser.Events;
 
+[CombatlogEvent(CombatlogEventSuffix._DAMAGE_SUPPORT,
+	allowedPrefixes: [
+		CombatlogEventPrefix.SWING,
+		CombatlogEventPrefix.SPELL,
+		CombatlogEventPrefix.SPELL_PERIODIC
+	]
+)]
 internal class DamageSupportEvent : AdvancedParamEvent, ISpellEvent
 {
-	//the leading bits of data.
-	private readonly SpellData spellData;
+	public SpellData SpellData { get; private set; } = null!;
+	public DamageEventParams DamageParams { get; private set; } = null!;
 
-	//what follows
-	private readonly DamageEventParams damageParams;
+	public string SupporterGUID { get; private set; } = null!;
 
-	//whats important for Support
-	private readonly string supporterGUID;
-
-	public SpellData SpellData => spellData;
-	public DamageEventParams DamageParams => damageParams;
-	public string SupporterGUID => supporterGUID;
-
-	public DamageSupportEvent(CombatlogEventPrefix prefix, string entry, int dataIndex)
-		: base(entry, ref dataIndex, EventType.DAMAGE, prefix, CombatlogEventSuffix._DAMAGE)
+	public override void SetDataFrom(string entry, int dataIndex, CombatlogEventPrefix prefix)
 	{
-		spellData = SpellData.ParseOrGet(prefix, entry, ref dataIndex);
-		AdvancedParams = new(entry, ref dataIndex);
-		damageParams = new(entry, ref dataIndex);
-		supporterGUID = string.Intern(ParsingUtil.NextSubstring(entry, ref dataIndex));
+		SetBasicCombatlogData(entry, ref dataIndex);
+		SpellData = SpellData.ParseOrGet(prefix, entry, ref dataIndex);
+		SetAdvancedParams(entry, ref dataIndex);
+		DamageParams = new(entry, ref dataIndex);
+		SupporterGUID = string.Intern(ParsingUtil.NextSubstring(entry, ref dataIndex));
 	}
 }

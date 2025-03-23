@@ -353,8 +353,8 @@ public partial class SingleEncounterView : ContentView
 				Value = results[i].Value,
 				Label = results[i].Value.ToShortFormString(),
 				ValueString = (results[i].Value / encounterLength).ToString("N1"),
-				Name = results[i].Key.name,
-				Color = results[i].Key.school.GetSchoolBrush()
+				Name = results[i].Key.Name,
+				Color = results[i].Key.School.GetSchoolBrush()
 			};
 		}
 		foreach (var entry in displayData)

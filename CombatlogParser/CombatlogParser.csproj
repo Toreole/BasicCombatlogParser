@@ -50,5 +50,8 @@
 	<ItemGroup>
 		<AdditionalFiles Include="./GeneratorData/Encounters.txt" />
 	</ItemGroup>
+	<ItemGroup>
+	  <Folder Include="Events\Parsers\" />
+	</ItemGroup>
 	
 </Project>

@@ -3,43 +3,49 @@ using CombatlogParser.Events.EventData;
 using CombatlogParser.Parsing;
 using System.Text.RegularExpressions;
 
-namespace CombatlogParser.Events
+namespace CombatlogParser.Events;
+
+/// <summary>
+/// Contains any
+/// </summary>
+[CombatlogEvent(CombatlogEventSuffix._DAMAGE, 
+	allowedPrefixes: [
+		CombatlogEventPrefix.SPELL, 
+		CombatlogEventPrefix.SWING,
+		CombatlogEventPrefix.SPELL_PERIODIC,
+		CombatlogEventPrefix.RANGE,
+		CombatlogEventPrefix.ENVIRONMENTAL
+	])]
+public partial class DamageEvent : AdvancedParamEvent, ISpellEvent
 {
-	public partial class DamageEvent : AdvancedParamEvent, ISpellEvent
+	public SpellData SpellData { get; private set; } = null!;
+
+	public DamageEventParams DamageParams { get; private set; } = null!;
+
+	public override void SetDataFrom(string entry, int dataIndex, CombatlogEventPrefix prefix)
 	{
-		//the leading bits of data.
-		private readonly SpellData spellData;
-
-		public SpellData SpellData => spellData;
-
-		//what follows
-		private readonly DamageEventParams damageParams;
-
-		public DamageEventParams DamageParams => damageParams;
-
-		public DamageEvent(CombatlogEventPrefix prefix, string entry, int dataIndex)
-			: base(entry, ref dataIndex, EventType.DAMAGE, prefix, CombatlogEventSuffix._DAMAGE)
+		SetBasicCombatlogData(entry, ref dataIndex);
+		// prefix data. SpellData.ParseOrGet handles prefix variance.
+		SpellData = SpellData.ParseOrGet(prefix, entry, ref dataIndex);
+		SetAdvancedParams(entry, ref dataIndex);
+		// suffix data
+		if (prefix is CombatlogEventPrefix.ENVIRONMENTAL)
 		{
-			spellData = SpellData.ParseOrGet(prefix, entry, ref dataIndex);
-			AdvancedParams = new(entry, ref dataIndex);
-			if (prefix is CombatlogEventPrefix.ENVIRONMENTAL)
+			int x_index = dataIndex;
+			var nextString = ParsingUtil.NextSubstring(entry, ref x_index);
+			if (NumericInteger().Match(nextString).Success is false)
 			{
-				int x_index = dataIndex;
-				var nextString = ParsingUtil.NextSubstring(entry, ref x_index);
-				if (NumericInteger().Match(nextString).Success is false)
-				{
-					//if this isnt a number for damage, this is the "spell name"
-					//for example: "Falling"
-					//because for some reason, ENVIRONMENTAL_DAMAGE puts a name *after*
-					//the advancedParams, but before the _DAMAGE payload.
-					dataIndex = x_index;
-					spellData.name = nextString;
-				}
+				//if this isnt a number for damage, this is the "spell name"
+				//for example: "Falling"
+				//because for some reason, ENVIRONMENTAL_DAMAGE puts a name *after*
+				//the advancedParams, but before the _DAMAGE payload.
+				dataIndex = x_index;
+				SpellData.Name = nextString;
 			}
-			damageParams = new(entry, ref dataIndex);
 		}
-
-		[GeneratedRegex("([0-9])")]
-		private static partial Regex NumericInteger();
+		DamageParams = new(entry, ref dataIndex);
 	}
+
+	[GeneratedRegex("([0-9])")]
+	private static partial Regex NumericInteger();
 }
