@@ -7,7 +7,8 @@ namespace CombatlogParser.Events;
 	allowedPrefixes: [
 		CombatlogEventPrefix.SPELL,
 		CombatlogEventPrefix.SPELL_PERIODIC,
-		CombatlogEventPrefix.SWING
+		CombatlogEventPrefix.SWING,
+		CombatlogEventPrefix.RANGE
 	]
 )]
 public class SpellAbsorbedEvent : CombatlogEvent, ISpellEvent
@@ -29,11 +30,14 @@ public class SpellAbsorbedEvent : CombatlogEvent, ISpellEvent
 
 	public override void SetDataFrom(string entry, int dataIndex, CombatlogEventPrefix prefix)
 	{
-		int argumentCount = CountArguments(entry, dataIndex);
+		// argument count is an unreliable indicator
+		// int argumentCount = CountArguments(entry, dataIndex);
 		SetBasicCombatlogData(entry, ref dataIndex);
 
-		// Absorbed Spell Data isnt included in the entry if melee
-		AbsorbedSpellData = (argumentCount < 13) ? 
+		// Absorbed Spell Data isnt included in the entry if melee, in which case the next
+		// value is a GUID... PVC" stands for [P]layer, [V]ehicle, [C]reature, or a " which signals a name of some kind.
+		string mismatch = "PVC\"";
+		AbsorbedSpellData = (mismatch.Contains(entry[dataIndex])) ? 
 			AbsorbedSpellData = SpellData.MeleeHit
 			: SpellData.ParseOrGet(CombatlogEventPrefix.SPELL, entry, ref dataIndex);
 

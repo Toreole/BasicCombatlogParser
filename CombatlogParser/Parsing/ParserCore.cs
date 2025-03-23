@@ -303,7 +303,6 @@ public static partial class ParserCore
 				break;
 			players[i] = GetCombatantInfo(line, pos);
 		}
-
 		CombatlogEventDictionaryBuilder eventDictBuilder = new();
 		//read all the events during the encounter.
 		for (int l = 1; l < metadata.EncounterLengthInFile - (1 + groupSize); l++)
@@ -318,7 +317,6 @@ public static partial class ParserCore
 
 		SetPlayerNamesFromEvents(events, players);
 		List<NpcInfo> npcs = FindNPCs(events);
-
 		return new EncounterInfo(
 			[.. events],
 			eventDictBuilder.Build(),
@@ -361,6 +359,11 @@ public static partial class ParserCore
 		}
 	}
 
+	/// <summary>
+	/// Finds a list of all NPCs in the given list of events.
+	/// </summary>
+	/// <param name="events"></param>
+	/// <returns></returns>
 	private static List<NpcInfo> FindNPCs(List<CombatlogEvent> events)
 	{
 		//try to find all npcs.
@@ -407,6 +410,13 @@ public static partial class ParserCore
 		}
 	}
 
+	/// <summary>
+	/// Parses a single line within the established context and registers the event.
+	/// </summary>
+	/// <param name="line"></param>
+	/// <param name="parsingContext"></param>
+	/// <param name="events"></param>
+	/// <param name="eventDictBuilder"></param>
 	private static void ParseLineInContext(string? line, ParsingContext parsingContext, List<CombatlogEvent> events, CombatlogEventDictionaryBuilder eventDictBuilder)
 	{
 		if (line is null)
@@ -448,7 +458,16 @@ public static partial class ParserCore
 		}
 	}
 
-	private static CombatlogEvent ParseCombatlogEvent(string line, int startIndex, CombatlogEventPrefix prefix, CombatlogEventSuffix suffix)
+	/// <summary>
+	/// Parses a combatlog event from a line.
+	/// </summary>
+	/// <param name="line"></param>
+	/// <param name="startIndex"></param>
+	/// <param name="prefix"></param>
+	/// <param name="suffix"></param>
+	/// <returns></returns>
+	/// <exception cref="Exception"></exception>
+	private static CombatlogEvent? ParseCombatlogEvent(string line, int startIndex, CombatlogEventPrefix prefix, CombatlogEventSuffix suffix)
 	{
 		if (eventTypeDictionary.Count == 0)
 		{
@@ -458,21 +477,35 @@ public static partial class ParserCore
 		if (eventTypeDictionary.TryGetValue(fullEvent, out var eventType))
 		{
 			var eventData = Activator.CreateInstance(eventType) as CombatlogEvent;
+			// leaving this code in as a comment, because this is a useful spot for debugging issues during parsing.
+			//try
+			//{
 			eventData?.SetDataFrom(line, startIndex, prefix);
-			return eventData ?? throw new Exception("wow ok");
+			//}
+			//catch (Exception ex)
+			//{
+			//	Debug.WriteLine(ex);
+			//}
+			
+			return eventData;
 		}
-		throw new Exception("Event Type not configured.");
+		return null;
 	}
 
+	/// <summary>
+	/// Initializes the eventTypeDictionary which is responsible for resolving
+	/// the full event name into the Type which represents it after parsing.
+	/// </summary>
 	private static void InitializeEventTypeDictionary()
 	{
 		Assembly assembly = Assembly.GetExecutingAssembly();
-		foreach (var type in assembly.DefinedTypes.Where(it => it.IsSubclassOf(typeof(CombatlogEvent)) && !it.IsAbstract))
+		var candidates = assembly.DefinedTypes.Where(it => it.IsSubclassOf(typeof(CombatlogEvent)) && !it.IsAbstract);
+		foreach (var type in candidates)
 		{
 			var config = type.GetCustomAttribute<CombatlogEventAttribute>();
 			if (config == null)
 			{
-				Debug.WriteLine($"Type {type.Name} is a concrete CombatlogEvent but does not have the CombatlogEventAttribute configured. Is this intended?");
+				Debug.WriteLine($"Type {type.Name} is a concrete CombatlogEvent but does not have the CombatlogEventAttribute configured!");
 				continue;
 			}
 			foreach (var pre in config.AllowedPrefixes)
@@ -507,6 +540,12 @@ public static partial class ParserCore
 		}
 	}
 
+	/// <summary>
+	/// Extracts the item level from an item string provided by the equipment
+	/// section of a player_info event.
+	/// </summary>
+	/// <param name="itemString"></param>
+	/// <returns></returns>
 	private static int GetItemLevel(string itemString)
 	{
 		int index = 0;
