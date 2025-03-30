@@ -1,5 +1,4 @@
-﻿using CombatlogParser.Data.WowEnums;
-using CombatlogParser.Events.EventData;
+﻿using CombatlogParser.Events.EventData;
 
 namespace CombatlogParser.Events;
 

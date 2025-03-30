@@ -11,7 +11,16 @@ public static class ParsingUtil
 		"MM/dd HH:mm:ss.fff",
 		"M/dd HH:mm:ss.fff",
 		"M/d HH:mm:ss.fff",
-		"MM/d HH:mm:ss.fff"
+		"MM/d HH:mm:ss.fff",
+		// with Combat Log Version 22, timestamps include year and a fourth digit for milliseconds.
+		// but day and month are still a complete mess and can be either one or two digits.
+		// also, if youre gonna change timestamps, then at the very least use year/month/day. 
+		// and never month/day/year. thats just awful. @Blizzard developers who will never see this.
+		"MM/dd/yyyy HH:mm:ss.ffff",
+		"M/dd/yyyy HH:mm:ss.ffff",
+		"MM/d/yyyy HH:mm:ss.ffff",
+		"M/d/yyyy HH:mm:ss.ffff",
+
 	];
 
 	private static readonly Dictionary<string, Subevent> subeventDictionary;

@@ -5,15 +5,15 @@ namespace CombatlogParser.Events.EventData;
 
 public class SpellData
 {
-	private readonly static Dictionary<int, SpellData> knownSpells = [];
+	private readonly static Dictionary<long, SpellData> knownSpells = [];
 
 	public readonly static SpellData MeleeHit = new(1, "Melee", SpellSchool.Physical);
 
-	public int Id { get; internal set; }
+	public long Id { get; internal set; }
 	public string Name { get; internal set; }
 	public SpellSchool School { get; internal set; }
 
-	private SpellData(int id, string name, SpellSchool school)
+	private SpellData(long id, string name, SpellSchool school)
 	{
 		Id = id;
 		Name = name;
@@ -35,7 +35,7 @@ public class SpellData
 		{
 			return MeleeHit;
 		}
-		int spellId = int.Parse(NextSubstring(line, ref index));
+		long spellId = long.Parse(NextSubstring(line, ref index));
 		if (knownSpells.TryGetValue(spellId, out SpellData? value))
 		{
 			MovePastNextDivisor(line, ref index);

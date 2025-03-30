@@ -4,8 +4,7 @@ using CombatlogParser.Data.Metadata;
 using CombatlogParser.Data.WowEnums;
 using CombatlogParser.Database;
 using CombatlogParser.Events;
-using System.CodeDom;
-using System.Diagnostics;
+using Serilog;
 using System.IO;
 using System.Reflection;
 using System.Text.RegularExpressions;
@@ -25,6 +24,11 @@ public static partial class ParserCore
 
 	private readonly static Regex logInfoSeparationRegex = LogInfoSeparationRegex();
 	private static readonly Dictionary<string, Type> eventTypeDictionary = [];
+
+	// this is not ideal, but should be fine since we only ever
+	// parse encounters from a single file, meaning this wont lead to
+	// conflicting LogVersions.
+	public static int LogVersion { get; private set; }
 
 	static ParserCore()
 	{
@@ -79,6 +83,7 @@ public static partial class ParserCore
 		{
 			CombatlogMetadata logMetadata = CreateLogMetadata(fileName, reader.ReadLine()!);
 			await DBStore.StoreCombatlogAsync(logMetadata);
+			LogVersion = logMetadata.LogVersion;
 			logId = logMetadata.Id;
 		}
 
@@ -157,7 +162,7 @@ public static partial class ParserCore
 		CombatlogMetadata logMetadata = new();
 
 		var matches = logInfoSeparationRegex.Matches(line);
-		//logMetadata.logVersion = int.Parse(matches[1].Value);
+		logMetadata.LogVersion = int.Parse(matches[1].Value);
 		bool advancedLogEnabled = logMetadata.IsAdvanced = matches[3].Value == "1";
 		if (!advancedLogEnabled)
 			throw new Exception("Combatlogs without the 'Advanced' Setting enabled are not supported.");
@@ -165,7 +170,7 @@ public static partial class ParserCore
 		logMetadata.ProjectID = (WowProjectID)int.Parse(matches[7].Value);
 		logMetadata.FileName = fileName;
 
-		DateTime dtTimestamp = StringTimestampToDateTime(line[..18].TrimEnd());
+		DateTime dtTimestamp = StringTimestampToDateTime(line[..line.IndexOf(timestamp_end_seperator)].TrimEnd());
 		DateTimeOffset offset = new(dtTimestamp);
 		logMetadata.MsTimeStamp = offset.ToUnixTimeMilliseconds();
 		return logMetadata;
@@ -238,6 +243,13 @@ public static partial class ParserCore
 			metadata.CombatlogMetadata ??= Queries.GetCombatlogMetadataByID(metadata.CombatlogMetadataId);
 			filePath = string.IsNullOrEmpty(metadata.CombatlogMetadata!.FileName) ?
 				throw new FileNotFoundException("No filepath given.") : LocalPath(metadata.CombatlogMetadata.FileName);
+			if (metadata.CombatlogMetadata.LogVersion == 0)
+			{
+				// 0 is not a valid version (has not been set at time of import)
+				// and needs to be corrected by looking it up again.
+				// CorrectLogVersion(metadata.CombatlogMetadata);
+			}
+			LogVersion = metadata.CombatlogMetadata.LogVersion;
 		}
 		using var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read, 16384);
 		return await ParseEncounterWorkAsync(metadata, fileStream);
@@ -477,15 +489,14 @@ public static partial class ParserCore
 		if (eventTypeDictionary.TryGetValue(fullEvent, out var eventType))
 		{
 			var eventData = Activator.CreateInstance(eventType) as CombatlogEvent;
-			// leaving this code in as a comment, because this is a useful spot for debugging issues during parsing.
-			//try
-			//{
-			eventData?.SetDataFrom(line, startIndex, prefix);
-			//}
-			//catch (Exception ex)
-			//{
-			//	Debug.WriteLine(ex);
-			//}
+			try
+			{
+				eventData?.SetDataFrom(line, startIndex, prefix);
+			}
+			catch (Exception ex)
+			{
+				Log.Error(ex, "An error occurred while setting data. Type: {TypeName} \n Input line: {LogLine}", eventData?.GetType().Name, line);
+			}
 			
 			return eventData;
 		}
@@ -505,7 +516,7 @@ public static partial class ParserCore
 			var config = type.GetCustomAttribute<CombatlogEventAttribute>();
 			if (config == null)
 			{
-				Debug.WriteLine($"Type {type.Name} is a concrete CombatlogEvent but does not have the CombatlogEventAttribute configured!");
+				Log.Debug("Event Class {TypeName} is a concrete CombatlogEvent type but is missing the Attribute!", type.Name);
 				continue;
 			}
 			foreach (var pre in config.AllowedPrefixes)
