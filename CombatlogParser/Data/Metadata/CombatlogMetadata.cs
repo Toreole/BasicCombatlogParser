@@ -43,6 +43,16 @@ public class CombatlogMetadata : EntityBase
 	/// </summary>
 	public WowProjectID ProjectID { get; set; }
 
+	/// <summary>
+	/// Version of the Combat Log.
+	/// </summary>
+	public int LogVersion { get; set; }
+
+	/// <summary>
+	/// Custom Label given by the user.
+	/// </summary>
+	public string? CustomLabel { get; set; }
+
 	//Inverse navigation property. is populated by EncounterInfoMetadata entities that refer to this one.
 	public virtual List<EncounterInfoMetadata> Encounters { get; set; } = [];
 
