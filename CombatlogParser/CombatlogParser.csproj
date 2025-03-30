@@ -25,7 +25,9 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.NETCore.UniversalWindowsPlatform" Version="6.2.14" />
-    <PackageReference Include="ScottPlot.WPF" Version="5.0.54" />
+    <PackageReference Include="ScottPlot.WPF" Version="5.0.55" />
+    <PackageReference Include="Serilog" Version="4.2.0" />
+    <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
     <PackageReference Include="SQLite" Version="3.13.0" />
     <PackageReference Include="System.Drawing.Common" Version="9.0.3" />
   </ItemGroup>
