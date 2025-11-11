@@ -4,6 +4,15 @@
 # ': ' seperates id from name.
 # enum names are generated based on the full name in here.
 # THE WAR WITHIN
+2810: Manaforge Omega
+  3129: Plexus Sentinel
+  3131: Loom'ithar
+  3130: Soulbinder Naazindhri
+  3132: Forgeweaver Araz
+  3122: The Soul Hunters
+  3133: Fractillus
+  3134: Nexus-King Salhadaar
+  3135: Dimensius, the All-Devouring
 2769: Liberation of Undermine
   3009: Vexie and the Geargrinders
   3010: Cauldron of Carnage
