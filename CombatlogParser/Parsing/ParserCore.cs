@@ -255,7 +255,7 @@ public static partial class ParserCore
 		return await ParseEncounterWorkAsync(metadata, fileStream);
 	}
 
-	private static PlayerInfo GetCombatantInfo(string line, int pos)
+	private static PlayerInfo GetCombatantInfo(string line, int pos, int logVersion)
 	{
 		//order of params:
 		//(0)playerGUID,(1)Strength,(2)Agility,(3)Stamina,(4)Intelligence,(5)Dodge,(6)Parry,
@@ -263,6 +263,10 @@ public static partial class ParserCore
 		//(12)Lifesteal,(13)HasteMelee,(14)HasteRanged,(15)HasteSpell,(16)Avoidance,(17)Mastery,
 		//(18)VersatilityDamageDone,(19)VersatilityHealingDone,(20)VersatilityDamageTaken,
 		//(21)Armor,(22)CurrentSpecID,
+
+		// TODO: something major changed about the CombatantInfo message.
+		// COMBATLOGVERSION 22
+
 		PlayerInfo player = new()
 		{
 			GUID = NextSubstring(line, ref pos),
@@ -271,7 +275,8 @@ public static partial class ParserCore
 			Stamina = int.Parse(NextSubstring(line, ref pos)),
 			Intelligence = int.Parse(NextSubstring(line, ref pos))
 		};
-		for (int skip = 5; skip < 23; skip++) MovePastNextDivisor(line, ref pos);
+		int amountToSkip = (logVersion >= 22) ? 24 : 23;
+		for (int skip = 5; skip < amountToSkip; skip++) MovePastNextDivisor(line, ref pos);
 		player.SpecId = (SpecId)int.Parse(NextSubstring(line, ref pos));
 		player.Class = player.SpecId.GetClassId();
 		_ = NextArray(line, ref pos); // talents are skipped over for now.
@@ -313,7 +318,7 @@ public static partial class ParserCore
 			int pos = line.IndexOf(timestamp_end_seperator) + 2;
 			if (NextSubstring(line, ref pos) != "COMBATANT_INFO")
 				break;
-			players[i] = GetCombatantInfo(line, pos);
+			players[i] = GetCombatantInfo(line, pos, metadata.CombatlogMetadata?.LogVersion ?? 22);
 		}
 		CombatlogEventDictionaryBuilder eventDictBuilder = new();
 		//read all the events during the encounter.
@@ -561,7 +566,10 @@ public static partial class ParserCore
 	{
 		int index = 0;
 		MovePastNextDivisor(itemString, ref index);
-		return int.Parse(NextSubstring(itemString, ref index));
+		string nextString = NextSubstring(itemString, ref index);
+		if (String.IsNullOrEmpty(nextString))
+			return 0; // TODO: exception when nextString is empty should be handled correctly.
+		return int.Parse(nextString);
 	}
 
 	/// <summary>
