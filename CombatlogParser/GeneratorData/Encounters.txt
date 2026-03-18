@@ -3,6 +3,19 @@
 # their encounters are indented by 2. 
 # ': ' seperates id from name.
 # enum names are generated based on the full name in here.
+# MIDNIGHT
+2913: March on Quel'Danas
+  3182: Belo'ren, Child of Al'ar
+  3183: Midnight Falls
+2939: The Dreamrift
+  3306: Chimaerus the Undreamt God
+2912: The Voidspire
+  3176: Imperator Averzian
+  3177: Vorasius
+  3178: Vaelgor and Ezzorak
+  3179: Fallen-King Salhadaar
+  3180: Lightblinded Vanguard
+  3181: Crown of the Cosmos
 # THE WAR WITHIN
 2810: Manaforge Omega
   3129: Plexus Sentinel
