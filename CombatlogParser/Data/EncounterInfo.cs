@@ -487,15 +487,29 @@ public class EncounterInfo
 
 		const float padding = 5f;
 		float minX, maxX, minY, maxY;
-		float[] sortedX = events.Select(e => e.positionX).Order().ToArray();
-		float[] sortedY = events.Select(e => e.positionY).Order().ToArray();
+        List<float> sortedX = events.Select(e => e.positionX).Order().ToList();
+		List<float> sortedY = events.Select(e => e.positionY).Order().ToList();
 
+		// remove unusually high / low coordinates based on a very simple approach
+		var xLowerQuantile = MathUtil.Quantile(sortedX, 1f / 4f);
+		var xUpperQuantile = MathUtil.Quantile(sortedX, 3f / 4f);
+		var xQuantileDist = xUpperQuantile - xLowerQuantile;
+		var xLowerLimit = xLowerQuantile - (3f / 2f) * xQuantileDist;
+        var xUpperLimit = xUpperQuantile + (3f / 2f) * xQuantileDist;
 
+        var yLowerQuantile = MathUtil.Quantile(sortedY, 1f / 4f);
+        var yUpperQuantile = MathUtil.Quantile(sortedY, 3f / 4f);
+        var yQuantileDist = yUpperQuantile - yLowerQuantile;
+        var yLowerLimit = yLowerQuantile - (3f / 2f) * yQuantileDist;
+        var yUpperLimit = yUpperQuantile + (3f / 2f) * yQuantileDist;
 
-		minX = sortedX[0];
-        maxX = sortedX[^-1];
+		sortedX.RemoveAll(x => x < xLowerLimit || x > xUpperLimit);
+		sortedY.RemoveAll(y => y < yLowerLimit || y > yUpperLimit);
+
+        minX = sortedX[0];
+        maxX = sortedX[^1];
 		minY = sortedY[0];
-		maxY = sortedY[^-1];
+		maxY = sortedY[^1];
 
         { //make it a square.
 			var width = maxX - minX;
