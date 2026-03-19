@@ -18,10 +18,11 @@ public class CombatlogEventTests
 	public void TestDictionaryOneValue()
 	{
 		CombatlogEventDictionaryBuilder builder = new();
-		CombatlogEvent dmgEvent = CombatlogEvent.Create(
+		CombatlogEvent dmgEvent = new DamageEvent();
+		dmgEvent.SetDataFrom(
 			"3/6 20:21:15.495  SWING_DAMAGE,Creature-0-3773-2522-23135-155906-0000063D1E,\"Wildtier\",0x2114,0x0,Creature-0-3773-2522-23135-190245-0000063CF4,\"Bruthüterin Diurna\",0x10a48,0x0,Creature-0-3773-2522-23135-155906-0000063D1E,Player-3391-068AB778,72992,72992,9140,9140,5935,0,1,0,0,0,-2.76,24.33,2126,2.2872,416,6174,8399,-1,1,0,0,0,nil,nil,nil\r\n",
-			CombatlogEventPrefix.SWING,
-			CombatlogEventSuffix._DAMAGE)!;
+			31,
+			CombatlogEventPrefix.SWING);
 		builder.Add(dmgEvent);
 		var dictionary = builder.Build();
 		DamageEvent[] damageEvents = dictionary.GetEvents<DamageEvent>();
@@ -31,7 +32,11 @@ public class CombatlogEventTests
 	[Test]
 	public void TestUnitDiedEventParse()
 	{
-		CombatlogEvent? diedEvent = CombatlogEvent.Create("5/24 20:22:47.199  UNIT_DIED,0000000000000000,nil,0x80000000,0x80000000,Player-3391-068AB778,\"Neferu-Silvermoon\",0x514,0x0,1", CombatlogEventPrefix.UNIT, CombatlogEventSuffix._DIED);
+		CombatlogEvent? diedEvent = new UnitDiedEvent();
+		diedEvent.SetDataFrom(
+			"5/24 20:22:47.199  UNIT_DIED,0000000000000000,nil,0x80000000,0x80000000,Player-3391-068AB778,\"Neferu-Silvermoon\",0x514,0x0,1", 
+			29,
+			CombatlogEventPrefix.UNIT);
 		Assert.Multiple(() =>
 		{
 			Assert.That(diedEvent, Is.Not.Null);

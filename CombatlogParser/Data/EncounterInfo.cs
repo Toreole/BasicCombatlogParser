@@ -487,11 +487,17 @@ public class EncounterInfo
 
 		const float padding = 5f;
 		float minX, maxX, minY, maxY;
-		minX = events.Min(x => x.positionX);
-		maxX = events.Max(x => x.positionX);
-		minY = events.Min(x => x.positionY);
-		maxY = events.Max(x => x.positionY);
-		{ //make it a square.
+		float[] sortedX = events.Select(e => e.positionX).Order().ToArray();
+		float[] sortedY = events.Select(e => e.positionY).Order().ToArray();
+
+
+
+		minX = sortedX[0];
+        maxX = sortedX[^-1];
+		minY = sortedY[0];
+		maxY = sortedY[^-1];
+
+        { //make it a square.
 			var width = maxX - minX;
 			var height = maxY - minY;
 			var halfExtents = Math.Max(width, height) * 0.5f + padding;
